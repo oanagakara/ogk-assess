@@ -1,0 +1,114 @@
+{% extends "assessment/base.html" %}
+{% block title %}Assessor dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen p-6">
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-semibold">Assessor dashboard</h1>
+      <div class="flex gap-2">
+        <a class="btn" href="/accounts/logout/">Logout</a>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="text-sm opacity-70">Total attempts</div>
+          <div class="text-3xl font-bold">{{ total_attempts }}</div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="text-sm opacity-70">Submitted today</div>
+          <div class="text-3xl font-bold">{{ submitted_today }}</div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="text-sm opacity-70">Active now (last 30 min)</div>
+          <div class="text-3xl font-bold">{{ active_now }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a class="btn btn-primary w-full sm:w-auto" href="{% url 'assessment:assessor_new_attempt' %}">New code</a>
+      <a class="btn w-full sm:w-auto" href="{% url 'assessment:assessor_attempts' %}">All attempts</a>
+      <a class="btn w-full sm:w-auto" href="/admin/">Admin</a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body p-0">
+        <div class="p-6">
+          <h2 class="text-lg font-semibold">Recent activity</h2>
+          <p class="text-sm opacity-70">Last 10 attempts by activity</p>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body space-y-2">
+            <div>
+              <h2 class="text-lg font-semibold">Recent activity</h2>
+              <p class="text-sm opacity-70">Last 10 attempts by activity</p>
+            </div>
+
+    <div class="overflow-x-auto">
+      <table class="table table-zebra w-full">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Learner</th>
+            <th>Status</th>
+            <th class="text-right">Responses</th>
+            <th>Last activity</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for a in recent %}
+            <tr>
+              <td class="font-mono whitespace-nowrap">
+                <a class="link link-hover" href="{% url 'assessment:attempt_question' a.code 1 %}">{{ a.code }}</a>
+              </td>
+
+              <td class="whitespace-nowrap">
+                {{ a.learner.first_names }} {{ a.learner.surname }}
+              </td>
+
+              <td>
+                {% if a.status == "submitted" %}
+                  <span class="badge badge-success">submitted</span>
+                {% elif a.status == "in_progress" %}
+                  <span class="badge badge-warning">in progress</span>
+                {% else %}
+                  <span class="badge">{{ a.status }}</span>
+                {% endif %}
+              </td>
+
+              <td class="text-right font-mono">
+                {{ a.response_count }}
+              </td>
+
+              <td class="whitespace-nowrap opacity-80">
+                {{ a.last_activity_at|default:a.started_at }}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="opacity-70">No attempts yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
