@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.contrib.auth import get_user_model 
 from django.db import models
 import secrets
 import string
@@ -57,6 +59,21 @@ class Question(models.Model):
     def __str__(self) -> str:
         return f"{self.code} [{self.kind}]"
 
+User = get_user_model()
+
+class Score(models.Model):
+    response = models.ForeignKey("Response", on_delete=models.CASCADE)
+    assessor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL, 
+        null=True,
+        blank=True
+    )
+    points = models.FloatField(default=0)
+    max_points =  models.FloatField(default=0)
+    rubric_json = models.JSONField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
 
 class Learner(models.Model):
     MALE = "male"
@@ -91,6 +108,7 @@ class Learner(models.Model):
 def generate_attempt_code(length: int = 8) -> str:
     alphabet = string.ascii_uppercase + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(length))
+
 class Attempt(models.Model):
     IN_PROGRESS = "in_progress"
     SUBMITTED = "submitted"
