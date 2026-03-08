@@ -62,7 +62,7 @@ class Question(models.Model):
 User = get_user_model()
 
 class Score(models.Model):
-    response = models.ForeignKey("Response", on_delete=models.CASCADE)
+    response = models.OneToOneField("Response", on_delete=models.CASCADE)
     assessor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL, 
