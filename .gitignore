@@ -27,3 +27,6 @@ Thumbs.db
 # node / tailwind
 node_modules/
 dist/
+
+# Application Migrations
+assessment/migrations/
