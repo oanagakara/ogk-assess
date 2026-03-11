@@ -30,3 +30,4 @@ dist/
 
 # Application Migrations
 assessment/migrations/
+assessment/migrations/__pycache__/
