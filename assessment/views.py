@@ -76,6 +76,21 @@ def assessor_attempts(request):
 
 @login_required
 @user_passes_test(is_assessor)
+def assessor_mark_attempt(request):
+    attempt = get_object_or_404(attempt, code=code)
+    
+    resp, _ = Response.objects.get_or_create(attempt=attempt, code=code)
+    
+    for r in resp:
+        spec = {
+            Question.objects.get(Question.spec_json, attempt=attempt, code=code)
+        },
+    
+    
+    
+
+@login_required
+@user_passes_test(is_assessor)
 def assessor_new_attempt(request):
     # pick the latest template (simple default)
     template = AssessmentTemplate.objects.order_by("-created_at").first()
