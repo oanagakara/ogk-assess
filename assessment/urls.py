@@ -16,5 +16,6 @@ urlpatterns = [
     path("assessor/attempts/", views.assessor_attempts, name="assessor_attempts"),
     path("assessor/attempts/new/", views.assessor_new_attempt, name="assessor_new_attempt"),
     path("assessor/", views.assessor_dashboard, name="assessor_dashboard"),
+    path("assessor/attempts/<str:code>/mark/", views.assessor_mark_attempt, name="assessor_mark_attempt"),
 ]
 
