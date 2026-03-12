@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.contrib.auth import get_user_model 
 from django.db import models
 import secrets
 import string
@@ -7,6 +9,14 @@ import string
 class AssessmentTemplate(models.Model):
     name = models.CharField(max_length=200)
     version = models.CharField(max_length=50, blank=True, default="")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        editable=False,
+        related_name="created_templates",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
@@ -57,6 +67,21 @@ class Question(models.Model):
     def __str__(self) -> str:
         return f"{self.code} [{self.kind}]"
 
+User = get_user_model()
+
+class Score(models.Model):
+    response = models.OneToOneField("Response", on_delete=models.CASCADE)
+    assessor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL, 
+        null=True,
+        blank=True
+    )
+    points = models.FloatField(default=0)
+    max_points =  models.FloatField(default=0)
+    rubric_json = models.JSONField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
 
 class Learner(models.Model):
     MALE = "male"
@@ -91,6 +116,7 @@ class Learner(models.Model):
 def generate_attempt_code(length: int = 8) -> str:
     alphabet = string.ascii_uppercase + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(length))
+
 class Attempt(models.Model):
     IN_PROGRESS = "in_progress"
     SUBMITTED = "submitted"
@@ -104,7 +130,7 @@ class Attempt(models.Model):
 
     template = models.ForeignKey("AssessmentTemplate", on_delete=models.CASCADE)
     learner = models.ForeignKey("Learner", on_delete=models.CASCADE)
-    code = models.CharField(max_length=32, unique=True, default=generate_attempt_code())
+    code = models.CharField(max_length=32, unique=True, default=generate_attempt_code)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=IN_PROGRESS)
     started_at = models.DateTimeField(blank=True, null=True)
     submitted_at = models.DateTimeField(blank=True, null=True)

@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import IntegrityError, transaction
 from django.db.models import Count
 
-from .forms import StartForm, LearnerForm, HonestyForm, TextResponseForm, MatchResponseForm
+from .forms import AttemptForm, StartForm, LearnerForm, HonestyForm, TextResponseForm, MatchResponseForm
 from .models import Attempt, Question, Response, AssessmentTemplate, Learner
 from .services import claim_seat
 
@@ -92,18 +92,49 @@ def assessor_mark_attempt(request):
 @login_required
 @user_passes_test(is_assessor)
 def assessor_new_attempt(request):
-    # pick the latest template (simple default)
-    template = AssessmentTemplate.objects.order_by("-created_at").first()
-    if template is None:
-        return render(request, "assessment/assessor_new_attempt.html", {"error": "No assessment template exists yet."})
+    latest_template = AssessmentTemplate.objects.order_by("-created_at").first()
+
+    if latest_template is None:
+        return render(
+            request,
+            "assessment/assessor_new_attempt.html",
+            {"error": "No assessment template exists yet."},
+        )
 
     if request.method == "POST":
-        # create placeholder learner; learner fills real details later
-        learner = Learner.objects.create(first_names="Temp", surname="Learner", id_number=str(int(timezone.now().timestamp()))[:13])
-        attempt = Attempt.objects.create(template=template, learner=learner)
-        return render(request, "assessment/assessor_new_attempt.html", {"attempt": attempt, "template": template})
+        form = AttemptForm(request.POST)
 
-    return render(request, "assessment/assessor_new_attempt.html", {"template": template})
+        if form.is_valid():
+            learner = Learner.objects.create(
+                first_names="Temp",
+                surname="Learner",
+                id_number=str(int(timezone.now().timestamp()))[:13]
+            )
+
+            attempt = form.save(commit=False)
+            attempt.learner = learner
+            attempt.save()
+        
+            return render(
+                request,
+                "assessment/assessor_new_attempt.html",
+                {
+                    "attempt": attempt,
+                    "form": form,
+                    "template": attempt.template,
+                },
+            )
+    else:
+        form = AttemptForm(initial={"template": latest_template})
+
+    return render(
+        request,
+        "assessment/assessor_new_attempt.html",
+        {
+            "form": form,
+            "template": latest_template,
+        },
+    )
 
 def attempt_question(request, code: str, n: int):
     attempt = get_object_or_404(Attempt, code=code)

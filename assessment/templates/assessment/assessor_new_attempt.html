@@ -60,12 +60,15 @@
       {% else %}
         <form method="POST" class="space-y-4">
           {% csrf_token %}
-
+          {% if form.errors %}
+            <div class="alert alert-error">
+              <span>{{ form.errors|striptags }}</span>
+            </div>
+          {% endif %}
           <div class="form-control">
             <label class="label">
               <span class="label-text font-semibold">Assessment template</span>
             </label>
-            {{ form.template }}
             {% if form.template.errors %}
               <div class="text-error text-sm mt-1">{{ form.template.errors|striptags }}</div>
             {% endif %}
@@ -75,6 +78,9 @@
             <button class="btn btn-primary" type="submit">
               Generate new code
             </button>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button class="btn btn-primary" type="submit">Generate new code</button>
           </div>
         </form>
       {% endif %}
