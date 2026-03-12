@@ -3,73 +3,111 @@
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center p-6">
-  <div class="card w-full max-w-xl bg-base-100 shadow-xl">
+  <div class="card w-full max-w-md bg-base-100 shadow-xl">
     <div class="card-body space-y-4">
+
       <h1 class="card-title text-2xl">Create new assessment code</h1>
 
       {% if error %}
-        <div class="alert alert-error"><span>{{ error }}</span></div>
+        <div class="alert alert-error">
+          <span>{{ error }}</span>
+        </div>
       {% endif %}
 
-      {% if template %}
+      {% if not attempt and template %}
         <div class="text-sm opacity-70">
-          Template: <strong>{{ template.name }}</strong> ({{ template.version }})
+          Latest template: <strong>{{ template.name }}</strong>{% if template.version %} ({{ template.version }}){% endif %}
         </div>
       {% endif %}
 
       {% if attempt %}
+        <div class="text-sm opacity-70">
+          Template: <strong>{{ attempt.template.name }}</strong>{% if attempt.template.version %} ({{ attempt.template.version }}){% endif %}
+        </div>
+
         <div class="alert alert-success">
           <div class="w-full">
             <div class="font-semibold mb-1">New code generated</div>
+
             <div class="flex items-center gap-2">
               <code id="attempt-code" class="font-mono text-lg">{{ attempt.code }}</code>
+
               <button type="button" class="btn btn-sm btn-square" id="copy-btn" aria-label="Copy code">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" 
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="18"
+                     height="18"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
               </button>
+
               <span id="copy-status" class="text-sm opacity-70"></span>
             </div>
           </div>
         </div>
-        <script>
-          const codeEl = document.getElementById("attempt-code");
-          const btn = document.getElementById("copy-btn");
-          const status = document.getElementById("copy-status");
-
-          btn?.addEventListener("click", async () => {
-            const text = (codeEl?.textContent || "").trim();
-            try {
-              await navigator.clipboard.writeText(text);
-              status.textContent = "Copied!";
-              setTimeout(() => status.textContent = "", 1200);
-            } catch (e) {
-              // fallback: select text for manual copy 
-              const range = document.createRange();
-              range.selectNodeContents(codeEl);
-              const sel = window.getSelection();
-              sel.removeAllRanges();
-              sel.addRange(range);
-              status.textContent = "Select + Ct rl/Cmd+C";
-              setTimeout(() => status.textContent = "", 2000);
-            }
-          });
-        </script>
 
         <div class="flex gap-2">
           <a class="btn btn-primary" href="/start/">Go to learner start</a>
-          <a class="btn" href="{% url 'assessment:assessor_attempts' %}">Back to attempts</a>
+          <a class="btn" href="{% url 'assessment:assessor_dashboard' %}">Back to dashboard</a>
         </div>
+
       {% else %}
-        <form method="post" class="flex justify-end">
+        <form method="POST" class="space-y-4">
           {% csrf_token %}
-          <button class="btn btn-primary" type="submit">Generate code</button>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-semibold">Assessment template</span>
+            </label>
+            {{ form.template }}
+            {% if form.template.errors %}
+              <div class="text-error text-sm mt-1">{{ form.template.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="flex justify-end">
+            <button class="btn btn-primary" type="submit">
+              Generate new code
+            </button>
+          </div>
         </form>
       {% endif %}
 
     </div>
   </div>
 </div>
+
+<script>
+const codeEl = document.getElementById("attempt-code");
+const btn = document.getElementById("copy-btn");
+const status = document.getElementById("copy-status");
+
+btn?.addEventListener("click", async () => {
+  const text = (codeEl?.textContent || "").trim();
+
+  try {
+    await navigator.clipboard.writeText(text);
+    status.textContent = "Copied!";
+    setTimeout(() => {
+      status.textContent = "";
+    }, 1200);
+  } catch (e) {
+    const range = document.createRange();
+    range.selectNodeContents(codeEl);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    status.textContent = "Press Ctrl/Cmd+C";
+    setTimeout(() => {
+      status.textContent = "";
+    }, 2000);
+  }
+});
+</script>
 {% endblock %}

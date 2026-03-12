@@ -1,5 +1,5 @@
 from django import forms
-from .models import Learner
+from .models import Learner, Attempt
 
 INPUT = "input input-bordered w-full"
 SELECT = "select select-bordered w-full"
@@ -47,3 +47,11 @@ class TextResponseForm(forms.Form):
 class MatchResponseForm(forms.Form):
     # Allow skipping. We'll still store whatever is posted (even empty).
     response_json = forms.CharField(widget=forms.HiddenInput(), required=False)
+
+class AttemptForm(forms.ModelForm):
+    class Meta:
+        model = Attempt
+        fields = ["template"]
+        widgets = {
+            "template": forms.Select(attrs={"class": "select select-bordered w-full"})
+        }
