@@ -27,3 +27,7 @@ Thumbs.db
 # node / tailwind
 node_modules/
 dist/
+
+# Application Migrations
+assessment/migrations/
+assessment/migrations/__pycache__/
