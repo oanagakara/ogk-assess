@@ -1,5 +1,5 @@
 from django import forms
-from .models import Learner, Attempt
+from .models import Learner, Attempt, AssessmentTemplate
 
 INPUT = "input input-bordered w-full"
 SELECT = "select select-bordered w-full"
@@ -49,9 +49,13 @@ class MatchResponseForm(forms.Form):
     response_json = forms.CharField(widget=forms.HiddenInput(), required=False)
 
 class AttemptForm(forms.ModelForm):
+
+    template = forms.ModelChoiceField(
+        queryset=AssessmentTemplate.objects.order_by("-created_at"),
+        widget=forms.Select(attrs={"class": "select select-bordered w-full"}),
+        empty_label="Select Template"
+    )
+
     class Meta:
         model = Attempt
         fields = ["template"]
-        widgets = {
-            "template": forms.Select(attrs={"class": "select select-bordered w-full"})
-        }
