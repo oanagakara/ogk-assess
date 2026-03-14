@@ -1,11 +1,10 @@
-{% extends "assessment/base.html" %}
+{% extends "assessment/assessor_base.html" %}
 {% block title %}New attempt{% endblock %}
 
-{% block content %}
-<div class="min-h-screen flex items-center justify-center p-6">
-  <div class="card w-full max-w-md bg-base-100 shadow-xl">
-    <div class="card-body space-y-4">
-
+{% block assessor_content %}
+<div class="max-w-5xl mx-auto">
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body p-6 md:p-8">   
       <h1 class="card-title text-2xl">Create new assessment code</h1>
 
       {% if error %}
