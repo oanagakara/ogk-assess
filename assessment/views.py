@@ -1,49 +1,89 @@
-from django.utils import timezone
-from django.utils.text import slugify
-from django.urls import reverse
 from datetime import timedelta
-from django.shortcuts import render, redirect, get_object_or_404
+import json
+import random
+import re
+
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import transaction
 from django.db.models import Count
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.text import slugify
 
 from .forms import (
     AttemptForm,
-    StartForm,
-    LearnerForm,
     HonestyForm,
-    TextResponseForm,
+    LearnerForm,
     MatchResponseForm,
+    StartForm,
+    TextResponseForm,
 )
-from .models import Attempt, Question, Response, AssessmentTemplate, Learner, Score
+from .models import AssessmentTemplate, Attempt, Learner, Question, Response, Score
 from .services import claim_seat
 
-import json
-import random
+
+ASSESSMENT_DURATION = timedelta(hours=2)
 
 
-def home(request):
-    return render(request, "index.html")
+def _attempt_expires_at(attempt):
+    if not attempt.started_at:
+        return None
+    return attempt.started_at + ASSESSMENT_DURATION
 
 
-def start(request):
-    form = StartForm(request.POST or None)
+def _finalize_attempt(attempt, when=None):
+    when = when or timezone.now()
 
-    if request.method == "POST" and form.is_valid():
-        code = form.cleaned_data["code"].strip()
-        attempt = get_object_or_404(Attempt, code=code)
-        ok, msg = claim_seat(attempt)
-        if ok:
-            return redirect("assessment:attempt_details", code=code)
-        form.add_error("code", msg)
+    if attempt.status != Attempt.SUBMITTED:
+        attempt.status = Attempt.SUBMITTED
 
-    return render(request, "assessment/start.html", {"form": form})
+    if not attempt.submitted_at:
+        attempt.submitted_at = when
+
+    attempt.last_activity_at = when
+    attempt.save(update_fields=["status", "submitted_at", "last_activity_at"])
 
 
-def is_assessor(user):
-    return user.is_authenticated and (
-        user.is_staff or user.groups.filter(name="assessor").exists()
+def _expire_attempt_if_needed(attempt, now=None):
+    now = now or timezone.now()
+
+    if attempt.status == Attempt.SUBMITTED:
+        return True
+
+    expires_at = _attempt_expires_at(attempt)
+    if expires_at and now >= expires_at:
+        _finalize_attempt(attempt, when=now)
+        return True
+
+    return False
+
+
+def _expire_overdue_attempts():
+    now = timezone.now()
+    cutoff = now - ASSESSMENT_DURATION
+
+    Attempt.objects.filter(
+        status=Attempt.IN_PROGRESS,
+        started_at__isnull=False,
+        started_at__lte=cutoff,
+    ).update(
+        status=Attempt.SUBMITTED,
+        submitted_at=now,
+        last_activity_at=now,
     )
+
+
+def _extract_inline_choices(prompt: str) -> list[str]:
+    if not prompt:
+        return []
+
+    matches = re.findall(r"\(([^()]*\/[^()]*)\)", prompt)
+    if not matches:
+        return []
+
+    raw = matches[-1]
+    return [part.strip() for part in raw.split("/") if part.strip()]
 
 
 def _random_13_digit_id() -> str:
@@ -185,9 +225,35 @@ def _clamped_float(value, upper_bound):
     return max(0.0, min(parsed, float(upper_bound)))
 
 
+def home(request):
+    return render(request, "index.html")
+
+
+def start(request):
+    form = StartForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        code = form.cleaned_data["code"].strip()
+        attempt = get_object_or_404(Attempt, code=code)
+        ok, msg = claim_seat(attempt)
+        if ok:
+            return redirect("assessment:attempt_details", code=code)
+        form.add_error("code", msg)
+
+    return render(request, "assessment/start.html", {"form": form})
+
+
+def is_assessor(user):
+    return user.is_authenticated and (
+        user.is_staff or user.groups.filter(name="assessor").exists()
+    )
+
+
 @login_required
 @user_passes_test(is_assessor)
 def assessor_dashboard(request):
+    _expire_overdue_attempts()
+
     now = timezone.now()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     active_cutoff = now - timedelta(minutes=30)
@@ -223,6 +289,8 @@ def assessor_dashboard(request):
 @login_required
 @user_passes_test(is_assessor)
 def assessor_attempts(request):
+    _expire_overdue_attempts()
+
     qs = (
         Attempt.objects.select_related("learner", "template")
         .annotate(response_count=Count("response"))
@@ -231,10 +299,11 @@ def assessor_attempts(request):
     return render(request, "assessment/assessor_attempts.html", {"attempts": qs})
 
 
-
 @login_required
 @user_passes_test(is_assessor)
 def assessor_mark_attempt(request, code: str):
+    _expire_overdue_attempts()
+
     attempt = get_object_or_404(
         Attempt.objects.select_related("learner", "template"),
         code=code,
@@ -245,7 +314,9 @@ def assessor_mark_attempt(request, code: str):
         .select_related("section")
         .order_by("section__order", "order", "code")
     )
-    markable_questions = [question for question in questions if _is_markable_question(question)]
+    markable_questions = [
+        question for question in questions if _is_markable_question(question)
+    ]
     total_questions = len(markable_questions)
 
     try:
@@ -388,14 +459,17 @@ def assessor_mark_attempt(request, code: str):
         action = request.POST.get("action", "save")
         target_q = current_q
 
+        if action == "done":
+            return redirect("assessment:assessor_attempts") 
+
         if action == "next":
-            target_q = min(total_questions, current_q + 1)
+            target_q = min(total_questions, current_q + 1) 
         elif action == "prev":
             target_q = max(1, current_q - 1)
 
         url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
         return redirect(f"{url}?q={target_q}&saved=1")
-
+    
     total_available = 0.0
     total_awarded = 0.0
     scored_count = 0
@@ -445,6 +519,7 @@ def assessor_mark_attempt(request, code: str):
             "next_q": current_q + 1,
         },
     )
+
 
 @login_required
 @user_passes_test(is_assessor)
@@ -497,8 +572,19 @@ def assessor_new_attempt(request):
 def attempt_question(request, code: str, n: int):
     attempt = get_object_or_404(Attempt, code=code)
 
+    if _expire_attempt_if_needed(attempt):
+        return redirect("assessment:attempt_submitted", code=code)
+
     if not attempt.honesty_accepted_at:
         return redirect("assessment:attempt_details", code=code)
+
+    if not attempt.started_at:
+        now = timezone.now()
+        attempt.started_at = now
+        attempt.last_activity_at = now
+        attempt.save(update_fields=["started_at", "last_activity_at"])
+
+    expires_at = _attempt_expires_at(attempt)
 
     qs = (
         Question.objects.filter(section__template=attempt.template)
@@ -514,10 +600,13 @@ def attempt_question(request, code: str, n: int):
 
     question = qs[n - 1]
 
-    THANDI_CODES = {"LIT-B-1", "LIT-B-2", "LIT-B-3", "LIT-B-4"}
+    thandi_codes = {"LIT-B-1", "LIT-B-2", "LIT-B-3", "LIT-B-4"}
 
     spec = _question_spec(question)
     layout = spec.get("layout", "default")
+
+    if spec.get("kind_hint") == "mcq_or_choice" and not spec.get("choices"):
+        spec["choices"] = _extract_inline_choices(question.prompt)
 
     if layout in {"info_only", "info-only"}:
         if request.method == "POST" and "next" in request.POST:
@@ -540,11 +629,12 @@ def attempt_question(request, code: str, n: int):
                 "passage": "",
                 "layout": layout,
                 "spec": spec,
+                "expires_at": expires_at,
             },
         )
 
     passage = ""
-    if question.code in THANDI_CODES or question.code == "LIT-B-READ":
+    if question.code in thandi_codes or question.code == "LIT-B-READ":
         try:
             passage = Question.objects.get(code="LIT-B-READ").prompt
         except Question.DoesNotExist:
@@ -571,13 +661,13 @@ def attempt_question(request, code: str, n: int):
                 "passage": passage,
                 "layout": layout,
                 "spec": spec,
+                "expires_at": expires_at,
             },
         )
 
     resp, _ = Response.objects.get_or_create(attempt=attempt, question=question)
 
     form_fill_values = {}
-
     if spec.get("layout") == "form_fill":
         if resp.response_json:
             loaded = _safe_json_loads(resp.response_json, {})
@@ -586,6 +676,8 @@ def attempt_question(request, code: str, n: int):
 
         for field in spec.get("fields", []):
             field["value"] = form_fill_values.get(field["name"], "")
+
+    current_answer = ""
 
     if question.kind == Question.MATCH:
         existing_json = resp.response_json or ""
@@ -603,6 +695,8 @@ def attempt_question(request, code: str, n: int):
                 existing = loaded.get("answer", "")
             else:
                 existing = resp.response_json
+
+        current_answer = existing
 
         form = TextResponseForm(
             request.POST or None,
@@ -637,7 +731,9 @@ def attempt_question(request, code: str, n: int):
 
         if "next" in request.POST:
             if n >= total:
-                return redirect("assessment:attempt_submit", code=code)
+                _finalize_attempt(attempt)
+                return redirect("assessment:attempt_submitted", code=code)
+
             return redirect("assessment:attempt_question", code=code, n=n + 1)
 
         if "prev" in request.POST:
@@ -657,12 +753,18 @@ def attempt_question(request, code: str, n: int):
             "layout": layout,
             "spec": spec,
             "form_fill_values": form_fill_values,
+            "current_answer": current_answer,
+            "expires_at": expires_at,
         },
     )
 
 
 def attempt_submit(request, code: str):
     attempt = get_object_or_404(Attempt, code=code)
+
+    if _expire_attempt_if_needed(attempt):
+        return redirect("assessment:attempt_submitted", code=code)
+
     if attempt.status == Attempt.SUBMITTED:
         return redirect("assessment:attempt_submitted", code=code)
 
@@ -670,14 +772,15 @@ def attempt_submit(request, code: str):
         return redirect("assessment:attempt_details", code=code)
 
     if request.method == "POST":
-        attempt.status = Attempt.SUBMITTED
-        attempt.submitted_at = timezone.now()
-        attempt.last_activity_at = timezone.now()
-        attempt.save(update_fields=["status", "submitted_at", "last_activity_at"])
+        _finalize_attempt(attempt)
         return redirect("assessment:attempt_submitted", code=code)
 
     answered = Response.objects.filter(attempt=attempt).exclude(response_json="").count()
-    return render(request, "assessment/submitted.html", {"attempt": attempt, "answered": answered})
+    return render(
+        request,
+        "assessment/submitted.html",
+        {"attempt": attempt, "answered": answered},
+    )
 
 
 def attempt_details(request, code: str):
@@ -725,8 +828,13 @@ def attempt_instructions(request, code: str):
         return redirect("assessment:attempt_details", code=code)
 
     if request.method == "POST":
-        attempt.last_activity_at = timezone.now()
-        attempt.save(update_fields=["last_activity_at"])
+        now = timezone.now()
+
+        if not attempt.started_at:
+            attempt.started_at = now
+
+        attempt.last_activity_at = now
+        attempt.save(update_fields=["started_at", "last_activity_at"])
         return redirect("assessment:attempt_question", code=code, n=1)
 
     return render(request, "assessment/instructions.html", {"attempt": attempt})

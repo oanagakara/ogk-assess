@@ -1,7 +1,15 @@
-<!doctype html>
-<html>
-  <body>
-    <h1>No questions loaded</h1>
-    <p>Ask an assessor to load questions for this assessment template.</p>
-  </body>
-</html>
+{% extends "assessment/base.html" %}
+{% block title %}No questions loaded{% endblock %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 pb-6">
+    <div class="w-full max-w-2xl">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-6 md:p-8 space-y-4">
+                <h1 class="card-title text-2xl">No questions loaded</h1>
+                <p class="opacity-70">Ask an assessor to load questions for this assessment template.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
