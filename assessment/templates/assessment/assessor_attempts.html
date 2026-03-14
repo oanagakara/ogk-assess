@@ -7,7 +7,10 @@
 
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-semibold">Assessment attempts</h1>
-      <a class="btn" href="/admin/">Admin</a>
+      <div class="flex gap-2">
+        <a class="btn btn-primary" href="{% url 'assessment:assessor_new_attempt' %}">New Code</a>
+        <a class="btn" href="/admin/">Admin</a>
+      </div>
     </div>
 
     <div class="card bg-base-100 shadow-xl">
@@ -16,30 +19,37 @@
           <table class="table">
             <thead>
               <tr>
-                <th justify-left>Code</th>
-                <th justify-left>Learner</th>
-                <th justify-left>Template</th>
-                <th justify-left>Status</th>
-                <th justify-left>Responses</th>
-                <th justify-left>Last activity</th>
+                <th>Code</th>
+                <th>Learner</th>
+                <th>Template</th>
+                <th>Status</th>
+                <th>Responses</th>
+                <th>Last activity</th>
+                <th class="text-right">Action</th>
               </tr>
             </thead>
             <tbody>
               {% for a in attempts %}
                 <tr>
                   <td class="font-mono">{{ a.code }}</td>
-                  <td justify-left>{{ a.learner.first_names }} {{ a.learner.surname }}</td>
-                  <td justify-left>{{ a.template.name }} {{ a.template.version }}</td>
-                  <td justify-left>{{ a.status }}</td>
-                  <td justify-left>{{ a.response_count }}</td>
-                  <td justify-left>{{ a.last_activity_at|default:a.started_at }}</td>
+                  <td>{{ a.learner.first_names }} {{ a.learner.surname }}</td>
+                  <td>{{ a.template.name }}{% if a.template.version %} {{ a.template.version }}{% endif %}</td>
+                  <td>{{ a.status }}</td>
+                  <td>{{ a.response_count }}</td>
+                  <td>{{ a.last_activity_at|default:a.started_at }}</td>
+                  <td class="text-right">
+                    <a class="btn btn-sm btn-outline" href="{% url 'assessment:assessor_mark_attempt' a.code %}">
+                      Mark
+                    </a>
+                  </td>
                 </tr>
               {% empty %}
-                <tr><td colspan="6">No attempts yet.</td></tr>
+                <tr>
+                  <td colspan="7">No attempts yet.</td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>
-          <a class="btn btn-primary" href="{% url 'assessment:assessor_new_attempt' %}">New Code</a>
         </div>
       </div>
     </div>
