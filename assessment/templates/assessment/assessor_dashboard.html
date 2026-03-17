@@ -34,6 +34,25 @@
                         <h2 class="text-lg font-semibold">Recent activity</h2>
                     </div>
 
+                    <form method="get" class="mb-4">
+                        <div class="flex flex-col md:flex-row gap-2 md:items-center">
+                            <input 
+                                type="text" 
+                                name="q" 
+                                value="{{ q }}"
+                                placeholder="Search by code, learner, ID, status, or template"
+                                class="input input-bordered w-full md:max-w-md"/>
+                            <div class="flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                  Search
+                                </button>
+                                {% if q %}
+                                    <a href="{% url 'assessment:assessor_dashboard' %}" class="btn btn-sm">Clear</a>  
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form> 
+
                     <div class="overflow-x-auto">
                         <table class="table table-zebra w-full">
                             <thead>
