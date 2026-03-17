@@ -6,7 +6,7 @@ import re
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator 
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -258,11 +258,23 @@ def assessor_dashboard(request):
         last_activity_at__gte=active_cutoff,
     ).count()
 
+    q = (request.GET.get("q") or "").strip() 
+
     recent_qs  = (
         Attempt.objects.select_related("learner", "template")
         .annotate(response_count=Count("response"))
         .order_by("-last_activity_at", "-started_at")
     )
+
+    if q:
+        recent_qs = recent_qs.filter(
+            Q(code__icontains=q)
+            | Q(status__icontains=q)
+            | Q(template__name__icontains=q)
+            | Q(learner__first__name__icontains=q)
+            | Q (learner__surname__icontains=q)
+            | Q (learner__id__number__icontains=q)
+        )
 
     paginator = Paginator(recent_qs, 10)
     page_number = request.GET.get("page")
@@ -276,6 +288,7 @@ def assessor_dashboard(request):
             "submitted_today": submitted_today,
             "active_now": active_now,
             "recent_page": recent_page,
+            "q": q,
         },
     )
 
