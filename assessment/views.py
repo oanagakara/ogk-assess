@@ -4,6 +4,8 @@ import random
 import re
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.paginator import Paginator 
+
 from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
@@ -268,11 +270,15 @@ def assessor_dashboard(request):
         last_activity_at__gte=active_cutoff,
     ).count()
 
-    recent = (
+    recent_qs  = (
         Attempt.objects.select_related("learner", "template")
         .annotate(response_count=Count("response"))
-        .order_by("-last_activity_at")[:10]
+        .order_by("-last_activity_at", "-started_at")
     )
+
+    paginator = Paginator(recent_qs, 10)
+    page_number = request.GET.get("page")
+    recent_page = paginator.get_page(page_number)
 
     return render(
         request,
@@ -281,7 +287,7 @@ def assessor_dashboard(request):
             "total_attempts": total_attempts,
             "submitted_today": submitted_today,
             "active_now": active_now,
-            "recent": recent,
+            "recent_page": recent_page,
         },
     )
 
