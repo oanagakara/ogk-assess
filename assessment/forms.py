@@ -1,4 +1,8 @@
+from datetime import date, timedelta
 from django import forms
+
+from django.core.exceptions import ValidationError
+
 from .models import Learner, Attempt, AssessmentTemplate
 
 INPUT = "input input-bordered w-full"
@@ -21,6 +25,61 @@ class LearnerForm(forms.ModelForm):
             "gender": forms.Select(attrs={"class": SELECT}),
             "demographic": forms.Select(attrs={"class": SELECT}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+            
+        first_names = (cleaned_data.get("first_names") or "").strip()
+        surname = (cleaned_data.get("surname") or "").strip()
+        id_number = (cleaned_data.get("id_number") or "").strip()
+        dob = cleaned_data.get("dob")
+
+        if first_names.lower() == "temp":
+            self.add_error("first_names", "Please enter your real first name(s).")
+
+        if surname.lower() == "learner":
+            self.add_error("surname", "Please enter your real surname.")
+
+        if len(id_number) != 13 or not id_number.isdigit():
+            self.add_error("id_number", "Enter a valid 13-digit South African ID number.")
+            return cleaned_data
+
+        yy = int(id_number[0:2])
+        mm = int(id_number[2:4])
+        dd = int(id_number[4:6])
+
+        today = date.today()
+        current_yy = today.year % 100 
+
+        # SA ID birth year encoded as 2 digits (YYMMDD). 
+        # Infer century: If YY <= current 2-digit year, assume 2000s; otherwise 1900s.
+        century = 2000 if yy <= current_yy else 1900
+        full_year = century + yy
+
+        try:
+            id_dob = date(full_year, mm, dd)
+        except ValueError:
+            self.add_error("id_number", "The ID number contains an invalid date of birth.")
+            return cleaned_data 
+
+        # half-year adjustment 
+        min_allowed = today - timedelta(days=int(28.5 * 365.25)) 
+        max_allowed = today - timedelta(days=int(17.5 * 365.25))
+
+        if not (min_allowed <= id_dob <= max_allowed):
+            self.add_error(
+                "id_number",
+                "Learner must be between 17.5 and 28.5 years old.",
+            )
+
+        if dob and dob != id_dob:
+            self.add_error(
+                "dob",
+                "Date of birth does not match the ID number.",
+            )
+
+        return cleaned_data
+
 
 
 class HonestyForm(forms.Form):
