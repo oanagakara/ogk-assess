@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model 
 from django.db import models
+from django.utils import timezone
 import secrets
 import string
 
@@ -140,6 +141,76 @@ class Attempt(models.Model):
 
     def __str__(self) -> str:
         return f"{self.code} - {self.learner} - {self.status}"
+
+    @property
+    def has_honesty_declaration(self) -> bool:
+        return bool(self.honesty_accepted_at)
+
+    def start(self, when=None) -> None:
+        when = when or timezone.now()
+        update_fields = []
+
+        if self.started_at is None:
+            self.started_at = when
+            update_fields.append("started_at")
+
+        if self.status != self.IN_PROGRESS:
+            self.status = self.IN_PROGRESS
+            update_fields.append("status")
+
+        self.last_activity_at = when
+        update_fields.append("last_activity_at")
+
+        self.save(update_fields=update_fields)
+
+    def touch(self, when=None) -> None:
+        when = when or timezone.now()
+        update_fields = []
+
+        if self.started_at is None:
+            self.started_at = when
+            update_fields.append("started_at")
+
+        if self.status not in {self.SUBMITTED, self.ABANDONED} and self.status != self.IN_PROGRESS:
+            self.status = self.IN_PROGRESS
+            update_fields.append("status")
+
+        self.last_activity_at = when
+        update_fields.append("last_activity_at")
+
+        self.save(update_fields=update_fields)
+
+    def accept_honesty_declaration(self, name: str, when=None) -> None:
+        when = when or timezone.now()
+        cleaned = (name or "").strip()
+        if not cleaned:
+            raise ValueError("Honesty name is required.")
+
+        self.honesty_name = cleaned
+        self.honesty_accepted_at = when
+        self.last_activity_at = when
+        self.save(update_fields=["honesty_name", "honesty_accepted_at", "last_activity_at"])
+
+    def submit(self, when=None) -> None:
+        when = when or timezone.now()
+        update_fields = []
+
+        if self.status != self.SUBMITTED:
+            self.status = self.SUBMITTED
+            update_fields.append("status")
+
+        if self.submitted_at is None:
+            self.submitted_at = when
+            update_fields.append("submitted_at")
+
+        if self.started_at is None:
+            self.started_at = when
+            update_fields.append("started_at")
+
+        self.last_activity_at = when
+        update_fields.append("last_activity_at")
+
+        self.save(update_fields=update_fields)
 
 class Response(models.Model):
     attempt = models.ForeignKey("Attempt", on_delete=models.CASCADE)

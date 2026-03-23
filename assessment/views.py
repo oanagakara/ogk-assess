@@ -35,16 +35,7 @@ def _attempt_expires_at(attempt):
 
 
 def _finalize_attempt(attempt, when=None):
-    when = when or timezone.now()
-
-    if attempt.status != Attempt.SUBMITTED:
-        attempt.status = Attempt.SUBMITTED
-
-    if not attempt.submitted_at:
-        attempt.submitted_at = when
-
-    attempt.last_activity_at = when
-    attempt.save(update_fields=["status", "submitted_at", "last_activity_at"])
+    attempt.submit(when=when)
 
 
 def _expire_attempt_if_needed(attempt, now=None):
@@ -236,11 +227,15 @@ def start(request):
 
     if request.method == "POST" and form.is_valid():
         code = form.cleaned_data["code"].strip()
-        attempt = get_object_or_404(Attempt, code=code)
-        ok, msg = claim_seat(attempt)
-        if ok:
-            return redirect("assessment:attempt_details", code=code)
-        form.add_error("code", msg)
+        attempt = Attempt.objects.filter(code=code).first()
+
+        if attempt is None:
+            form.add_error("code", "Invalid assessment code.")
+        else:
+            ok, msg = claim_seat(attempt)
+            if ok:
+                return redirect("assessment:attempt_details", code=code)
+            form.add_error("code", msg)
 
     return render(request, "assessment/start.html", {"form": form})
 
@@ -581,14 +576,11 @@ def attempt_question(request, code: str, n: int):
     if _expire_attempt_if_needed(attempt):
         return redirect("assessment:attempt_submitted", code=code)
 
-    if not attempt.honesty_accepted_at:
+    if not attempt.has_honesty_declaration:
         return redirect("assessment:attempt_details", code=code)
 
     if not attempt.started_at:
-        now = timezone.now()
-        attempt.started_at = now
-        attempt.last_activity_at = now
-        attempt.save(update_fields=["started_at", "last_activity_at"])
+        attempt.start()
 
     expires_at = _attempt_expires_at(attempt)
 
@@ -616,8 +608,7 @@ def attempt_question(request, code: str, n: int):
 
     if layout in {"info_only", "info-only"}:
         if request.method == "POST" and "next" in request.POST:
-            attempt.last_activity_at = timezone.now()
-            attempt.save(update_fields=["last_activity_at"])
+            attempt.touch()
 
             if n >= total:
                 return redirect("assessment:attempt_submit", code=code)
@@ -648,8 +639,7 @@ def attempt_question(request, code: str, n: int):
 
     if layout == "passage_only":
         if request.method == "POST" and "next" in request.POST:
-            attempt.last_activity_at = timezone.now()
-            attempt.save(update_fields=["last_activity_at"])
+            attempt.touch()
 
             if n >= total:
                 return redirect("assessment:attempt_submit", code=code)
@@ -732,8 +722,7 @@ def attempt_question(request, code: str, n: int):
                 resp.response_json = json.dumps({"answer": ans}, ensure_ascii=False)
 
         resp.save(update_fields=["response_json"])
-        attempt.last_activity_at = timezone.now()
-        attempt.save(update_fields=["last_activity_at"])
+        attempt.touch()
 
         if "next" in request.POST:
             if n >= total:
@@ -774,11 +763,11 @@ def attempt_submit(request, code: str):
     if attempt.status == Attempt.SUBMITTED:
         return redirect("assessment:attempt_submitted", code=code)
 
-    if not attempt.honesty_accepted_at:
+    if not attempt.has_honesty_declaration:
         return redirect("assessment:attempt_details", code=code)
 
     if request.method == "POST":
-        _finalize_attempt(attempt)
+        attempt.submit()
         return redirect("assessment:attempt_submitted", code=code)
 
     answered = Response.objects.filter(attempt=attempt).exclude(response_json="").count()
@@ -800,15 +789,8 @@ def attempt_details(request, code: str):
         if learner_form.is_valid() and honesty_form.is_valid():
             learner_form.save()
 
-            attempt.honesty_name = honesty_form.cleaned_data["honesty_name"].strip()
-            attempt.honesty_accepted_at = timezone.now()
-            attempt.last_activity_at = timezone.now()
-            attempt.save(
-                update_fields=[
-                    "honesty_name",
-                    "honesty_accepted_at",
-                    "last_activity_at",
-                ]
+            attempt.accept_honesty_declaration(
+                honesty_form.cleaned_data["honesty_name"]
             )
 
             return redirect("assessment:attempt_instructions", code=code)
@@ -830,17 +812,11 @@ def attempt_details(request, code: str):
 def attempt_instructions(request, code: str):
     attempt = get_object_or_404(Attempt, code=code)
 
-    if not attempt.honesty_accepted_at:
+    if not attempt.has_honesty_declaration:
         return redirect("assessment:attempt_details", code=code)
 
     if request.method == "POST":
-        now = timezone.now()
-
-        if not attempt.started_at:
-            attempt.started_at = now
-
-        attempt.last_activity_at = now
-        attempt.save(update_fields=["started_at", "last_activity_at"])
+        attempt.start()
         return redirect("assessment:attempt_question", code=code, n=1)
 
     return render(request, "assessment/instructions.html", {"attempt": attempt})
