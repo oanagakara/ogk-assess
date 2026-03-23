@@ -13,18 +13,22 @@ def claim_seat(attempt: Attempt) -> tuple[bool, str]:
 
     active = (
         Attempt.objects.select_for_update()
-        .filter(status=Attempt.IN_PROGRESS, last_activity_at__gte=cutoff)
+        .filter(
+            status=Attempt.IN_PROGRESS,
+            last_activity_at__isnull=False,
+            last_activity_at__gte=cutoff,
+        )
         .count()
     )
 
-    if active >= SEAT_LIMIT and attempt.status != Attempt.IN_PROGRESS:
+    current_attempt_already_holds_seat = (
+        attempt.status == Attempt.IN_PROGRESS
+        and attempt.last_activity_at is not None
+        and attempt.last_activity_at >= cutoff
+    )
+
+    if active >= SEAT_LIMIT and not current_attempt_already_holds_seat:
         return False, "All seats are in use. Please wait and try again."
 
-    # mark attempt as in progress and update activity
-    if attempt.started_at is None:
-        attempt.started_at = now
-    attempt.status = Attempt.IN_PROGRESS
-    attempt.last_activity_at = now
-    attempt.save(update_fields=["started_at", "status", "last_activity_at"])
-
+    attempt.start(when=now)
     return True, ""
