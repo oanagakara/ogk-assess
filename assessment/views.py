@@ -35,6 +35,8 @@ def _attempt_expires_at(attempt):
 
 def _finalize_attempt(attempt, when=None):
     attempt.submit(when=when)
+    from .auto_mark import auto_mark_attempt
+    auto_mark_attempt(attempt)
 
 
 def _expire_attempt_if_needed(attempt, now=None):
