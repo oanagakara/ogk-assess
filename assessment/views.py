@@ -16,15 +16,18 @@ from .forms import (
     AttemptForm,
     HonestyForm,
     LearnerForm,
-    MatchResponseForm,
     StartForm,
-    TextResponseForm,
 )
 from .models import AssessmentTemplate, Attempt, Learner, Question, Response, Score
+from .renderers import get_renderer
 from .services import claim_seat
 
 
 ASSESSMENT_DURATION = timedelta(hours=2)
+
+# Question codes that display the Thandi passage.
+# TODO: move to spec_json["passage_source"] in a data migration.
+_PASSAGE_CODES = frozenset({"LIT-B-1", "LIT-B-2", "LIT-B-3", "LIT-B-4", "LIT-B-READ"})
 
 
 def _attempt_expires_at(attempt):
@@ -568,6 +571,85 @@ def assessor_new_attempt(request):
     )
 
 
+def _load_passage(question, spec) -> str:
+    source = spec.get("passage_source")
+    if not source and question.code in _PASSAGE_CODES:
+        source = "LIT-B-READ"
+    if not source:
+        return ""
+    try:
+        return Question.objects.get(code=source).prompt
+    except Question.DoesNotExist:
+        return ""
+
+
+def _navigate(request, attempt, n, total):
+    """Return a redirect after saving, or None if no navigation key was posted."""
+    if "next" in request.POST:
+        if n >= total:
+            _finalize_attempt(attempt)
+            return redirect("assessment:attempt_submitted", code=attempt.code)
+        return redirect("assessment:attempt_question", code=attempt.code, n=n + 1)
+    if "prev" in request.POST:
+        return redirect("assessment:attempt_question", code=attempt.code, n=max(1, n - 1))
+    return None
+
+
+def _base_ctx(attempt, question, spec, n, total, expires_at, passage="", form=None):
+    return {
+        "attempt": attempt,
+        "question": question,
+        "spec": spec,
+        "n": n,
+        "total": total,
+        "expires_at": expires_at,
+        "layout": spec.get("layout", "default"),
+        "passage": passage,
+        "form": form,
+        "form_fill_values": {},
+        "current_answer": "",
+    }
+
+
+def _handle_info_only(request, attempt, question, spec, n, total, expires_at):
+    if request.method == "POST" and "next" in request.POST:
+        attempt.touch()
+        if n >= total:
+            return redirect("assessment:attempt_submit", code=attempt.code)
+        return redirect("assessment:attempt_question", code=attempt.code, n=n + 1)
+    return render(request, "assessment/question.html",
+                  _base_ctx(attempt, question, spec, n, total, expires_at))
+
+
+def _handle_passage_only(request, attempt, question, spec, n, total, expires_at):
+    passage = _load_passage(question, spec)
+    if request.method == "POST" and "next" in request.POST:
+        attempt.touch()
+        if n >= total:
+            return redirect("assessment:attempt_submit", code=attempt.code)
+        return redirect("assessment:attempt_question", code=attempt.code, n=n + 1)
+    return render(request, "assessment/question.html",
+                  _base_ctx(attempt, question, spec, n, total, expires_at, passage=passage))
+
+
+def _handle_with_response(request, attempt, question, spec, n, total, expires_at):
+    passage = _load_passage(question, spec)
+    resp, _ = Response.objects.get_or_create(attempt=attempt, question=question)
+    renderer = get_renderer(question, spec, resp)
+    form = renderer.get_form(request)
+
+    if request.method == "POST":
+        renderer.save(request, form)
+        attempt.touch()
+        nav = _navigate(request, attempt, n, total)
+        if nav:
+            return nav
+
+    ctx = _base_ctx(attempt, question, spec, n, total, expires_at, passage=passage, form=form)
+    ctx.update(renderer.get_context())
+    return render(request, "assessment/question.html", ctx)
+
+
 def attempt_question(request, code: str, n: int):
     attempt = get_object_or_404(Attempt, code=code)
 
@@ -595,9 +677,6 @@ def attempt_question(request, code: str, n: int):
         return redirect("assessment:attempt_question", code=code, n=1)
 
     question = qs[n - 1]
-
-    thandi_codes = {"LIT-B-1", "LIT-B-2", "LIT-B-3", "LIT-B-4"}
-
     spec = _question_spec(question)
     layout = spec.get("layout", "default")
 
@@ -605,151 +684,12 @@ def attempt_question(request, code: str, n: int):
         spec["choices"] = _extract_inline_choices(question.prompt)
 
     if layout in {"info_only", "info-only"}:
-        if request.method == "POST" and "next" in request.POST:
-            attempt.touch()
-
-            if n >= total:
-                return redirect("assessment:attempt_submit", code=code)
-            return redirect("assessment:attempt_question", code=code, n=n + 1)
-
-        return render(
-            request,
-            "assessment/question.html",
-            {
-                "attempt": attempt,
-                "question": question,
-                "form": None,
-                "n": n,
-                "total": total,
-                "passage": "",
-                "layout": layout,
-                "spec": spec,
-                "expires_at": expires_at,
-            },
-        )
-
-    passage = ""
-    if question.code in thandi_codes or question.code == "LIT-B-READ":
-        try:
-            passage = Question.objects.get(code="LIT-B-READ").prompt
-        except Question.DoesNotExist:
-            passage = ""
+        return _handle_info_only(request, attempt, question, spec, n, total, expires_at)
 
     if layout == "passage_only":
-        if request.method == "POST" and "next" in request.POST:
-            attempt.touch()
+        return _handle_passage_only(request, attempt, question, spec, n, total, expires_at)
 
-            if n >= total:
-                return redirect("assessment:attempt_submit", code=code)
-            return redirect("assessment:attempt_question", code=code, n=n + 1)
-
-        return render(
-            request,
-            "assessment/question.html",
-            {
-                "attempt": attempt,
-                "question": question,
-                "form": None,
-                "n": n,
-                "total": total,
-                "passage": passage,
-                "layout": layout,
-                "spec": spec,
-                "expires_at": expires_at,
-            },
-        )
-
-    resp, _ = Response.objects.get_or_create(attempt=attempt, question=question)
-
-    form_fill_values = {}
-    if spec.get("layout") == "form_fill":
-        if resp.response_json:
-            loaded = _safe_json_loads(resp.response_json, {})
-            if isinstance(loaded, dict):
-                form_fill_values = loaded
-
-        for field in spec.get("fields", []):
-            field["value"] = form_fill_values.get(field["name"], "")
-
-    current_answer = ""
-
-    if question.kind == Question.MATCH:
-        existing_json = resp.response_json or ""
-        if existing_json == "":
-            existing_json = "{}"
-        form = MatchResponseForm(
-            request.POST or None,
-            initial={"response_json": existing_json},
-        )
-    else:
-        existing = ""
-        if resp.response_json:
-            loaded = _safe_json_loads(resp.response_json, None)
-            if isinstance(loaded, dict):
-                existing = loaded.get("answer", "")
-            else:
-                existing = resp.response_json
-
-        current_answer = existing
-
-        form = TextResponseForm(
-            request.POST or None,
-            initial={"answer": existing},
-        )
-
-    if request.method == "POST":
-        if spec.get("layout") == "form_fill":
-            out = {}
-            for field in spec.get("fields", []):
-                out[field["name"]] = (
-                    request.POST.get(f"ff_{field['name']}", "") or ""
-                ).strip()
-            resp.response_json = json.dumps(out, ensure_ascii=False)
-        else:
-            if question.kind == Question.MATCH:
-                if form.is_valid():
-                    raw = form.cleaned_data.get("response_json", "") or ""
-                else:
-                    raw = request.POST.get("response_json", "") or ""
-                resp.response_json = raw
-            else:
-                if form.is_valid():
-                    ans = form.cleaned_data.get("answer", "") or ""
-                else:
-                    ans = request.POST.get("answer", "") or ""
-                resp.response_json = json.dumps({"answer": ans}, ensure_ascii=False)
-
-        resp.save(update_fields=["response_json"])
-        attempt.touch()
-
-        if "next" in request.POST:
-            if n >= total:
-                _finalize_attempt(attempt)
-                return redirect("assessment:attempt_submitted", code=code)
-
-            return redirect("assessment:attempt_question", code=code, n=n + 1)
-
-        if "prev" in request.POST:
-            prev_n = max(1, n - 1)
-            return redirect("assessment:attempt_question", code=code, n=prev_n)
-
-    return render(
-        request,
-        "assessment/question.html",
-        {
-            "attempt": attempt,
-            "question": question,
-            "form": form,
-            "n": n,
-            "total": total,
-            "passage": passage,
-            "layout": layout,
-            "spec": spec,
-            "form_fill_values": form_fill_values,
-            "current_answer": current_answer,
-            "expires_at": expires_at,
-        },
-    )
+    return _handle_with_response(request, attempt, question, spec, n, total, expires_at)
 
 
 def attempt_submit(request, code: str):
