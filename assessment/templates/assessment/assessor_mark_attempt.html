@@ -98,6 +98,18 @@
 
                     <div class="divider my-0"></div>
 
+                    {% if row.score and row.score.rubric_json.auto_marked %}
+                        <div class="alert {% if row.score.rubric_json.needs_review %}alert-warning{% else %}alert-success{% endif %}">
+                            <span>
+                                {% if row.score.rubric_json.needs_review %}
+                                    ⚠ Auto-marked — review recommended: {{ row.score.rubric_json.notes }}
+                                {% else %}
+                                    ✓ Auto-marked: {{ row.score.rubric_json.notes }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="lg:col-span-2">
                             <div class="card bg-base-200 shadow">
