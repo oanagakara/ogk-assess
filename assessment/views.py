@@ -768,6 +768,8 @@ def attempt_submit(request, code: str):
 
     if request.method == "POST":
         attempt.submit()
+        from .auto_mark import auto_mark_attempt
+        auto_mark_attempt(attempt)
         return redirect("assessment:attempt_submitted", code=code)
 
     answered = Response.objects.filter(attempt=attempt).exclude(response_json="").count()

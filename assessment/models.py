@@ -106,7 +106,7 @@ class Learner(models.Model):
     ]
     first_names = models.CharField(max_length=200)
     surname = models.CharField(max_length=200) 
-    id_number = models.CharField(max_length=13, unique=True)
+    id_number = models.CharField(max_length=13, unique=True, blank=True, null=True, default=None)
     dob = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES, default="")
     demographic = models.CharField(max_length=20, choices=DEMOGRAPHIC_CHOICES, default="")
