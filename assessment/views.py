@@ -6,7 +6,6 @@ import re
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator 
 
-from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -171,9 +170,6 @@ def _render_response_for_marking(question, response):
 
     if spec.get("layout") == "form_fill":
         data = _safe_json_loads(response.response_json, {})
-        if not isinstance(data, dict):
-            return str(response.response_json).strip()
-
         fields = spec.get("fields", [])
         if fields:
             lines = []
