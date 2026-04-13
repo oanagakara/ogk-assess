@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: ican-assessment
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ican-assessment-db
+          property: connectionString
+
+databases:
+  - name: ican-assessment-db
+    plan: free
