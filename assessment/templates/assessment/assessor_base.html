@@ -10,38 +10,27 @@
         </div>
 
         <div class="flex-none flex items-center gap-2">
-            <a
-                href="{% url 'assessment:assessor_dashboard' %}"
-                class="btn btn-sm {% if request.resolver_match.url_name == 'assessor_dashboard' %}btn-primary{% else %}btn-ghost{% endif %}"
-            >
+            <a href="{% url 'assessment:assessor_dashboard' %}"
+               class="btn btn-sm {% if request.resolver_match.url_name == 'assessor_dashboard' %}btn-primary{% else %}btn-ghost{% endif %}">
                 Dashboard
             </a>
-
-            <a
-                href="{% url 'assessment:assessor_attempts' %}"
-                class="btn btn-sm {% if request.resolver_match.url_name == 'assessor_attempts' or request.resolver_match.url_name == 'assessor_mark_attempt' %}btn-primary{% else %}btn-ghost{% endif %}"
-            >
+            <a href="{% url 'assessment:assessor_attempts' %}"
+               class="btn btn-sm {% if request.resolver_match.url_name == 'assessor_attempts' or request.resolver_match.url_name == 'assessor_mark_attempt' %}btn-primary{% else %}btn-ghost{% endif %}">
                 Attempts
             </a>
-
-            <a
-                href="{% url 'assessment:assessor_new_attempt' %}"
-                class="btn btn-sm {% if request.resolver_match.url_name == 'assessor_new_attempt' %}btn-primary{% else %}btn-ghost{% endif %}"
-            >
+            <a href="{% url 'assessment:assessor_new_attempt' %}"
+               class="btn btn-sm {% if request.resolver_match.url_name == 'assessor_new_attempt' %}btn-primary{% else %}btn-ghost{% endif %}">
                 New Code
             </a>
-
-            <a
-                href="{% url 'assessment:assessor_new_session' %}"
-                class="btn btn-sm {% if request.resolver_match.url_name == 'assessor_new_session' or request.resolver_match.url_name == 'session_monitor' %}btn-primary{% else %}btn-ghost{% endif %}"
-            >
+            <a href="{% url 'assessment:assessor_new_session' %}"
+               class="btn btn-sm {% if request.resolver_match.url_name == 'assessor_new_session' or request.resolver_match.url_name == 'session_monitor' %}btn-primary{% else %}btn-ghost{% endif %}">
                 Sessions
             </a>
-        </div>
             <form method="post" action="{% url 'logout' %}" class="inline">
-              {% csrf_token %}
-              <button class="btn btn-sm" type="submit">Logout</button>
+                {% csrf_token %}
+                <button class="btn btn-sm" type="submit">Logout</button>
             </form>
+        </div>
     </div>
 
     <main class="p-4 md:p-6">
