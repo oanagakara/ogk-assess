@@ -1,246 +1,213 @@
 {% extends "assessment/assessor_base.html" %}
-{% block title %}Mark attempt {{ attempt.code }}{% endblock %}
+{% block title %}Mark {{ attempt.code }}{% endblock %}
 
 {% block assessor_content %}
-<div class="max-w-5xl mx-auto">
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body p-6 md:p-8 space-y-6">
-            {% if row %}
-                <form method="post" action="?q={{ current_q }}" class="space-y-6">
-                    {% csrf_token %}
+{% if row %}
+<form method="post" action="?q={{ current_q }}" class="h-full flex flex-col gap-3">
+  {% csrf_token %}
 
-                    <div class="stats stats-vertical lg:stats-horizontal shadow w-full">
-                        <div class="stat">
-                            <div class="stat-figure text-primary">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    class="inline-block h-8 w-8 stroke-current"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M9 2.25H15A2.25 2.25 0 0117.25 4.5V6h.75A2.25 2.25 0 0120.25 8.25v11.25A2.25 2.25 0 0118 21.75H6A2.25 2.25 0 013.75 19.5V8.25A2.25 2.25 0 016 6h.75V4.5A2.25 2.25 0 019 2.25zm0 3.75h6V4.5h-6V6z"
-                                    />
-                                </svg>
-                            </div>
-                            <div class="stat-title">Questions to mark</div>
-                            <div class="stat-value text-primary">{{ total_questions }}</div>
-                            <div class="stat-desc">Current question {{ current_q }} of {{ total_questions }}</div>
-                        </div>
+  {# ── Stats strip ── #}
+  <div class="flex items-stretch gap-3 shrink-0">
 
-                        <div class="stat">
-                            <div class="stat-figure text-secondary">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    class="inline-block h-8 w-8 stroke-current"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M9 12.75l2.25 2.25L15 9.75m6 2.25A9 9 0 1112 3a9 9 0 019 9z"
-                                    />
-                                </svg>
-                            </div>
-                            <div class="stat-title">Questions scored</div>
-                            <div class="stat-value text-secondary">{{ scored_count }}</div>
-                            <div class="stat-desc">{{ scored_count }} saved so far</div>
-                        </div>
-
-                        <div class="stat">
-                            <div class="stat-figure text-accent">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    class="inline-block h-8 w-8 stroke-current"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M3.75 4.5h16.5m-15 0v15h13.5v-15m-9 4.5h1.5m3 0h1.5m-6 3h1.5m3 0h1.5m-6 3h6"
-                                    />
-                                </svg>
-                            </div>
-                            <div class="stat-title">Total</div>
-                            <div class="stat-value text-accent">
-                                {{ total_awarded|floatformat:"-2" }}/{{ total_available|floatformat:"-2" }}
-                            </div>
-                            <div class="stat-desc">Marks awarded across this attempt</div>
-                        </div>
-                    </div>
-
-                    {% if saved %}
-                        <div class="alert alert-success">
-                            <span>Marks saved.</span>
-                        </div>
-                    {% endif %}
-
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <div class="text-sm opacity-70">Question {{ current_q }} of {{ total_questions }}</div>
-                            <h1 class="text-3xl font-semibold mt-2">{{ row.question.code }}</h1>
-                            <div class="text-sm opacity-70 uppercase">
-                                {{ row.question.section.title }}
-                            </div>
-                        </div>
-
-                        <div class="badge badge-outline px-3 py-3">
-                            {{ row.awarded|floatformat:"-2" }} / {{ row.max_points|floatformat:"-2" }}
-                        </div>
-                    </div>
-
-                    <div class="divider my-0"></div>
-
-                    {% if row.score and row.score.rubric_json.auto_marked %}
-                        <div class="alert {% if row.score.rubric_json.needs_review %}alert-warning{% else %}alert-success{% endif %}">
-                            <span>
-                                {% if row.score.rubric_json.needs_review %}
-                                    ⚠ Auto-marked — review recommended: {{ row.score.rubric_json.notes }}
-                                {% else %}
-                                    ✓ Auto-marked: {{ row.score.rubric_json.notes }}
-                                {% endif %}
-                            </span>
-                        </div>
-                    {% endif %}
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="lg:col-span-2">
-                            <div class="card bg-base-200 shadow">
-                                <div class="card-body p-5 md:p-6">
-                                    <div class="text-lg font-semibold mb-2">{{ row.question.code }}</div>
-                                    <div class="text-sm opacity-70 mb-3">{{ row.question.section.title }}</div>
-                                    <div class="text-base">
-                                        {{ row.question.prompt }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card bg-base-200 shadow">
-                            <div class="card-body p-4">
-                                <div class="text-sm font-semibold mb-2">Question</div>
-                                <div class="min-h-[140px]">
-                                    {{ row.question.prompt }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card bg-base-200 shadow">
-                            <div class="card-body p-4">
-                                {% if row.has_rubric %}
-                                    <div class="text-sm font-semibold mb-2">Rubric marking</div>
-                                    <div class="space-y-4">
-                                        {% for criterion in row.rubric %}
-                                            <div class="space-y-2">
-                                                <div class="flex items-center justify-between gap-4">
-                                                    <label class="font-medium">{{ criterion.label }}</label>
-                                                    <span class="text-sm opacity-70">
-                                                        Max {{ criterion.max_points|floatformat:"-2" }}
-                                                    </span>
-                                                </div>
-
-                                                <input
-                                                    class="input input-bordered w-full"
-                                                    type="number"
-                                                    step="0.5"
-                                                    min="0"
-                                                    max="{{ criterion.max_points|floatformat:'-2' }}"
-                                                    name="rubric__{{ row.question.pk }}__{{ criterion.key }}"
-                                                    value="{{ criterion.value }}"
-                                                />
-
-                                                <textarea
-                                                    class="textarea textarea-bordered w-full"
-                                                    name="rubric_feedback__{{ row.question.pk }}__{{ criterion.key }}"
-                                                    rows="2"
-                                                    placeholder="Optional criterion note"
-                                                >{{ criterion.feedback }}</textarea>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <div class="text-sm font-semibold mb-2">Manual mark</div>
-                                    <label class="text-sm block mb-2">
-                                        Points out of {{ row.max_points|floatformat:"-2" }}
-                                    </label>
-                                    <input
-                                        class="input input-bordered w-full"
-                                        type="number"
-                                        step="0.5"
-                                        min="0"
-                                        max="{{ row.max_points|floatformat:'-2' }}"
-                                        name="manual__{{ row.question.pk }}"
-                                        value="{{ row.manual_value }}"
-                                    />
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="card bg-base-200 shadow">
-                            <div class="card-body p-4">
-                                <div class="text-sm font-semibold mb-2">Learner response</div>
-                                <div class="min-h-[180px]">
-                                    {% if row.response_text %}
-                                        {{ row.response_text }}
-                                    {% else %}
-                                        <span class="opacity-60">No response submitted.</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card bg-base-200 shadow">
-                            <div class="card-body p-4">
-                                <div class="text-sm font-semibold mb-2">Assessor note</div>
-                                <textarea
-                                    class="textarea textarea-bordered w-full min-h-[180px]"
-                                    name="notes__{{ row.question.pk }}"
-                                    rows="6"
-                                    placeholder="Optional overall note"
-                                >{{ row.notes }}</textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-2">
-                        <div>
-                            {% if has_prev %}
-                                <button class="btn" type="submit" name="action" value="prev">
-                                    Save & Previous
-                                </button>
-                            {% endif %}
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button class="btn" type="submit" name="action" value="save">
-                                Save
-                            </button>
-
-                            {% if has_next %}
-                                <button class="btn btn-primary" type="submit" name="action" value="next">
-                                    Save & Next
-                                </button>
-                            {% else %}
-                                <button class="btn btn-primary" type="submit" name="action" value="done">
-                                    Save & Done
-                                </button>
-                            {% endif %}
-                        </div>
-                    </div>
-                </form>
-            {% else %}
-                <div class="alert">
-                    <span>No markable questions found for this attempt.</span>
-                </div>
-            {% endif %}
-        </div>
+    <div class="flex items-center gap-3 bg-base-100 rounded-lg px-4 py-3 shadow-sm flex-1">
+      <div class="p-2 rounded-lg bg-primary bg-opacity-15 text-primary shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="text-xs opacity-50">Learner</div>
+        <div class="font-semibold text-sm leading-tight">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</div>
+      </div>
     </div>
-</div>
+
+    <div class="flex items-center gap-3 bg-base-100 rounded-lg px-4 py-3 shadow-sm">
+      <div class="p-2 rounded-lg bg-secondary bg-opacity-15 text-secondary shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="text-xs opacity-50">Question</div>
+        <div class="font-semibold text-sm leading-tight">{{ current_q }} <span class="opacity-40 font-normal">/ {{ total_questions }}</span></div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 bg-base-100 rounded-lg px-4 py-3 shadow-sm">
+      <div class="p-2 rounded-lg bg-success bg-opacity-15 text-success shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="text-xs opacity-50">Scored</div>
+        <div class="font-semibold text-sm leading-tight">{{ scored_count }} <span class="opacity-40 font-normal">questions</span></div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 bg-base-100 rounded-lg px-4 py-3 shadow-sm">
+      <div class="p-2 rounded-lg bg-accent bg-opacity-15 text-accent shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3.75 4.5h16.5m-15 0v15h13.5v-15m-9 4.5h1.5m3 0h1.5m-6 3h1.5m3 0h1.5m-6 3h6"/>
+        </svg>
+      </div>
+      <div>
+        <div class="text-xs opacity-50">Total</div>
+        <div class="font-semibold text-sm leading-tight">{{ total_awarded|floatformat:"-2" }} <span class="opacity-40 font-normal">/ {{ total_available|floatformat:"-2" }}</span></div>
+      </div>
+    </div>
+
+    {% if saved %}
+      <div class="flex items-center px-4">
+        <span class="badge badge-success">Saved</span>
+      </div>
+    {% endif %}
+
+  </div>
+
+  {# ── Question header ── #}
+  <div class="flex items-center justify-between shrink-0">
+    <div>
+      <div class="text-xs opacity-50 uppercase tracking-wide">{{ row.question.section.title }}</div>
+      <h1 class="text-lg font-semibold leading-tight">{{ row.question.code }}</h1>
+    </div>
+    <div class="flex items-center gap-2">
+      {% if row.score and row.score.rubric_json.auto_marked %}
+        <div class="badge {% if row.score.rubric_json.needs_review %}badge-warning{% else %}badge-success{% endif %} badge-sm">
+          {% if row.score.rubric_json.needs_review %}Review{% else %}Auto-marked{% endif %}
+        </div>
+      {% endif %}
+      <span class="badge badge-outline font-mono">{{ row.awarded|floatformat:"-2" }} / {{ row.max_points|floatformat:"-2" }}</span>
+    </div>
+  </div>
+
+  {# ── Split panel ── #}
+  <div class="flex-1 min-h-0 grid grid-cols-2 gap-4">
+
+    {# Left: question prompt + learner response #}
+    <div class="flex flex-col gap-4 min-h-0">
+      <div class="card bg-base-100 shadow shrink-0">
+        <div class="card-body p-4">
+          <div class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Question</div>
+          <div class="text-sm">{{ row.question.prompt }}</div>
+        </div>
+      </div>
+      <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col">
+        <div class="card-body p-4 flex flex-col min-h-0">
+          <div class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Learner response</div>
+          <div class="flex-1 overflow-y-auto text-sm">
+            {% if row.response_text %}
+              {{ row.response_text }}
+            {% else %}
+              <span class="opacity-40">No response submitted.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Right: scoring #}
+    <div class="card bg-base-100 shadow min-h-0 flex flex-col">
+      <div class="card-body p-4 flex flex-col gap-4 min-h-0 overflow-y-auto">
+
+        {# ── Marking guidance ── #}
+        {% if row.question.marking_notes %}
+          <div class="rounded-lg bg-info bg-opacity-10 border border-info border-opacity-30 px-3 py-2.5">
+            <div class="flex items-center gap-1.5 mb-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                   class="text-info shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/>
+              </svg>
+              <span class="text-xs font-semibold uppercase tracking-wide text-info">Marking guidance</span>
+            </div>
+            <div class="text-xs leading-relaxed whitespace-pre-wrap opacity-80">{{ row.question.marking_notes }}</div>
+          </div>
+        {% endif %}
+
+        {# ── Rubric or manual ── #}
+        {% if row.has_rubric %}
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-3">Rubric marking</div>
+            <div class="space-y-4">
+              {% for criterion in row.rubric %}
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between gap-4">
+                    <label class="text-sm font-medium">{{ criterion.label }}</label>
+                    <span class="text-xs opacity-50">Max {{ criterion.max_points|floatformat:"-2" }}</span>
+                  </div>
+                  <input class="input input-bordered input-sm w-full"
+                         type="number" step="0.5" min="0"
+                         max="{{ criterion.max_points|floatformat:'-2' }}"
+                         name="rubric__{{ row.question.pk }}__{{ criterion.key }}"
+                         value="{{ criterion.value }}"/>
+                  <textarea class="textarea textarea-bordered w-full text-sm"
+                            name="rubric_feedback__{{ row.question.pk }}__{{ criterion.key }}"
+                            rows="2"
+                            placeholder="Optional criterion note">{{ criterion.feedback }}</textarea>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Overall assessor note</div>
+            <textarea class="textarea textarea-bordered w-full text-sm"
+                      name="notes__{{ row.question.pk }}"
+                      rows="3"
+                      placeholder="Optional overall note">{{ row.notes }}</textarea>
+          </div>
+        {% else %}
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-3">Manual mark</div>
+            <label class="text-sm opacity-60 block mb-1">Points out of {{ row.max_points|floatformat:"-2" }}</label>
+            <input class="input input-bordered input-sm w-full"
+                   type="number" step="0.5" min="0"
+                   max="{{ row.max_points|floatformat:'-2' }}"
+                   name="manual__{{ row.question.pk }}"
+                   value="{{ row.manual_value }}"/>
+            <div class="mt-4">
+              <div class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Assessor note</div>
+              <textarea class="textarea textarea-bordered w-full text-sm"
+                        name="notes__{{ row.question.pk }}"
+                        rows="4"
+                        placeholder="Optional overall note">{{ row.notes }}</textarea>
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+
+  {# ── Navigation ── #}
+  <div class="flex items-center justify-between shrink-0">
+    <div>
+      {% if has_prev %}
+        <button class="btn btn-sm" type="submit" name="action" value="prev">← Save & Previous</button>
+      {% endif %}
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-sm" type="submit" name="action" value="save">Save</button>
+      {% if has_next %}
+        <button class="btn btn-sm btn-primary" type="submit" name="action" value="next">Save & Next →</button>
+      {% else %}
+        <button class="btn btn-sm btn-primary" type="submit" name="action" value="done">Save & Done</button>
+      {% endif %}
+    </div>
+  </div>
+
+</form>
+{% else %}
+  <div class="alert">No markable questions found for this attempt.</div>
+{% endif %}
 {% endblock %}

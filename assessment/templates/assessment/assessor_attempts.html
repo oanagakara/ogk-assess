@@ -1,55 +1,94 @@
 {% extends "assessment/assessor_base.html" %}
-{% block title %}Attempts{% endblock %}
+{% block title %}Attempts — {{ active_tab|title }}{% endblock %}
 
 {% block assessor_content %}
-<div class="max-w-5xl mx-auto">
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body p-6 md:p-8 space-y-6">
-            <div class="flex items-center justify-between gap-4">
-                <h1 class="text-2xl font-semibold">Assessment attempts</h1>
-            </div>
+<div class="space-y-4 h-full flex flex-col">
 
-            <div class="card bg-base-200 shadow">
-                <div class="card-body p-0">
-                    <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Code</th>
-                                    <th>Learner</th>
-                                    <th>Template</th>
-                                    <th>Status</th>
-                                    <th>Responses</th>
-                                    <th>Last activity</th>
-                                    <th class="text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for a in attempts %}
-                                    <tr>
-                                        <td class="font-mono">{{ a.code }}</td>
-                                        <td>{{ a.learner.first_names }} {{ a.learner.surname }}</td>
-                                        <td>{{ a.template.name }}{% if a.template.version %} {{ a.template.version }}{% endif %}</td>
-                                        <td>{{ a.status }}</td>
-                                        <td>{{ a.response_count }}</td>
-                                        <td>{{ a.last_activity_at|default:a.started_at }}</td>
-                                        <td class="text-right">
-                                            <a class="btn btn-sm btn-outline" href="{% url 'assessment:assessor_mark_attempt' a.code %}">
-                                                Mark
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="7">No attempts yet.</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+  {# ── Header ── #}
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-semibold">
+        {% if active_tab == 'in_progress' %}In Progress
+        {% elif active_tab == 'submitted' %}Submitted — Awaiting Marking
+        {% elif active_tab == 'marked' %}Marked
+        {% elif active_tab == 'abandoned' %}Abandoned
+        {% endif %}
+      </h1>
+      <p class="text-sm opacity-60">{{ page_obj.paginator.count }} attempt{{ page_obj.paginator.count|pluralize }}</p>
     </div>
+
+    {# Per-page selector #}
+    <form method="get" class="flex items-center gap-2">
+      <input type="hidden" name="tab" value="{{ active_tab }}">
+      <label class="text-sm opacity-60">Show</label>
+      <select name="per_page" class="select select-sm select-bordered" onchange="this.form.submit()">
+        <option value="10"  {% if per_page == 10  %}selected{% endif %}>10</option>
+        <option value="25"  {% if per_page == 25  %}selected{% endif %}>25</option>
+        <option value="50"  {% if per_page == 50  %}selected{% endif %}>50</option>
+        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+      </select>
+      <label class="text-sm opacity-60">per page</label>
+    </form>
+  </div>
+
+  {# ── Table ── #}
+  <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col">
+    <div class="overflow-auto flex-1">
+      <table class="table table-zebra w-full">
+        <thead class="sticky top-0 bg-base-100 z-10">
+          <tr>
+            <th>Code</th>
+            <th>Learner</th>
+            <th>Template</th>
+            <th>Last activity</th>
+            <th class="text-right">Responses</th>
+            <th class="text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in page_obj %}
+            {% include "assessment/_attempt_row.html" %}
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-10 opacity-50">No attempts here.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ── Paginator ── #}
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="flex items-center justify-between px-4 py-3 border-t border-base-200">
+        <span class="text-sm opacity-60">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <div class="join">
+          {% if page_obj.has_previous %}
+            <a href="?{{ filter_qs }}&page={{ page_obj.previous_page_number }}" class="join-item btn btn-sm">«</a>
+          {% else %}
+            <button class="join-item btn btn-sm btn-disabled" disabled>«</button>
+          {% endif %}
+
+          {% for p in page_obj.paginator.page_range %}
+            {% if p == page_obj.number %}
+              <button class="join-item btn btn-sm btn-active">{{ p }}</button>
+            {% elif p == 1 or p == page_obj.paginator.num_pages or p >= page_obj.number|add:"-2" and p <= page_obj.number|add:"2" %}
+              <a href="?{{ filter_qs }}&page={{ p }}" class="join-item btn btn-sm">{{ p }}</a>
+            {% elif p == page_obj.number|add:"-3" or p == page_obj.number|add:"3" %}
+              <button class="join-item btn btn-sm btn-disabled" disabled>…</button>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <a href="?{{ filter_qs }}&page={{ page_obj.next_page_number }}" class="join-item btn btn-sm">»</a>
+          {% else %}
+            <button class="join-item btn btn-sm btn-disabled" disabled>»</button>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}
