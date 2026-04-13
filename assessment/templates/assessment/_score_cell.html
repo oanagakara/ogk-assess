@@ -1,0 +1,10 @@
+{# pct + level required. total=True makes the badge slightly larger. #}
+{% with color=level %}
+<span class="badge {% if total %}badge-sm{% else %}badge-xs{% endif %}
+  {% if level == 'L4' or level == 'Post L4' %}badge-success
+  {% elif level == 'L3' %}badge-info
+  {% elif level == 'L2' %}badge-warning
+  {% else %}badge-error{% endif %}">
+  {{ level }}
+</span>
+{% endwith %}

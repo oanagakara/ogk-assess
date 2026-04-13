@@ -19,12 +19,98 @@ from .forms import (
     LearnerForm,
     StartForm,
 )
-from .models import AssessmentTemplate, Attempt, ExamSession, Learner, Question, Response, Score
+from .models import AssessmentTemplate, Attempt, ExamSession, Learner, Question, Response, Score, Section
 from .renderers import get_renderer
 from .services import claim_seat, claim_session_seat
 
 
 ASSESSMENT_DURATION = timedelta(hours=2)
+
+# ── NQF Placement configuration ──────────────────────────────────────────────
+# Maps display groups to the question-code prefixes that belong to each group.
+NQF_DISPLAY_GROUPS = {
+    "literacy": [
+        {"label": "Reading & Comprehension", "prefixes": ["LIT-A", "LIT-B", "LIT-C"]},
+        {"label": "Writing",                 "prefixes": ["LIT-D"]},
+    ],
+    "numeracy": [
+        {"label": "Basic Numeracy",          "prefixes": ["NUM-A", "NUM-B"]},
+        {"label": "Mathematics Skills",      "prefixes": ["NUM-C", "NUM-D"]},
+    ],
+}
+
+# Per-question percentage thresholds, derived from memo mark boundaries
+# converted to % of the memo's expected max for that question.
+# The system's actual max_marks per prefix differs from the memo (fewer questions
+# are loaded), so we normalise by computing pct = round(awarded/system_max*100)
+# and look up the level from these percentage bands.
+#
+# Derivation: upper bound of level L = floor(upper_mark / memo_max * 100).
+# Source: Media Works Memo v1.0.5 (literacy) & Workbook v1.0.6 p.v (numeracy).
+# LIT-D (Q4 writing rubric) falls through to NQF_PCT_THRESHOLDS.
+NQF_QUESTION_PCT_THRESHOLDS = {
+    # LIT-A  Q1 memo /10  — boundaries at marks 4, 6, 8
+    "LIT-A": [(0, 40, "L1"), (41, 60, "L2"), (61, 80, "L3"), (81, 100, "L4")],
+    # LIT-B  Q2 memo /14  — boundaries at marks 4, 8, 11
+    "LIT-B": [(0, 28, "L1"), (29, 57, "L2"), (58, 78, "L3"), (79, 100, "L4")],
+    # LIT-C  Q3 memo /20  — boundaries at marks 7, 12, 15
+    "LIT-C": [(0, 35, "L1"), (36, 60, "L2"), (61, 75, "L3"), (76, 100, "L4")],
+    # NUM-A  Q1 memo /15  — boundary at mark 9
+    "NUM-A": [(0, 60, "L1"), (61, 100, "L2")],
+    # NUM-B  Q2 memo /15  — boundaries at marks 4, 9
+    "NUM-B": [(0, 26, "L1"), (27, 60, "L2"), (61, 100, "L3")],
+    # NUM-C  Q3 memo /15  — boundaries at marks 3, 6, 12
+    "NUM-C": [(0, 20, "L1"), (21, 40, "L2"), (41, 80, "L3"), (81, 100, "L4")],
+    # NUM-D  Q4 memo /15  — boundaries at marks 2, 4, 7, 12 (13–15 counts as L4
+    #         for the modal calculation; Post L4 is a section-level override below)
+    "NUM-D": [(0, 13, "L1"), (14, 26, "L2"), (27, 46, "L3"), (47, 100, "L4")],
+}
+
+# % fallback thresholds for rubric questions (e.g. LIT-D) that have no
+# defined mark-range table in the memo.
+NQF_PCT_THRESHOLDS = [
+    (0,  39, "L1"),
+    (40, 59, "L2"),
+    (60, 79, "L3"),
+    (80, 100, "L4"),
+]
+
+# Numeracy Post-Level-4: ALL four questions must reach this % (≈ 13/15 in memo).
+NQF_POST_L4_NUM_PCT = 87
+
+
+def _nqf_level_pct(pct: float, thresholds: list) -> str:
+    """Return level label for a percentage using (min_pct, max_pct, label) tuples."""
+    for lo, hi, label in thresholds:
+        if lo <= pct <= hi:
+            return label
+    return thresholds[-1][2]
+
+
+def _modal_level(levels: list) -> str:
+    """Most frequently achieved level. On tie, return the lower (more conservative) level."""
+    if not levels:
+        return "L1"
+    from collections import Counter
+    counts = Counter(levels)
+    max_count = max(counts.values())
+    _order = {"L1": 1, "L2": 2, "L3": 3, "L4": 4, "Post L4": 5}
+    tied = sorted(
+        [lv for lv, c in counts.items() if c == max_count],
+        key=lambda lv: _order.get(lv, 99),
+    )
+    return tied[0]
+
+
+def _nqf_suitable_text(level: str, subject: str) -> str:
+    """Return placement comment string for a given AET level and subject."""
+    if level == "Post L4":
+        return f"Post-AET Level for {subject} — no further AET training required"
+    num = int(level[1])
+    return f"NQF Level {num} for {subject}"
+
+
+# ── End NQF config ────────────────────────────────────────────────────────────
 
 # Question codes that display the Thandi passage.
 # TODO: move to spec_json["passage_source"] in a data migration.
@@ -318,12 +404,44 @@ def assessor_dashboard(request):
 def assessor_attempts(request):
     _expire_overdue_attempts()
 
-    qs = (
+    from django.db.models import Exists, OuterRef
+    has_score = Score.objects.filter(response__attempt_id=OuterRef("pk"))
+
+    base_qs = (
         Attempt.objects.select_related("learner", "template")
-        .annotate(response_count=Count("response"))
+        .annotate(response_count=Count("response", distinct=True))
         .order_by("-last_activity_at", "-started_at")
     )
-    return render(request, "assessment/assessor_attempts.html", {"attempts": qs})
+
+    active_tab = request.GET.get("tab", "in_progress")
+    try:
+        per_page = int(request.GET.get("per_page", 25))
+    except ValueError:
+        per_page = 25
+    if per_page not in (10, 25, 50, 100):
+        per_page = 25
+
+    tab_qs = {
+        "in_progress": base_qs.filter(status=Attempt.IN_PROGRESS),
+        "submitted":   base_qs.filter(status=Attempt.SUBMITTED).filter(~Exists(has_score)),
+        "marked":      base_qs.filter(status=Attempt.SUBMITTED).filter(Exists(has_score)),
+        "abandoned":   base_qs.filter(status=Attempt.ABANDONED),
+    }
+    current_qs = tab_qs.get(active_tab, tab_qs["in_progress"])
+
+    paginator = Paginator(current_qs, per_page)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    params = request.GET.copy()
+    params.pop("page", None)
+    filter_qs = params.urlencode()
+
+    return render(request, "assessment/assessor_attempts.html", {
+        "page_obj":   page_obj,
+        "active_tab": active_tab,
+        "per_page":   per_page,
+        "filter_qs":  filter_qs,
+    })
 
 
 def _build_marking_row(attempt, question, index):
@@ -784,6 +902,175 @@ def session_join(request, code: str):
         "session": session,
         "learner_form": learner_form,
         "honesty_form": honesty_form,
+    })
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_sessions(request):
+    now = timezone.now()
+    sessions = (
+        ExamSession.objects
+        .select_related("template", "created_by")
+        .annotate(attempt_count=Count("attempts"))
+        .order_by("-created_at")
+    )
+    rows = []
+    for s in sessions:
+        rows.append({
+            "session": s,
+            "is_open": now < s.expires_at,
+            "attempt_count": s.attempt_count,
+        })
+    return render(request, "assessment/assessor_sessions.html", {"rows": rows})
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_results(request):
+    from django.db.models import Exists, OuterRef
+
+    # Only attempts that have at least one score
+    has_score = Score.objects.filter(response__attempt_id=OuterRef("pk"))
+    attempts = (
+        Attempt.objects
+        .filter(status=Attempt.SUBMITTED, response__score__isnull=False)
+        .select_related("learner", "template")
+        .distinct()
+        .order_by("learner__surname", "learner__first_names")
+    )
+
+    # Preload questions grouped by section for this template
+    # We'll build a mapping: question_pk → (section_kind, prefix)
+    sections = Section.objects.filter(template__attempt__in=attempts).distinct()
+    all_questions = (
+        Question.objects
+        .filter(section__in=sections)
+        .select_related("section")
+    )
+    q_meta = {}  # pk → {"prefix": "LIT-A", "max": 4.0, "section_title": "..."}
+    for q in all_questions:
+        prefix = "-".join(q.code.split("-")[:2])
+        q_meta[q.pk] = {
+            "prefix": prefix,
+            "max": float(q.max_marks or 0),
+            "section_title": q.section.title,
+        }
+
+    def _section_kind(title: str) -> str:
+        t = title.upper()
+        if "LITERACY" in t and "MATH" not in t and "NUMER" not in t:
+            return "literacy"
+        if "NUMER" in t or "MATH" in t:
+            return "numeracy"
+        return "other"
+
+    rows = []
+    for attempt in attempts:
+        # Collect scores: prefix → (awarded, max)
+        prefix_scores: dict[str, list[float, float]] = {}
+        section_scores: dict[str, list[float, float]] = {}  # "literacy"/"numeracy"
+
+        for response in attempt.response_set.select_related("score", "question__section").all():
+            meta = q_meta.get(response.question_id)
+            if not meta:
+                continue
+            prefix = meta["prefix"]
+            sk = _section_kind(meta["section_title"])
+            try:
+                pts = float(response.score.points)
+            except (AttributeError, Score.DoesNotExist):
+                pts = 0.0
+            mx = meta["max"]
+
+            if prefix not in prefix_scores:
+                prefix_scores[prefix] = [0.0, 0.0]
+            prefix_scores[prefix][0] += pts
+            prefix_scores[prefix][1] += mx
+
+            if sk not in section_scores:
+                section_scores[sk] = [0.0, 0.0]
+            section_scores[sk][0] += pts
+            section_scores[sk][1] += mx
+
+        def _group_data(groups):
+            result = []
+            for g in groups:
+                awarded = sum(prefix_scores.get(p, [0, 0])[0] for p in g["prefixes"])
+                maximum = sum(prefix_scores.get(p, [0, 0])[1] for p in g["prefixes"])
+                pct = round(awarded / maximum * 100) if maximum else 0
+                # Level for the group: modal across its constituent prefixes
+                g_levels = []
+                for p in g["prefixes"]:
+                    pa, pm = prefix_scores.get(p, [0, 0])
+                    pp = round(pa / pm * 100) if pm else 0
+                    th = NQF_QUESTION_PCT_THRESHOLDS.get(p, NQF_PCT_THRESHOLDS)
+                    g_levels.append(_nqf_level_pct(pp, th))
+                group_level = _modal_level(g_levels) if g_levels else "L1"
+                result.append({
+                    "label": g["label"],
+                    "awarded": awarded,
+                    "max": maximum,
+                    "pct": pct,
+                    "level": group_level,
+                })
+            return result
+
+        # ── Per-question level computation (percentage-normalised) ──────
+        # The system's actual marks per prefix differ from the memo's expected
+        # totals, so we normalise each prefix to a % of its system max and map
+        # that % to the memo-derived percentage bands.
+        lit_q_levels = []
+        num_q_levels = []
+        num_prefix_pcts = {}  # prefix → pct (for Post L4 check)
+
+        for prefix, (awarded, maximum) in prefix_scores.items():
+            pct = round(awarded / maximum * 100) if maximum else 0
+            thresholds = NQF_QUESTION_PCT_THRESHOLDS.get(prefix, NQF_PCT_THRESHOLDS)
+            level = _nqf_level_pct(pct, thresholds)
+
+            if prefix.startswith("LIT"):
+                lit_q_levels.append(level)
+            elif prefix.startswith("NUM"):
+                num_q_levels.append(level)
+                num_prefix_pcts[prefix] = pct
+
+        # Modal level per section
+        lit_level = _modal_level(lit_q_levels) if lit_q_levels else "L1"
+        num_level = _modal_level(num_q_levels) if num_q_levels else "L1"
+
+        # Post L4 override: all 4 numeracy questions must score ≥87% (≈ 13/15)
+        num_prefixes = {"NUM-A", "NUM-B", "NUM-C", "NUM-D"}
+        if (num_prefixes <= num_prefix_pcts.keys() and
+                all(num_prefix_pcts[p] >= NQF_POST_L4_NUM_PCT for p in num_prefixes)):
+            num_level = "Post L4"
+
+        lit = section_scores.get("literacy", [0, 0])
+        num = section_scores.get("numeracy", [0, 0])
+        lit_pct = round(lit[0] / lit[1] * 100) if lit[1] else 0
+        num_pct = round(num[0] / num[1] * 100) if num[1] else 0
+
+        rows.append({
+            "attempt": attempt,
+            "learner": attempt.learner,
+            "literacy_groups":  _group_data(NQF_DISPLAY_GROUPS["literacy"]),
+            "numeracy_groups":  _group_data(NQF_DISPLAY_GROUPS["numeracy"]),
+            "lit_total":  {"awarded": lit[0], "max": lit[1], "pct": lit_pct},
+            "num_total":  {"awarded": num[0], "max": num[1], "pct": num_pct},
+            "lit_level":  lit_level,
+            "num_level":  num_level,
+            "comment":    (
+                _nqf_suitable_text(lit_level, "Literacy") + ". " +
+                _nqf_suitable_text(num_level, "Numeracy") + "."
+            ),
+        })
+
+    lit_groups = NQF_DISPLAY_GROUPS["literacy"]
+    num_groups  = NQF_DISPLAY_GROUPS["numeracy"]
+    return render(request, "assessment/assessor_results.html", {
+        "rows":       rows,
+        "lit_groups": lit_groups,
+        "num_groups": num_groups,
     })
 
 

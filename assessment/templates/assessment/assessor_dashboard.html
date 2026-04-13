@@ -38,6 +38,7 @@
                     </div>
 
                     <form method="get">
+                    <button type="submit" hidden></button>
                     <div class="overflow-x-auto">
                         <table class="table table-zebra w-full">
                             <thead>
@@ -60,7 +61,7 @@
                                                class="input input-xs input-bordered w-full">
                                     </th>
                                     <th class="font-normal py-1">
-                                        <select name="q_status" class="select select-xs select-bordered w-full">
+                                        <select name="q_status" class="select select-xs select-bordered w-full" onchange="this.form.submit()">
                                             <option value="">All</option>
                                             <option value="in_progress" {% if q_status == "in_progress" %}selected{% endif %}>In progress</option>
                                             <option value="submitted"   {% if q_status == "submitted"   %}selected{% endif %}>Submitted</option>
@@ -69,7 +70,8 @@
                                     </th>
                                     <th class="font-normal py-1">
                                         <input type="date" name="q_date" value="{{ q_date }}"
-                                               class="input input-xs input-bordered w-full">
+                                               class="input input-xs input-bordered w-full"
+                                               onchange="this.form.submit()">
                                     </th>
                                     <th></th>
                                 </tr>
