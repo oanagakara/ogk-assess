@@ -6,7 +6,7 @@ import re
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator 
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -258,11 +258,39 @@ def assessor_dashboard(request):
         last_activity_at__gte=active_cutoff,
     ).count()
 
-    recent_qs  = (
+    q_code    = (request.GET.get("q_code") or "").strip()
+    q_learner = (request.GET.get("q_learner") or "").strip()
+    q_status  = (request.GET.get("q_status") or "").strip()
+    q_date    = (request.GET.get("q_date") or "").strip()
+
+    recent_qs = (
         Attempt.objects.select_related("learner", "template")
         .annotate(response_count=Count("response"))
         .order_by("-last_activity_at", "-started_at")
     )
+
+    if q_code:
+        recent_qs = recent_qs.filter(code__icontains=q_code)
+    if q_learner:
+        recent_qs = recent_qs.filter(
+            Q(learner__first_names__icontains=q_learner)
+            | Q(learner__surname__icontains=q_learner)
+            | Q(learner__id_number__icontains=q_learner)
+        )
+    if q_status:
+        recent_qs = recent_qs.filter(status=q_status)
+    if q_date:
+        try:
+            from datetime import date as _date
+            recent_qs = recent_qs.filter(
+                last_activity_at__date=_date.fromisoformat(q_date)
+            )
+        except ValueError:
+            pass
+
+    params = request.GET.copy()
+    params.pop("page", None)
+    filter_qs = params.urlencode()
 
     paginator = Paginator(recent_qs, 10)
     page_number = request.GET.get("page")
@@ -276,6 +304,11 @@ def assessor_dashboard(request):
             "submitted_today": submitted_today,
             "active_now": active_now,
             "recent_page": recent_page,
+            "filter_qs": filter_qs,
+            "q_code": q_code,
+            "q_learner": q_learner,
+            "q_status": q_status,
+            "q_date": q_date,
         },
     )
 

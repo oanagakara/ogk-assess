@@ -30,10 +30,14 @@
 
             <div class="card bg-base-200 shadow">
                 <div class="card-body space-y-4">
-                    <div>
+                    <div class="flex items-center justify-between">
                         <h2 class="text-lg font-semibold">Recent activity</h2>
+                        {% if filter_qs %}
+                            <a href="{% url 'assessment:assessor_dashboard' %}" class="btn btn-sm btn-ghost">Clear filters</a>
+                        {% endif %}
                     </div>
 
+                    <form method="get">
                     <div class="overflow-x-auto">
                         <table class="table table-zebra w-full">
                             <thead>
@@ -41,8 +45,33 @@
                                     <th>Code</th>
                                     <th>Learner</th>
                                     <th>Status</th>
-                                    <th class="text-right">Responses</th>
                                     <th>Last activity</th>
+                                    <th class="text-right">Responses</th>
+                                </tr>
+                                <tr>
+                                    <th class="font-normal py-1">
+                                        <input type="text" name="q_code" value="{{ q_code }}"
+                                               placeholder="Filter…"
+                                               class="input input-xs input-bordered w-full">
+                                    </th>
+                                    <th class="font-normal py-1">
+                                        <input type="text" name="q_learner" value="{{ q_learner }}"
+                                               placeholder="Name or ID…"
+                                               class="input input-xs input-bordered w-full">
+                                    </th>
+                                    <th class="font-normal py-1">
+                                        <select name="q_status" class="select select-xs select-bordered w-full">
+                                            <option value="">All</option>
+                                            <option value="in_progress" {% if q_status == "in_progress" %}selected{% endif %}>In progress</option>
+                                            <option value="submitted"   {% if q_status == "submitted"   %}selected{% endif %}>Submitted</option>
+                                            <option value="abandoned"   {% if q_status == "abandoned"   %}selected{% endif %}>Abandoned</option>
+                                        </select>
+                                    </th>
+                                    <th class="font-normal py-1">
+                                        <input type="date" name="q_date" value="{{ q_date }}"
+                                               class="input input-xs input-bordered w-full">
+                                    </th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -61,45 +90,37 @@
                                                 <span class="badge">{{ attempt.status }}</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-right font-mono">{{ attempt.response_count }}</td>
                                         <td class="whitespace-nowrap opacity-80">{{ attempt.last_activity_at|default:attempt.started_at }}</td>
+                                        <td class="text-right font-mono">{{ attempt.response_count }}</td>
                                     </tr>
                                 {% empty %}
-                                    <tr><td colspan="5" class="opacity-70">No attempts yet.</td></tr>
+                                    <tr><td colspan="5" class="opacity-70">No results.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                         {% if recent_page.paginator.num_pages > 1 %}
                             <div class="flex items-center justify-between mt-4">
                                 <div class="text-sm opacity-70">
-                                    Page {{ recent_page.number}} of {{ recent_page.paginator.num_pages }}    
-                                </div>  
+                                    Page {{ recent_page.number }} of {{ recent_page.paginator.num_pages }}
+                                </div>
                                 <div class="join">
                                     {% if recent_page.has_previous %}
-                                        <a href="?page={{ recent_page.previous_page_number }}"
-                                           class="join-item btn btn-sm">
-                                            Previous
-                                        </a> 
+                                        <a href="?{{ filter_qs }}&page={{ recent_page.previous_page_number }}"
+                                           class="join-item btn btn-sm">Previous</a>
                                     {% else %}
-                                        <button class="join-item btn btn-sm btn-disabled" disabled>
-                                            Next
-                                        </button>
+                                        <button class="join-item btn btn-sm btn-disabled" disabled>Previous</button>
                                     {% endif %}
-
                                     {% if recent_page.has_next %}
-                                         <a href="?page={{ recent_page.next_page_number }}"
-                                           class="join-item btn btn-sm">
-                                            Next
-                                        </a> 
+                                        <a href="?{{ filter_qs }}&page={{ recent_page.next_page_number }}"
+                                           class="join-item btn btn-sm">Next</a>
                                     {% else %}
-                                        <button class="join-item btn btn-sm btn-disabled" disabled>
-                                            Next
-                                        </button>
+                                        <button class="join-item btn btn-sm btn-disabled" disabled>Next</button>
                                     {% endif %}
                                 </div>
                             </div>
-                        {% endif%}
+                        {% endif %}
                     </div>
+                    </form>
                 </div>
             </div>
         </div>
