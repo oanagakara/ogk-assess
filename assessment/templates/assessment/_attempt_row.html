@@ -1,0 +1,10 @@
+<tr>
+  <td class="font-mono whitespace-nowrap">{{ a.code }}</td>
+  <td class="whitespace-nowrap">{{ a.learner.first_names }} {{ a.learner.surname }}</td>
+  <td class="opacity-70">{{ a.template.name }}{% if a.template.version %} {{ a.template.version }}{% endif %}</td>
+  <td class="whitespace-nowrap opacity-70">{{ a.last_activity_at|default:a.started_at }}</td>
+  <td class="text-right font-mono">{{ a.response_count }}</td>
+  <td class="text-right">
+    <a class="btn btn-sm btn-outline" href="{% url 'assessment:assessor_mark_attempt' a.code %}">Mark</a>
+  </td>
+</tr>

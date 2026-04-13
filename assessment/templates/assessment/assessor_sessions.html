@@ -1,0 +1,75 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Sessions{% endblock %}
+
+{% block assessor_content %}
+<div class="h-full flex flex-col gap-4">
+
+  {# ── Header ── #}
+  <div class="flex items-center justify-between shrink-0">
+    <div>
+      <h1 class="text-xl font-semibold">Sessions</h1>
+      <p class="text-sm opacity-60">{{ rows|length }} session{{ rows|length|pluralize }}</p>
+    </div>
+    <a href="{% url 'assessment:assessor_new_session' %}" class="btn btn-primary btn-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+           viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 4.5v15m7.5-7.5h-15"/>
+      </svg>
+      New Session
+    </a>
+  </div>
+
+  {# ── Table ── #}
+  <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col">
+    <div class="overflow-auto flex-1">
+      <table class="table table-zebra w-full">
+        <thead class="sticky top-0 bg-base-100 z-10">
+          <tr>
+            <th>Code</th>
+            <th>Template</th>
+            <th>Created by</th>
+            <th>Created</th>
+            <th>Expires</th>
+            <th class="text-right">Seats</th>
+            <th class="text-right">Attempts</th>
+            <th class="text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td class="font-mono font-semibold">{{ row.session.code }}</td>
+              <td class="opacity-80">{{ row.session.template }}</td>
+              <td class="opacity-70">{{ row.session.created_by.username|default:"—" }}</td>
+              <td class="whitespace-nowrap opacity-70 text-sm">{{ row.session.created_at|date:"d M Y H:i" }}</td>
+              <td class="whitespace-nowrap text-sm">
+                {% if row.is_open %}
+                  <span class="badge badge-success badge-sm">Open</span>
+                  <span class="opacity-60 text-xs ml-1">{{ row.session.expires_at|date:"H:i" }}</span>
+                {% else %}
+                  <span class="badge badge-ghost badge-sm">Closed</span>
+                  <span class="opacity-40 text-xs ml-1">{{ row.session.expires_at|date:"d M H:i" }}</span>
+                {% endif %}
+              </td>
+              <td class="text-right font-mono text-sm">{{ row.session.seat_limit }}</td>
+              <td class="text-right font-mono text-sm">{{ row.attempt_count }}</td>
+              <td class="text-right">
+                <a href="{% url 'assessment:session_monitor' row.session.code %}"
+                   class="btn btn-xs {% if row.is_open %}btn-primary{% else %}btn-ghost{% endif %}">
+                  Monitor
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-10 opacity-50">No sessions yet.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

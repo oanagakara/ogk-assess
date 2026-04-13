@@ -1,0 +1,116 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Results at a Glance{% endblock %}
+
+{% block assessor_content %}
+<div class="h-full flex flex-col gap-4">
+
+  {# ── Header ── #}
+  <div class="flex items-center justify-between shrink-0">
+    <div>
+      <h1 class="text-xl font-semibold">Results at a Glance</h1>
+      <p class="text-sm opacity-60">{{ rows|length }} marked attempt{{ rows|length|pluralize }}</p>
+    </div>
+  </div>
+
+  {# ── Table ── #}
+  <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col">
+    <div class="overflow-auto flex-1">
+      <table class="table table-zebra table-sm w-full">
+        <thead class="sticky top-0 bg-base-100 z-10">
+          <tr>
+            <th rowspan="2" class="align-bottom">First Name</th>
+            <th rowspan="2" class="align-bottom">Surname</th>
+            <th rowspan="2" class="align-bottom">ID Number</th>
+
+            {# Literacy #}
+            <th colspan="{{ lit_groups|length|add:'1' }}"
+                class="text-center border-l border-base-300 bg-primary bg-opacity-10">
+              Literacy
+            </th>
+
+            {# Numeracy #}
+            <th colspan="{{ num_groups|length|add:'1' }}"
+                class="text-center border-l border-base-300 bg-secondary bg-opacity-10">
+              Numeracy
+            </th>
+
+            <th rowspan="2" class="align-bottom whitespace-nowrap">NQF Placement</th>
+          </tr>
+          <tr>
+            {% for g in lit_groups %}
+              <th class="text-center {% if forloop.first %}border-l border-base-300{% endif %} whitespace-nowrap text-xs font-medium">
+                {{ g.label }}
+              </th>
+            {% endfor %}
+            <th class="text-center font-semibold text-xs whitespace-nowrap">Level Achieved</th>
+
+            {% for g in num_groups %}
+              <th class="text-center border-l border-base-300 whitespace-nowrap text-xs font-medium">
+                {{ g.label }}
+              </th>
+            {% endfor %}
+            <th class="text-center font-semibold text-xs whitespace-nowrap">Level Achieved</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td class="whitespace-nowrap">{{ row.learner.first_names }}</td>
+              <td class="whitespace-nowrap">{{ row.learner.surname }}</td>
+              <td class="font-mono text-xs opacity-70">{{ row.learner.id_number }}</td>
+
+              {# Literacy group scores #}
+              {% for g in row.literacy_groups %}
+                <td class="text-center {% if forloop.first %}border-l border-base-300{% endif %}">
+                  <span class="font-mono text-xs">{{ g.awarded|floatformat:"-2" }}/{{ g.max|floatformat:"-2" }}</span>
+                  <span class="text-xs opacity-50 ml-0.5">({{ g.pct }}%)</span>
+                </td>
+              {% endfor %}
+
+              {# Literacy total — level badge only #}
+              <td class="text-center">
+                <span class="badge badge-sm
+                  {% if row.lit_level == 'L4' or row.lit_level == 'Post L4' %}badge-success
+                  {% elif row.lit_level == 'L3' %}badge-info
+                  {% elif row.lit_level == 'L2' %}badge-warning
+                  {% else %}badge-error{% endif %}">
+                  {{ row.lit_level }}
+                </span>
+              </td>
+
+              {# Numeracy group scores #}
+              {% for g in row.numeracy_groups %}
+                <td class="text-center border-l border-base-300">
+                  <span class="font-mono text-xs">{{ g.awarded|floatformat:"-2" }}/{{ g.max|floatformat:"-2" }}</span>
+                  <span class="text-xs opacity-50 ml-0.5">({{ g.pct }}%)</span>
+                </td>
+              {% endfor %}
+
+              {# Numeracy total — level badge only #}
+              <td class="text-center">
+                <span class="badge badge-sm
+                  {% if row.num_level == 'L4' or row.num_level == 'Post L4' %}badge-success
+                  {% elif row.num_level == 'L3' %}badge-info
+                  {% elif row.num_level == 'L2' %}badge-warning
+                  {% else %}badge-error{% endif %}">
+                  {{ row.num_level }}
+                </span>
+              </td>
+
+              {# NQF Placement comment #}
+              <td class="text-xs leading-snug opacity-80 max-w-xs">{{ row.comment }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="20" class="text-center py-10 opacity-50">
+                No marked attempts yet.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
