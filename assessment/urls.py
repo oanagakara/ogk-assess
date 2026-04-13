@@ -15,4 +15,7 @@ urlpatterns = [
     path("assessor/attempts/", views.assessor_attempts, name="assessor_attempts"),
     path("assessor/attempts/new/", views.assessor_new_attempt, name="assessor_new_attempt"),
     path("assessor/attempts/<str:code>/mark/", views.assessor_mark_attempt, name="assessor_mark_attempt"),
+    path("assessor/sessions/new/", views.assessor_new_session, name="assessor_new_session"),
+    path("assessor/sessions/<str:code>/monitor/", views.session_monitor, name="session_monitor"),
+    path("session/<str:code>/join/", views.session_join, name="session_join"),
 ]

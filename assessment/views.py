@@ -14,13 +14,14 @@ from django.utils.text import slugify
 
 from .forms import (
     AttemptForm,
+    ExamSessionForm,
     HonestyForm,
     LearnerForm,
     StartForm,
 )
-from .models import AssessmentTemplate, Attempt, Learner, Question, Response, Score
+from .models import AssessmentTemplate, Attempt, ExamSession, Learner, Question, Response, Score
 from .renderers import get_renderer
-from .services import claim_seat
+from .services import claim_seat, claim_session_seat
 
 
 ASSESSMENT_DURATION = timedelta(hours=2)
@@ -211,16 +212,23 @@ def start(request):
     form = StartForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        code = form.cleaned_data["code"].strip()
-        attempt = Attempt.objects.filter(code=code).first()
+        code = form.cleaned_data["code"].strip().upper()
 
-        if attempt is None:
-            form.add_error("code", "Invalid assessment code.")
-        else:
+        # Existing per-attempt flow
+        attempt = Attempt.objects.filter(code=code).first()
+        if attempt is not None:
             ok, msg = claim_seat(attempt)
             if ok:
-                return redirect("assessment:attempt_details", code=code)
+                return redirect("assessment:attempt_details", code=attempt.code)
             form.add_error("code", msg)
+            return render(request, "assessment/start.html", {"form": form})
+
+        # Session flow
+        session = ExamSession.objects.filter(code=code).select_related("template").first()
+        if session is not None:
+            return redirect("assessment:session_join", code=session.code)
+
+        form.add_error("code", "Invalid code. Please check and try again.")
 
     return render(request, "assessment/start.html", {"form": form})
 
@@ -615,6 +623,11 @@ def attempt_question(request, code: str, n: int):
         return redirect("assessment:attempt_question", code=code, n=1)
 
     question = qs[n - 1]
+
+    if attempt.current_question != n:
+        Attempt.objects.filter(pk=attempt.pk).update(current_question=n)
+        attempt.current_question = n
+
     spec = _question_spec(question)
     layout = spec.get("layout", "default")
 
@@ -703,3 +716,118 @@ def attempt_instructions(request, code: str):
 def attempt_submitted(request, code: str):
     attempt = get_object_or_404(Attempt, code=code)
     return render(request, "assessment/submitted.html", {"attempt": attempt})
+
+
+def session_join(request, code: str):
+    """Learner identity + honesty declaration for session-based entry."""
+    session = get_object_or_404(
+        ExamSession.objects.select_related("template"),
+        code=code,
+    )
+
+    if not session.is_open:
+        return render(request, "assessment/session_expired.html", {"session": session})
+
+    learner_form = LearnerForm(request.POST or None)
+    honesty_form = HonestyForm(request.POST or None)
+
+    if request.method == "POST" and learner_form.is_valid() and honesty_form.is_valid():
+        learner = learner_form.save()
+        ok, msg, attempt = claim_session_seat(session, learner)
+        if not ok:
+            learner.delete()
+            return render(request, "assessment/session_join.html", {
+                "session": session,
+                "learner_form": learner_form,
+                "honesty_form": honesty_form,
+                "error": msg,
+            })
+        attempt.accept_honesty_declaration(
+            name=honesty_form.cleaned_data["honesty_name"],
+        )
+        return redirect("assessment:attempt_question", code=attempt.code, n=1)
+
+    return render(request, "assessment/session_join.html", {
+        "session": session,
+        "learner_form": learner_form,
+        "honesty_form": honesty_form,
+    })
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_new_session(request):
+    latest_template = AssessmentTemplate.objects.order_by("-created_at").first()
+
+    if latest_template is None:
+        return render(request, "assessment/assessor_new_session.html",
+                      {"error": "No assessment template exists yet."})
+
+    if request.method == "POST":
+        form = ExamSessionForm(request.POST)
+        if form.is_valid():
+            session = form.save(commit=False)
+            session.created_by = request.user
+            session.save()
+            return render(request, "assessment/assessor_new_session.html",
+                          {"session": session, "form": form})
+    else:
+        form = ExamSessionForm(initial={"template": latest_template})
+
+    return render(request, "assessment/assessor_new_session.html", {"form": form})
+
+
+@login_required
+@user_passes_test(is_assessor)
+def session_monitor(request, code: str):
+    session = get_object_or_404(
+        ExamSession.objects.select_related("template"),
+        code=code,
+    )
+
+    total_questions = Question.objects.filter(
+        section__template=session.template
+    ).count()
+
+    now = timezone.now()
+    attempts = (
+        session.attempts
+        .select_related("learner")
+        .annotate(response_count=Count("response"))
+        .order_by("started_at")
+    )
+
+    rows = []
+    for a in attempts:
+        if a.started_at:
+            end = a.submitted_at or now
+            elapsed_display = str(end - a.started_at).split(".")[0]
+        else:
+            elapsed_display = "—"
+
+        pct = int((a.current_question or 0) / total_questions * 100) if total_questions else 0
+
+        rows.append({
+            "attempt": a,
+            "learner_name": f"{a.learner.first_names} {a.learner.surname}",
+            "current_question": a.current_question or 0,
+            "responses_count": a.response_count,
+            "total_questions": total_questions,
+            "elapsed_display": elapsed_display,
+            "status": a.status,
+            "has_started": a.started_at is not None,
+            "pct": pct,
+            "mark_url": reverse("assessment:assessor_mark_attempt", kwargs={"code": a.code}),
+        })
+
+    # Pad to seat_limit so the grid always shows all slots
+    slots = rows + [None] * max(0, session.seat_limit - len(rows))
+
+    return render(request, "assessment/session_monitor.html", {
+        "session": session,
+        "slots": slots,
+        "rows": rows,
+        "total_questions": total_questions,
+        "seat_limit": session.seat_limit,
+        "seats_taken": len(rows),
+    })

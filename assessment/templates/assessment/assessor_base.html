@@ -30,6 +30,13 @@
             >
                 New Code
             </a>
+
+            <a
+                href="{% url 'assessment:assessor_new_session' %}"
+                class="btn btn-sm {% if request.resolver_match.url_name == 'assessor_new_session' or request.resolver_match.url_name == 'session_monitor' %}btn-primary{% else %}btn-ghost{% endif %}"
+            >
+                Sessions
+            </a>
         </div>
             <form method="post" action="{% url 'logout' %}" class="inline">
               {% csrf_token %}

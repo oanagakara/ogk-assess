@@ -1,0 +1,95 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}New exam session{% endblock %}
+
+{% block assessor_content %}
+<div class="max-w-5xl mx-auto">
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body p-6 md:p-8">
+      <h1 class="card-title text-2xl">Create exam session</h1>
+
+      {% if error %}
+        <div class="alert alert-error">
+          <span>{{ error }}</span>
+        </div>
+      {% endif %}
+
+      {% if session %}
+        <div class="text-sm opacity-70">
+          Template: <strong>{{ session.template.name }}</strong>{% if session.template.version %} ({{ session.template.version }}){% endif %}
+        </div>
+
+        <div class="alert alert-success">
+          <div class="w-full">
+            <div class="font-semibold mb-1">Session created — share this code with learners</div>
+            <div class="flex items-center gap-2">
+              <code id="session-code" class="font-mono text-lg tracking-widest">{{ session.code }}</code>
+              <button type="button" class="btn btn-sm btn-square" id="copy-btn" aria-label="Copy code">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+              <span id="copy-status" class="text-sm opacity-70"></span>
+            </div>
+            <div class="text-sm opacity-70 mt-2">
+              Seats: {{ session.seat_limit }} &nbsp;|&nbsp;
+              Expires: {{ session.expires_at|date:"H:i" }} today
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2 flex-wrap">
+          <a class="btn btn-primary"
+             href="{% url 'assessment:session_monitor' session.code %}">
+            Monitor session
+          </a>
+          <a class="btn" href="/start/">Learner start page</a>
+          <a class="btn" href="{% url 'assessment:assessor_dashboard' %}">Dashboard</a>
+        </div>
+
+      {% else %}
+        <form method="POST" class="space-y-4">
+          {% csrf_token %}
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-semibold">Assessment template</span>
+            </label>
+            {{ form.template }}
+            {% if form.template.errors %}
+              <div class="text-error text-sm mt-1">{{ form.template.errors|striptags }}</div>
+            {% endif %}
+          </div>
+          <div class="flex justify-end">
+            <button class="btn btn-primary" type="submit">Create session</button>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+const codeEl = document.getElementById("session-code");
+const btn = document.getElementById("copy-btn");
+const status = document.getElementById("copy-status");
+
+btn?.addEventListener("click", async () => {
+  const text = (codeEl?.textContent || "").trim();
+  try {
+    await navigator.clipboard.writeText(text);
+    status.textContent = "Copied!";
+    setTimeout(() => { status.textContent = ""; }, 1200);
+  } catch (e) {
+    const range = document.createRange();
+    range.selectNodeContents(codeEl);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    status.textContent = "Press Ctrl/Cmd+C";
+    setTimeout(() => { status.textContent = ""; }, 2000);
+  }
+});
+</script>
+{% endblock %}
