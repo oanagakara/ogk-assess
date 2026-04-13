@@ -106,52 +106,36 @@ def _question_answer_key(question):
     return _safe_json_loads(question.answer_key_json, {})
 
 
-def _extract_rubric(question):
-    candidates = []
-
+def _find_rubric_candidates(question):
     for container in (_question_spec(question), _question_answer_key(question)):
         if not isinstance(container, dict):
             continue
-
         for key in ("rubric", "rubric_criteria", "criteria"):
             value = container.get(key)
             if isinstance(value, list):
-                candidates = value
-                break
+                return value
+    return []
 
-        if candidates:
-            break
 
-    rubric = []
-    for idx, item in enumerate(candidates, start=1):
-        if not isinstance(item, dict):
-            continue
+def _normalise_rubric_item(item, idx):
+    label = (
+        item.get("label") or item.get("criterion") or item.get("name") or f"Criterion {idx}"
+    ).strip()
+    raw_max = item.get("max_points", item.get("points", item.get("max", 0)))
+    try:
+        max_points = float(raw_max)
+    except (TypeError, ValueError):
+        max_points = 0.0
+    key = slugify(str(item.get("key") or label)) or f"criterion_{idx}"
+    return {"key": key, "label": label, "max_points": max_points}
 
-        label = (
-            item.get("label")
-            or item.get("criterion")
-            or item.get("name")
-            or f"Criterion {idx}"
-        ).strip()
 
-        raw_max = item.get("max_points", item.get("points", item.get("max", 0)))
-
-        try:
-            max_points = float(raw_max)
-        except (TypeError, ValueError):
-            max_points = 0.0
-
-        key = slugify(str(item.get("key") or label)) or f"criterion_{idx}"
-
-        rubric.append(
-            {
-                "key": key,
-                "label": label,
-                "max_points": max_points,
-            }
-        )
-
-    return rubric
+def _extract_rubric(question):
+    return [
+        _normalise_rubric_item(item, idx)
+        for idx, item in enumerate(_find_rubric_candidates(question), start=1)
+        if isinstance(item, dict)
+    ]
 
 
 def _is_layout_only_question(question):
@@ -167,48 +151,48 @@ def _is_markable_question(question):
     return float(question.max_marks or 0) > 0
 
 
+def _render_form_fill(spec, data):
+    fields = spec.get("fields", [])
+    if fields:
+        return "\n".join(
+            f"{field.get('label') or field.get('name', '')}: {data.get(field.get('name', ''), '')}"
+            for field in fields
+        ).strip()
+    return "\n".join(f"{k}: {v}" for k, v in data.items()).strip()
+
+
+def _render_match(spec, data):
+    targets = {
+        str(t.get("id")): t.get("text", "")
+        for t in spec.get("targets", [])
+        if isinstance(t, dict)
+    }
+    return "\n".join(
+        f"{targets.get(str(tid), str(tid))}: {word}"
+        for tid, word in data.items()
+    ).strip()
+
+
+def _render_text(data):
+    if isinstance(data, dict):
+        return str(data.get("answer", "")).strip()
+    return str(data).strip()
+
+
 def _render_response_for_marking(question, response):
     if not response or not response.response_json:
         return ""
 
     spec = _question_spec(question)
+    data = _safe_json_loads(response.response_json, {})
 
     if spec.get("layout") == "form_fill":
-        data = _safe_json_loads(response.response_json, {})
-        fields = spec.get("fields", [])
-        if fields:
-            lines = []
-            for field in fields:
-                name = field.get("name", "")
-                label = field.get("label") or name
-                value = data.get(name, "")
-                lines.append(f"{label}: {value}")
-            return "\n".join(lines).strip()
-
-        return "\n".join(f"{k}: {v}" for k, v in data.items()).strip()
+        return _render_form_fill(spec, data)
 
     if question.kind == Question.MATCH:
-        data = _safe_json_loads(response.response_json, {})
-        if not isinstance(data, dict):
-            return str(response.response_json).strip()
+        return _render_match(spec, data)
 
-        targets = {
-            str(target.get("id")): target.get("text", "")
-            for target in spec.get("targets", [])
-            if isinstance(target, dict)
-        }
-
-        lines = []
-        for target_id, word in data.items():
-            target_text = targets.get(str(target_id), str(target_id))
-            lines.append(f"{target_text}: {word}")
-        return "\n".join(lines).strip()
-
-    data = _safe_json_loads(response.response_json, None)
-    if isinstance(data, dict):
-        return str(data.get("answer", "")).strip()
-
-    return str(response.response_json).strip()
+    return _render_text(data)
 
 
 def _clamped_float(value, upper_bound):
@@ -301,6 +285,120 @@ def assessor_attempts(request):
     return render(request, "assessment/assessor_attempts.html", {"attempts": qs})
 
 
+def _build_marking_row(attempt, question, index):
+    response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
+    try:
+        score = response.score
+    except Score.DoesNotExist:
+        score = None
+
+    rubric = _extract_rubric(question)
+    max_points = sum(item["max_points"] for item in rubric) if rubric else float(question.max_marks or 0)
+    awarded = float(score.points) if score else 0.0
+
+    saved_criteria = {}
+    if score and isinstance(score.rubric_json, dict):
+        for item in score.rubric_json.get("criteria", []):
+            if isinstance(item, dict) and item.get("key"):
+                saved_criteria[str(item["key"])] = item
+
+    rubric_rows = [
+        {
+            "key": c["key"],
+            "label": c["label"],
+            "max_points": c["max_points"],
+            "value": saved_criteria.get(c["key"], {}).get("points", ""),
+            "feedback": saved_criteria.get(c["key"], {}).get("feedback", ""),
+        }
+        for c in rubric
+    ]
+
+    notes = score.rubric_json.get("notes", "") if score and isinstance(score.rubric_json, dict) else ""
+
+    return {
+        "index": index,
+        "question": question,
+        "response": response,
+        "response_text": _render_response_for_marking(question, response),
+        "has_rubric": bool(rubric_rows),
+        "rubric": rubric_rows,
+        "manual_value": awarded if score and not rubric_rows else "",
+        "notes": notes,
+        "score": score,
+        "awarded": awarded,
+        "max_points": max_points,
+    }
+
+
+def _save_question_score(request, attempt, question):
+    response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
+    rubric = _extract_rubric(question)
+
+    if rubric:
+        criteria_payload = []
+        total_points = 0.0
+        max_points = 0.0
+        for criterion in rubric:
+            max_points += criterion["max_points"]
+            points = _clamped_float(
+                request.POST.get(f"rubric__{question.pk}__{criterion['key']}", ""),
+                criterion["max_points"],
+            )
+            feedback = request.POST.get(
+                f"rubric_feedback__{question.pk}__{criterion['key']}", ""
+            ).strip()
+            criteria_payload.append({
+                "key": criterion["key"],
+                "label": criterion["label"],
+                "max_points": criterion["max_points"],
+                "points": points,
+                "feedback": feedback,
+            })
+            total_points += points
+        points = total_points
+        rubric_json = {
+            "mode": "rubric",
+            "criteria": criteria_payload,
+            "notes": request.POST.get(f"notes__{question.pk}", "").strip(),
+        }
+    else:
+        max_points = float(question.max_marks or 0)
+        points = _clamped_float(request.POST.get(f"manual__{question.pk}", ""), max_points)
+        rubric_json = {
+            "mode": "manual",
+            "notes": request.POST.get(f"notes__{question.pk}", "").strip(),
+        }
+
+    Score.objects.update_or_create(
+        response=response,
+        defaults={
+            "assessor": request.user,
+            "points": points,
+            "max_points": max_points,
+            "rubric_json": rubric_json,
+        },
+    )
+
+
+def _compute_marking_totals(attempt, markable_questions):
+    total_available = 0.0
+    total_awarded = 0.0
+    scored_count = 0
+    for question in markable_questions:
+        response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
+        try:
+            score = response.score
+        except Score.DoesNotExist:
+            score = None
+        rubric = _extract_rubric(question)
+        max_points = sum(c["max_points"] for c in rubric) if rubric else float(question.max_marks or 0)
+        total_available += max_points
+        total_awarded += float(score.points) if score else 0.0
+        if score is not None:
+            scored_count += 1
+    return total_available, total_awarded, scored_count
+
+
 @login_required
 @user_passes_test(is_assessor)
 def assessor_mark_attempt(request, code: str):
@@ -311,13 +409,12 @@ def assessor_mark_attempt(request, code: str):
         code=code,
     )
 
-    questions = list(
+    markable_questions = [
+        q for q in
         Question.objects.filter(section__template=attempt.template)
         .select_related("section")
         .order_by("section__order", "order", "code")
-    )
-    markable_questions = [
-        question for question in questions if _is_markable_question(question)
+        if _is_markable_question(q)
     ]
     total_questions = len(markable_questions)
 
@@ -325,183 +422,24 @@ def assessor_mark_attempt(request, code: str):
         current_q = int(request.GET.get("q", 1))
     except (TypeError, ValueError):
         current_q = 1
-
-    if total_questions > 0:
-        current_q = max(1, min(current_q, total_questions))
-    else:
-        current_q = 1
-
-    def build_row(question, index):
-        response, _ = Response.objects.get_or_create(
-            attempt=attempt,
-            question=question,
-        )
-
-        try:
-            score = response.score
-        except Score.DoesNotExist:
-            score = None
-
-        rubric = _extract_rubric(question)
-
-        if rubric:
-            max_points = sum(item["max_points"] for item in rubric)
-        else:
-            max_points = float(question.max_marks or 0)
-
-        awarded = float(score.points) if score else 0.0
-
-        saved_criteria = {}
-        if score and isinstance(score.rubric_json, dict):
-            for item in score.rubric_json.get("criteria", []):
-                if isinstance(item, dict) and item.get("key"):
-                    saved_criteria[str(item["key"])] = item
-
-        rubric_rows = []
-        for criterion in rubric:
-            saved_item = saved_criteria.get(criterion["key"], {})
-            rubric_rows.append(
-                {
-                    "key": criterion["key"],
-                    "label": criterion["label"],
-                    "max_points": criterion["max_points"],
-                    "value": saved_item.get("points", ""),
-                    "feedback": saved_item.get("feedback", ""),
-                }
-            )
-
-        notes = ""
-        if score and isinstance(score.rubric_json, dict):
-            notes = score.rubric_json.get("notes", "")
-
-        return {
-            "index": index,
-            "question": question,
-            "response": response,
-            "response_text": _render_response_for_marking(question, response),
-            "has_rubric": bool(rubric_rows),
-            "rubric": rubric_rows,
-            "manual_value": awarded if score and not rubric_rows else "",
-            "notes": notes,
-            "score": score,
-            "awarded": awarded,
-            "max_points": max_points,
-        }
-
-    def save_question(question):
-        response, _ = Response.objects.get_or_create(
-            attempt=attempt,
-            question=question,
-        )
-        rubric = _extract_rubric(question)
-
-        if rubric:
-            criteria_payload = []
-            max_points = 0.0
-            total_points = 0.0
-
-            for criterion in rubric:
-                max_points += criterion["max_points"]
-
-                points = _clamped_float(
-                    request.POST.get(
-                        f"rubric__{question.pk}__{criterion['key']}",
-                        "",
-                    ),
-                    criterion["max_points"],
-                )
-
-                feedback = request.POST.get(
-                    f"rubric_feedback__{question.pk}__{criterion['key']}",
-                    "",
-                ).strip()
-
-                criteria_payload.append(
-                    {
-                        "key": criterion["key"],
-                        "label": criterion["label"],
-                        "max_points": criterion["max_points"],
-                        "points": points,
-                        "feedback": feedback,
-                    }
-                )
-                total_points += points
-
-            rubric_json = {
-                "mode": "rubric",
-                "criteria": criteria_payload,
-                "notes": request.POST.get(f"notes__{question.pk}", "").strip(),
-            }
-            points = total_points
-        else:
-            max_points = float(question.max_marks or 0)
-            points = _clamped_float(
-                request.POST.get(f"manual__{question.pk}", ""),
-                max_points,
-            )
-            rubric_json = {
-                "mode": "manual",
-                "notes": request.POST.get(f"notes__{question.pk}", "").strip(),
-            }
-
-        Score.objects.update_or_create(
-            response=response,
-            defaults={
-                "assessor": request.user,
-                "points": points,
-                "max_points": max_points,
-                "rubric_json": rubric_json,
-            },
-        )
+    current_q = max(1, min(current_q, total_questions)) if total_questions > 0 else 1
 
     if request.method == "POST" and total_questions > 0:
-        current_question = markable_questions[current_q - 1]
-        save_question(current_question)
-
+        _save_question_score(request, attempt, markable_questions[current_q - 1])
         action = request.POST.get("action", "save")
-        target_q = current_q
-
         if action == "done":
-            return redirect("assessment:assessor_attempts") 
-
+            return redirect("assessment:assessor_attempts")
         if action == "next":
-            target_q = min(total_questions, current_q + 1) 
+            target_q = min(total_questions, current_q + 1)
         elif action == "prev":
             target_q = max(1, current_q - 1)
-
+        else:
+            target_q = current_q
         url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
         return redirect(f"{url}?q={target_q}&saved=1")
-    
-    total_available = 0.0
-    total_awarded = 0.0
-    scored_count = 0
 
-    for question in markable_questions:
-        response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
-
-        try:
-            score = response.score
-        except Score.DoesNotExist:
-            score = None
-
-        rubric = _extract_rubric(question)
-        if rubric:
-            max_points = sum(item["max_points"] for item in rubric)
-        else:
-            max_points = float(question.max_marks or 0)
-
-        awarded = float(score.points) if score else 0.0
-
-        total_available += max_points
-        total_awarded += awarded
-        if score is not None:
-            scored_count += 1
-
-    current_row = None
-    if total_questions > 0:
-        current_row = build_row(markable_questions[current_q - 1], current_q)
-
-    saved = request.GET.get("saved") == "1"
+    total_available, total_awarded, scored_count = _compute_marking_totals(attempt, markable_questions)
+    current_row = _build_marking_row(attempt, markable_questions[current_q - 1], current_q) if total_questions > 0 else None
 
     return render(
         request,
@@ -509,7 +447,7 @@ def assessor_mark_attempt(request, code: str):
         {
             "attempt": attempt,
             "row": current_row,
-            "saved": saved,
+            "saved": request.GET.get("saved") == "1",
             "total_awarded": total_awarded,
             "total_available": total_available,
             "scored_count": scored_count,
