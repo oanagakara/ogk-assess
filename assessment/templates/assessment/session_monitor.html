@@ -15,9 +15,7 @@
     </div>
     <div class="flex items-center gap-3 flex-wrap">
       <div class="badge badge-lg badge-outline">{{ seats_taken }} / {{ seat_limit }} seats</div>
-      {% if session.is_open %}
-        <div class="badge badge-lg badge-success">Open</div>
-      {% else %}
+      {% if not session.is_open %}
         <div class="badge badge-lg badge-error">Closed</div>
       {% endif %}
       <button id="refresh-btn" onclick="window.location.reload()" class="btn btn-sm btn-ghost gap-1">
