@@ -1,0 +1,122 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Monitor: {{ session.code }}{% endblock %}
+
+{% block assessor_content %}
+<div class="max-w-6xl mx-auto space-y-4">
+
+  {# ── Header ── #}
+  <div class="flex items-center justify-between flex-wrap gap-2">
+    <div>
+      <h1 class="text-2xl font-semibold">Session {{ session.code }}</h1>
+      <p class="text-sm opacity-70">
+        {{ session.template.name }}{% if session.template.version %} ({{ session.template.version }}){% endif %}
+        &nbsp;·&nbsp; Expires {{ session.expires_at|date:"H:i" }}
+      </p>
+    </div>
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="badge badge-lg badge-outline">{{ seats_taken }} / {{ seat_limit }} seats</div>
+      {% if session.is_open %}
+        <div class="badge badge-lg badge-success">Open</div>
+      {% else %}
+        <div class="badge badge-lg badge-error">Closed</div>
+      {% endif %}
+      <button id="refresh-btn" onclick="window.location.reload()" class="btn btn-sm btn-ghost gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+          <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+        </svg>
+        <span id="refresh-label">30s</span>
+      </button>
+    </div>
+  </div>
+
+  {# ── 5×3 Seat Grid ── #}
+  <div class="grid grid-cols-5 gap-3">
+    {% for slot in slots %}
+      {% if slot %}
+        {# Occupied seat #}
+        <a href="{{ slot.mark_url }}"
+           class="card shadow cursor-pointer hover:scale-[1.02] transition-transform
+             {% if slot.status == 'submitted' %}bg-success text-success-content
+             {% elif slot.status == 'abandoned' %}bg-error text-error-content
+             {% else %}bg-warning text-warning-content{% endif %}">
+          <div class="card-body p-4 space-y-2">
+
+            <div class="flex items-start justify-between gap-1">
+              <span class="font-semibold text-sm leading-tight">{{ slot.learner_name }}</span>
+              <span class="opacity-60 text-xs shrink-0">#{{ forloop.counter }}</span>
+            </div>
+
+            <div class="text-xs opacity-80">
+              {% if slot.status == "submitted" %}
+                Submitted
+              {% elif slot.status == "abandoned" %}
+                Abandoned
+              {% else %}
+                Q{{ slot.current_question }}/{{ slot.total_questions }}
+              {% endif %}
+            </div>
+
+            {# Progress bar #}
+            {% if slot.status != "abandoned" %}
+              <div class="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+                <div class="bg-white bg-opacity-80 h-1.5 rounded-full"
+                     style="width: {{ slot.pct }}%"></div>
+              </div>
+            {% endif %}
+
+            <div class="text-xs opacity-70 font-mono">{{ slot.elapsed_display }}</div>
+
+          </div>
+        </a>
+
+      {% else %}
+        {# Empty seat #}
+        <div class="card bg-base-200 shadow border border-dashed border-base-300">
+          <div class="card-body p-4 items-center justify-center min-h-[110px]">
+            <span class="text-xs opacity-30">#{{ forloop.counter }}</span>
+            <span class="text-xs opacity-30">Available</span>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {# ── Footer ── #}
+  <div class="flex items-center justify-between text-sm opacity-60">
+    <span id="last-refreshed">Last refreshed: just now</span>
+    <a href="{% url 'assessment:assessor_new_session' %}" class="btn btn-sm">New session</a>
+  </div>
+
+</div>
+
+<script>
+  let remaining = 30;
+  const label = document.getElementById("refresh-label");
+  const lastRefreshed = document.getElementById("last-refreshed");
+
+  // Stamp the last-refreshed time
+  const now = new Date();
+  lastRefreshed.textContent = "Last refreshed: " + now.toLocaleTimeString();
+
+  // Countdown every second — reload when it hits 0
+  const timer = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      clearInterval(timer);
+      window.location.reload();
+    } else {
+      label.textContent = remaining + "s";
+    }
+  }, 1000);
+
+  // Keep timer running even when tab is in background (Page Visibility API)
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && remaining <= 0) {
+      window.location.reload();
+    }
+  });
+</script>
+{% endblock %}

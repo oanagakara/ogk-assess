@@ -3,7 +3,7 @@ from django import forms
 
 from django.core.exceptions import ValidationError
 
-from .models import Learner, Attempt, AssessmentTemplate
+from .models import Learner, Attempt, AssessmentTemplate, ExamSession
 
 INPUT = "input input-bordered w-full"
 SELECT = "select select-bordered w-full"
@@ -115,4 +115,17 @@ class AttemptForm(forms.ModelForm):
 
     class Meta:
         model = Attempt
+        fields = ["template"]
+
+
+class ExamSessionForm(forms.ModelForm):
+
+    template = forms.ModelChoiceField(
+        queryset=AssessmentTemplate.objects.order_by("-created_at"),
+        widget=forms.Select(attrs={"class": SELECT}),
+        empty_label="Select template",
+    )
+
+    class Meta:
+        model = ExamSession
         fields = ["template"]
