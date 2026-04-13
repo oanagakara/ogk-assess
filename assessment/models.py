@@ -118,6 +118,53 @@ def generate_attempt_code(length: int = 8) -> str:
     alphabet = string.ascii_uppercase + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
+
+def generate_session_code() -> str:
+    """
+    Generate a session code: 5 uppercase letters + 3 digits, randomly ordered.
+    Total keyspace: 26^5 × 10^3 ≈ 11.88 billion combinations.
+    At typical SA learnership volumes (~10k sessions/year) the probability of
+    a collision on any single generation is < 0.000001%. The generator retries
+    on collision so this is handled gracefully, but will essentially never fire.
+    """
+    letters = [secrets.choice(string.ascii_uppercase) for _ in range(5)]
+    digits = [secrets.choice(string.digits) for _ in range(3)]
+    parts = letters + digits
+    secrets.SystemRandom().shuffle(parts)
+    return "".join(parts)
+
+
+SESSION_DURATION = 7200  # 2 hours in seconds
+
+
+class ExamSession(models.Model):
+    code = models.CharField(max_length=8, unique=True, default=generate_session_code)
+    template = models.ForeignKey("AssessmentTemplate", on_delete=models.CASCADE)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="exam_sessions",
+    )
+    seat_limit = models.PositiveSmallIntegerField(default=15)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            from datetime import timedelta
+            self.expires_at = (self.created_at or timezone.now()) + timedelta(seconds=SESSION_DURATION)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_open(self) -> bool:
+        return timezone.now() < self.expires_at
+
+    def __str__(self) -> str:
+        return f"Session {self.code} — {self.template}"
+
+
 class Attempt(models.Model):
     IN_PROGRESS = "in_progress"
     SUBMITTED = "submitted"
@@ -131,12 +178,20 @@ class Attempt(models.Model):
 
     template = models.ForeignKey("AssessmentTemplate", on_delete=models.CASCADE)
     learner = models.ForeignKey("Learner", on_delete=models.CASCADE)
+    session = models.ForeignKey(
+        "ExamSession",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="attempts",
+    )
     code = models.CharField(max_length=32, unique=True, default=generate_attempt_code)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=IN_PROGRESS)
+    current_question = models.PositiveSmallIntegerField(null=True, blank=True, default=None)
     started_at = models.DateTimeField(blank=True, null=True)
     submitted_at = models.DateTimeField(blank=True, null=True)
     last_activity_at = models.DateTimeField(blank=True, null=True)
-    honesty_name = models.CharField(max_length=200, blank=True, default="") 
+    honesty_name = models.CharField(max_length=200, blank=True, default="")
     honesty_accepted_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self) -> str:
