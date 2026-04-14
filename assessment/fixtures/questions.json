@@ -357,11 +357,11 @@
     "section": 4,
     "order": 21,
     "code": "NUM-A-4",
-    "prompt": "4) 84 ÷ 4 =",
-    "kind": "text",
+    "prompt": "4) 84 ÷ 4 = ?",
+    "kind": "long_division",
     "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"21\"], \"working_keywords\": [], \"partial_marks\": 0}",
+    "spec_json": "{\"dividend\": 84, \"divisor\": 4, \"num_digits\": 2}",
+    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"21\"]}",
     "marking_notes": ""
   }
 },

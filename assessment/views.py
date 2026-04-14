@@ -786,6 +786,10 @@ def attempt_question(request, code: str, n: int):
     if spec.get("kind_hint") == "mcq_or_choice" and not spec.get("choices"):
         spec["choices"] = _extract_inline_choices(question.prompt)
 
+    if question.kind == Question.LONG_DIVISION:
+        spec["digit_range"] = list(range(spec.get("num_digits", 2)))
+        spec["digit_bank"] = list(range(10))
+
     if layout in {"info_only", "info-only"}:
         return _handle_info_only(request, attempt, question, spec, n, total, expires_at)
 

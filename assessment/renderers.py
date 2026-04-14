@@ -90,6 +90,28 @@ class MatchRenderer(BaseRenderer):
         self.response.save(update_fields=["response_json"])
 
 
+@register_renderer("long_division")
+class LongDivisionRenderer(BaseRenderer):
+
+    def get_form(self, request):
+        existing = ""
+        if self.response.response_json:
+            try:
+                existing = json.loads(self.response.response_json).get("answer", "")
+            except Exception:
+                existing = ""
+        self._current_answer = existing
+        return None
+
+    def save(self, request, form):
+        ans = request.POST.get("answer", "").strip()
+        self.response.response_json = json.dumps({"answer": ans}, ensure_ascii=False)
+        self.response.save(update_fields=["response_json"])
+
+    def get_context(self):
+        return {"current_answer": getattr(self, "_current_answer", "")}
+
+
 @register_renderer("form_fill")
 class FormFillRenderer(BaseRenderer):
 

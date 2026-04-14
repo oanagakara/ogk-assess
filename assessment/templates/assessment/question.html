@@ -503,6 +503,122 @@
                                     renderFromState();
                                 </script>
 
+                            {% elif question.kind == "long_division" %}
+                                {# ── Long division drag-and-drop ── #}
+                                <input type="hidden" name="answer" id="ld-answer" value="{{ current_answer }}">
+
+                                <div class="space-y-6">
+                                    {# Visual layout #}
+                                    <div class="flex items-start gap-0 font-mono text-2xl select-none w-fit">
+                                        {# Divisor #}
+                                        <span class="pr-1 pt-6 text-base-content">{{ spec.divisor }}</span>
+                                        {# Bracket + dividend #}
+                                        <div class="flex flex-col border-l-2 border-t-2 border-base-content pl-2 pt-1">
+                                            {# Quotient slots #}
+                                            <div class="flex gap-1 mb-1 -mt-7">
+                                                {% for i in spec.digit_range %}
+                                                    <div
+                                                        class="w-10 h-10 rounded border-2 border-dashed border-base-300 flex items-center justify-center text-xl font-bold bg-base-100 transition-colors"
+                                                        data-ld-slot="{{ i }}"
+                                                    >
+                                                        <span class="slot-digit opacity-40 text-sm">?</span>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            {# Dividend #}
+                                            <span class="text-base-content">{{ spec.dividend }}</span>
+                                        </div>
+                                    </div>
+
+                                    {# Digit bank #}
+                                    <div>
+                                        <p class="text-sm opacity-60 mb-2">Drag digits into the answer slots above.</p>
+                                        <div id="ld-bank" class="flex flex-wrap gap-2">
+                                            {% for d in spec.digit_bank %}
+                                                <div
+                                                    class="w-10 h-10 rounded bg-primary text-primary-content flex items-center justify-center text-lg font-bold cursor-move select-none shadow"
+                                                    draggable="true"
+                                                    data-digit="{{ d }}"
+                                                >{{ d }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <script>
+                                (function () {
+                                    const answerInput = document.getElementById("ld-answer");
+                                    const slots = document.querySelectorAll("[data-ld-slot]");
+                                    const numDigits = {{ spec.num_digits }};
+
+                                    // slot index → digit string
+                                    let state = {};
+
+                                    // Restore saved answer
+                                    const saved = answerInput.value || "";
+                                    for (let i = 0; i < saved.length && i < numDigits; i++) {
+                                        state[i] = saved[i];
+                                    }
+
+                                    function syncAnswer() {
+                                        let ans = "";
+                                        for (let i = 0; i < numDigits; i++) {
+                                            ans += (state[i] !== undefined ? state[i] : "");
+                                        }
+                                        answerInput.value = ans;
+                                    }
+
+                                    function renderSlots() {
+                                        slots.forEach(slot => {
+                                            const idx = parseInt(slot.getAttribute("data-ld-slot"));
+                                            const digit = state[idx];
+                                            if (digit !== undefined) {
+                                                slot.innerHTML = `
+                                                    <span class="slot-digit font-bold text-primary">${digit}</span>`;
+                                                slot.classList.add("border-primary");
+                                                slot.classList.remove("border-dashed", "border-base-300");
+                                            } else {
+                                                slot.innerHTML = `<span class="slot-digit opacity-40 text-sm">?</span>`;
+                                                slot.classList.remove("border-primary");
+                                                slot.classList.add("border-dashed", "border-base-300");
+                                            }
+                                        });
+                                        syncAnswer();
+                                    }
+
+                                    // Drag from bank
+                                    document.addEventListener("dragstart", e => {
+                                        const d = e.target?.getAttribute("data-digit");
+                                        if (d !== null && d !== undefined) {
+                                            e.dataTransfer.setData("text/plain", d);
+                                        }
+                                    });
+
+                                    // Drop onto slot
+                                    slots.forEach(slot => {
+                                        slot.addEventListener("dragover", e => e.preventDefault());
+                                        slot.addEventListener("drop", e => {
+                                            e.preventDefault();
+                                            const digit = e.dataTransfer.getData("text/plain");
+                                            if (digit === "") return;
+                                            const idx = parseInt(slot.getAttribute("data-ld-slot"));
+                                            state[idx] = digit;
+                                            renderSlots();
+                                        });
+                                        // Click to clear
+                                        slot.addEventListener("click", () => {
+                                            const idx = parseInt(slot.getAttribute("data-ld-slot"));
+                                            if (state[idx] !== undefined) {
+                                                delete state[idx];
+                                                renderSlots();
+                                            }
+                                        });
+                                    });
+
+                                    renderSlots();
+                                })();
+                                </script>
+
                             {% else %}
                                 <label class="label">
                                     <span class="label-text font-medium">Your answer</span>
