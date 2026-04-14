@@ -36,3 +36,6 @@ assessment/migrations/__pycache__/
 #temporary exports
 tmp/
 current_questions_export.json
+
+# Claude skills
+.skills/
