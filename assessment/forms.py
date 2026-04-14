@@ -96,6 +96,10 @@ class TextResponseForm(forms.Form):
                 "class": "textarea textarea-bordered w-full",
                 "rows": 6,
                 "placeholder": "Type your answer here...",
+                "autocomplete": "off",
+                "spellcheck": "false",
+                "autocorrect": "off",
+                "autocapitalize": "off",
             }
         ),
     )
