@@ -38,6 +38,7 @@ class Question(models.Model):
     REORDER = "reorder"
     MATCH = "match"
     MCQ = "mcq"
+    LONG_DIVISION = "long_division"
 
     KIND_CHOICES = [
         (TEXT, "Text"),
@@ -45,7 +46,7 @@ class Question(models.Model):
         (REORDER, "Reorder"),
         (MATCH, "Matching"),
         (MCQ, "Multiple choice"),
-
+        (LONG_DIVISION, "Long division"),
     ]
 
     section = models.ForeignKey("Section", on_delete=models.CASCADE)

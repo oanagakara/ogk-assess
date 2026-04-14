@@ -143,7 +143,15 @@ class Command(BaseCommand):
         items.append({"section": sec_num, "code": "NUM-A-1", "prompt": "1) 25 + 47 =", "max_marks": 1})
         items.append({"section": sec_num, "code": "NUM-A-2", "prompt": "2) 100 − 38 =", "max_marks": 1})
         items.append({"section": sec_num, "code": "NUM-A-3", "prompt": "3) 6 × 7 =", "max_marks": 1})
-        items.append({"section": sec_num, "code": "NUM-A-4", "prompt": "4) 84 ÷ 4 =", "max_marks": 1})
+        items.append({
+            "section": sec_num,
+            "code": "NUM-A-4",
+            "prompt": "4) 84 ÷ 4 = ?",
+            "max_marks": 1,
+            "kind": Question.LONG_DIVISION,
+            "spec": {"dividend": 84, "divisor": 4, "num_digits": 2},
+            "answer_key": {"auto_mark": True, "answers": ["21"]},
+        })
 
         items.append({
             "section": sec_num,
@@ -204,15 +212,16 @@ class Command(BaseCommand):
         created = 0
         for idx, it in enumerate(items, start=1):
             spec = it.get("spec", {})
+            answer_key = it.get("answer_key", {})
             Question.objects.create(
                 section=it["section"],
                 order=idx,
                 code=it["code"],
                 prompt=it["prompt"],
-                kind=Question.TEXT,  # runner supports this now; upgrade later per spec_json.kind_hint
+                kind=it.get("kind", Question.TEXT),
                 max_marks=it["max_marks"],
                 spec_json=json.dumps(spec, ensure_ascii=False) if spec else "",
-                answer_key_json="",
+                answer_key_json=json.dumps(answer_key, ensure_ascii=False) if answer_key else "",
                 marking_notes="",
             )
             created += 1
