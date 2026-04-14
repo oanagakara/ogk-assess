@@ -14,6 +14,25 @@ else:
     print('Questions already exist — skipping loaddata.')
 "
 
+# Create assessor group with full permissions on all assessment models (if it doesn't exist)
+python manage.py shell -c "
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+from assessment.models import AssessmentTemplate, Attempt, Learner, Question, Response, Score, Section, ExamSession
+
+group, created = Group.objects.get_or_create(name='assessor')
+if created:
+    models = [AssessmentTemplate, Attempt, Learner, Question, Response, Score, Section, ExamSession]
+    perms = []
+    for model in models:
+        ct = ContentType.objects.get_for_model(model)
+        perms.extend(Permission.objects.filter(content_type=ct))
+    group.permissions.set(perms)
+    print(f'assessor group created with {len(perms)} permissions.')
+else:
+    print('assessor group already exists — skipping.')
+"
+
 # Create or update superuser from env vars
 python manage.py shell -c "
 from django.contrib.auth import get_user_model
