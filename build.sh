@@ -4,6 +4,15 @@ set -o errexit
 pip install -r requirements.txt
 python manage.py collectstatic --no-input
 python manage.py migrate
+python manage.py shell -c "
+from assessment.models import Question
+if not Question.objects.exists():
+    from django.core.management import call_command
+    call_command('loaddata', 'questions')
+    print('Questions loaded.')
+else:
+    print('Questions already exist — skipping loaddata.')
+"
 
 # Create or update superuser from env vars
 python manage.py shell -c "
