@@ -146,10 +146,8 @@ class Command(BaseCommand):
         items.append({
             "section": sec_num,
             "code": "NUM-A-4",
-            "prompt": "4) 84 ÷ 4 = ?",
+            "prompt": "4) 84 ÷ 4 =",
             "max_marks": 1,
-            "kind": Question.LONG_DIVISION,
-            "spec": {"dividend": 84, "divisor": 4, "num_digits": 2},
             "answer_key": {"auto_mark": True, "answers": ["21"]},
         })
 
