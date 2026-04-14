@@ -636,10 +636,11 @@ def assessor_new_attempt(request):
         form = AttemptForm(request.POST)
 
         if form.is_valid():
+            import uuid
             learner = Learner.objects.create(
                 first_names="Temp",
                 surname="Learner",
-                id_number=str(int(timezone.now().timestamp()))[:13],
+                id_number=uuid.uuid4().hex[:13],
             )
 
             attempt = form.save(commit=False)
