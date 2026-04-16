@@ -271,7 +271,7 @@
     "kind": "text",
     "max_marks": 1,
     "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"exist\"], \"partial_marks\": 0, \"flag_always\": true}",
+    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"existing\", \"condition\"], \"partial_marks\": 0, \"flag_always\": false}",
     "marking_notes": ""
   }
 },

@@ -23,6 +23,7 @@ urlpatterns = [
     path("assessor/questions/", views.assessor_questions, name="assessor_questions"),
     path("assessor/questions/<int:pk>/toggle/", views.assessor_toggle_question, name="assessor_toggle_question"),
     path("assessor/results/", views.assessor_results, name="assessor_results"),
+    path("assessor/results/export/", views.assessor_results_export, name="assessor_results_export"),
     path("assessor/sessions/", views.assessor_sessions, name="assessor_sessions"),
     path("assessor/sessions/new/", views.assessor_new_session, name="assessor_new_session"),
     path("assessor/sessions/<str:code>/monitor/", views.session_monitor, name="session_monitor"),

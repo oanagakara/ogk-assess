@@ -119,7 +119,13 @@ class Command(BaseCommand):
             "spec": {"kind_hint": "fill_blanks"},
         })
         items.append({"section": sec_lit, "code": "LIT-C-1", "prompt": "1) Why is this form important?", "max_marks": 2})
-        items.append({"section": sec_lit, "code": "LIT-C-2", "prompt": "2) What does “if any” mean?", "max_marks": 1})
+        items.append({
+            “section”: sec_lit,
+            “code”: “LIT-C-2”,
+            “prompt”: “2) What does “if any” mean?”,
+            “max_marks”: 1,
+            “answer_key”: {“auto_mark”: True, “keyword_answer”: [“existing”, “condition”], “partial_marks”: 0, “flag_always”: False},
+        })
 
         # ===== Part D =====
         items.append({

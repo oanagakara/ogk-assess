@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Product Specification — NQF Learner Placement Assessment Platform</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #111; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.65; }
+  .cover { text-align: center; padding: 40px 0 32px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+  .cover h1 { font-size: 20pt; margin-bottom: 6px; }
+  .cover .tag { font-size: 10pt; color: #555; margin-top: 4px; }
+  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 9.5pt; }
+  .meta-table td { border: 1px solid #ddd; padding: 6px 10px; }
+  .meta-table td:first-child { font-weight: bold; background: #f5f5f5; width: 160px; }
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 26px; margin-bottom: 10px; color: #111; border-left: 4px solid #333; padding-left: 10px; }
+  h3 { font-size: 11pt; font-weight: bold; margin-top: 16px; margin-bottom: 6px; }
+  h4 { font-size: 10.5pt; font-weight: bold; margin-top: 12px; margin-bottom: 4px; color: #333; }
+  p { margin-bottom: 8px; }
+  ul, ol { margin-left: 20px; margin-bottom: 10px; }
+  li { margin-bottom: 4px; }
+  table.spec { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 9.5pt; }
+  table.spec th { background: #333; color: #fff; padding: 6px 10px; text-align: left; font-weight: bold; }
+  table.spec td { border: 1px solid #ccc; padding: 6px 10px; vertical-align: top; }
+  table.spec tr:nth-child(even) td { background: #f9f9f9; }
+  .callout { background: #f0f4ff; border-left: 3px solid #336; padding: 8px 12px; font-size: 9.5pt; margin: 10px 0 14px; }
+  .callout strong { display: block; margin-bottom: 3px; }
+  .status-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 8.5pt; font-weight: bold; }
+  .done { background: #d4edda; color: #155724; }
+  .future { background: #fff3cd; color: #856404; }
+  .page-break { page-break-before: always; margin-top: 0; }
+  @media print {
+    body { padding: 0; }
+    @page { margin: 20mm; size: A4 portrait; }
+    .no-print { display: none; }
+    h2 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:right; margin-bottom:16px;">
+  <button onclick="window.print()" style="padding:6px 16px; font-size:10pt; cursor:pointer;">Save as PDF</button>
+</div>
+
+<div class="cover">
+  <div style="font-size:9pt; color:#888; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Product Specification Document</div>
+  <h1>NQF Learner Placement Assessment Platform</h1>
+  <div class="tag">Digital assessment, marking, and session management for NQF placements</div>
+</div>
+
+<table class="meta-table">
+  <tr><td>Document version</td><td>1.0</td></tr>
+  <tr><td>Status</td><td>Released</td></tr>
+  <tr><td>Date</td><td>April 2026</td></tr>
+  <tr><td>Author</td><td>[YOUR NAME]</td></tr>
+  <tr><td>Audience</td><td>Client stakeholders, procurement, IT management</td></tr>
+</table>
+
+<h2>1. Purpose and Scope</h2>
+<p>This document describes the functional and technical specifications of the NQF Learner Placement Assessment Platform — a purpose-built web application for administering, marking, and reporting on NQF learner placement assessments in supervised computer-lab environments.</p>
+<p>The platform replaces manual paper-based assessment administration with a structured digital workflow covering the full assessment lifecycle: session creation, learner self-registration, timed assessment delivery, automated and manual marking, working sheet management, and results reporting.</p>
+
+<h2>2. System Overview</h2>
+<h3>2.1 Architecture</h3>
+<table class="spec">
+  <tr><th>Component</th><th>Technology</th><th>Notes</th></tr>
+  <tr><td>Application framework</td><td>Django 6 (Python 3.13)</td><td>Server-side rendering, no JavaScript framework dependency</td></tr>
+  <tr><td>Database</td><td>PostgreSQL (production), SQLite (development)</td><td>Managed PostgreSQL via hosting provider</td></tr>
+  <tr><td>Frontend</td><td>TailwindCSS + DaisyUI</td><td>Responsive component library; no build step required</td></tr>
+  <tr><td>File storage</td><td>Base64 in database</td><td>Working sheet scans stored encoded in DB; no external storage service required</td></tr>
+  <tr><td>Hosting</td><td>Render.com</td><td>Auto-deploy on git push; migrations run in build script</td></tr>
+  <tr><td>Authentication</td><td>Django built-in auth + group-based permissions</td><td>Assessor group, staff/admin roles</td></tr>
+</table>
+
+<h3>2.2 User Roles</h3>
+<table class="spec">
+  <tr><th>Role</th><th>Access level</th><th>Primary functions</th></tr>
+  <tr><td>Learner</td><td>Unauthenticated (session code)</td><td>Join session, complete assessment, review answers</td></tr>
+  <tr><td>Assessor</td><td>Authenticated (assessor group)</td><td>Run sessions, mark attempts, upload working sheets, view results</td></tr>
+  <tr><td>Administrator</td><td>Authenticated (staff)</td><td>All assessor functions + manage templates, questions, users</td></tr>
+</table>
+
+<h2 class="page-break">3. Functional Specification</h2>
+
+<h3>3.1 Assessment Templates and Questions</h3>
+<ul>
+  <li>Multiple assessment templates supported; each template contains one or more ordered sections.</li>
+  <li>Questions belong to a section and support the following types: free text, fill-in-the-blanks, matching, multiple choice, sentence construction, and keyword-answer.</li>
+  <li>Questions carry a maximum marks value and an optional answer key for auto-marking.</li>
+  <li>Each question can be toggled active/inactive by an administrator; inactive questions are hidden from learners and excluded from marking.</li>
+  <li>Marking guidance notes can be attached to any question for assessor reference.</li>
+</ul>
+
+<h3>3.2 Session Management</h3>
+<ul>
+  <li>Assessors create timed sessions linked to a template with a configurable seat limit.</li>
+  <li>Sessions expire 2 hours after creation.</li>
+  <li>A unique session code is generated; learners join by entering the code at the join URL.</li>
+  <li>The session monitor displays real-time seat status (in progress / submitted / abandoned) with a progress bar per learner, refreshing every 30 seconds.</li>
+  <li>Browser notifications alert the assessor on each learner submission and when all seats are filled.</li>
+  <li>Printable working sheets (pre-filled with learner name and attempt code) can be printed per seat from the session monitor.</li>
+</ul>
+
+<h3>3.3 Assessment Delivery</h3>
+<ul>
+  <li>Each section is independently timed at 45 minutes. A visible countdown runs throughout.</li>
+  <li>On section timeout, the learner is automatically advanced to the next section. Unanswered questions in the timed-out section receive zero marks.</li>
+  <li>After completing all sections, learners may review their answers (90 seconds per question) or submit immediately.</li>
+  <li>The platform enforces a 2-hour hard cap per attempt; attempts not submitted within this window are automatically finalised.</li>
+  <li>Learner progress is persisted per question; browser refresh or accidental navigation does not lose responses.</li>
+</ul>
+
+<h3>3.4 Auto-Marking</h3>
+<table class="spec">
+  <tr><th>Answer key type</th><th>Behaviour</th></tr>
+  <tr><td>Numeric / text match</td><td>Answer detected in response text using normalised matching (handles comma decimals, currency symbols, unit noise)</td></tr>
+  <tr><td>Working evidence</td><td>Expected calculation steps checked by keyword; partial marks awarded if answer correct but working absent; flagged for assessor review</td></tr>
+  <tr><td>Keyword answer</td><td>Required terms checked for presence; partial marks if some found; configurable flag-always for assessor override</td></tr>
+  <tr><td>Sentence construction</td><td>Target word (with inflections) checked; minimum word count enforced; always flagged for review</td></tr>
+  <tr><td>Match / drag-drop</td><td>Each target-word pair scored independently at configurable marks per match</td></tr>
+  <tr><td>Blank response</td><td>Zero marks awarded, no review flag, regardless of question type</td></tr>
+  <tr><td>No answer key</td><td>Question left unscored; appears in assessor review queue for manual marking</td></tr>
+</table>
+
+<h3>3.5 Assessor Marking</h3>
+<ul>
+  <li>The Review Queue lists all submitted attempts with at least one question requiring assessor input. A badge count in the navigation updates in real time.</li>
+  <li>The marking view presents a sidebar listing all markable questions with pending/done status indicators; assessors can navigate directly to any question by clicking it.</li>
+  <li>Questions are displayed one at a time showing the question prompt, learner's response, and a scoring form (rubric criteria or manual point entry).</li>
+  <li>Auto-marked scores are shown read-only alongside the question for context; the assessor can override any auto-mark.</li>
+  <li>Assessor notes can be entered per question and per rubric criterion.</li>
+  <li>A marking summary screen displays all questions with awarded marks before the assessor finalises the attempt.</li>
+</ul>
+
+<h3>3.6 Working Sheet Management</h3>
+<ul>
+  <li>Printable working sheets are generated per attempt with ruled space for each numeracy question requiring shown working.</li>
+  <li>Assessors upload a scan or photograph (JPEG, PNG, WEBP, or PDF) from within the marking view.</li>
+  <li>Uploads replace any existing sheet for the attempt. The file is stored in the database and served back on demand.</li>
+  <li>The uploaded sheet is accessible as a View link from the marking view for assessor reference during marking.</li>
+</ul>
+
+<h3>3.7 Results and Reporting</h3>
+<ul>
+  <li>Per-attempt results show total marks awarded, total available, and percentage.</li>
+  <li>NQF placement recommendations are computed from the marks profile across competency areas.</li>
+  <li>All attempt and score data is exportable to CSV.</li>
+  <li>Optional reporting dashboard and branded PDF executive reports are available as paid add-ons.</li>
+</ul>
+
+<h2 class="page-break">4. Non-Functional Requirements</h2>
+<table class="spec">
+  <tr><th>Requirement</th><th>Specification</th></tr>
+  <tr><td>Availability</td><td>99% uptime target, measured monthly</td></tr>
+  <tr><td>Maintenance window</td><td>Sundays 22:00–02:00 SAST</td></tr>
+  <tr><td>Concurrent users</td><td>Designed for supervised computer-lab use; up to 30 concurrent learners per session tested</td></tr>
+  <tr><td>Browser support</td><td>Chrome 110+, Firefox 110+, Edge 110+, Safari 16+</td></tr>
+  <tr><td>Device support</td><td>Desktop and laptop; optimised for 1280px+ screen width (supervised lab environment)</td></tr>
+  <tr><td>Data residency</td><td>Hosted on Render.com (US-based infrastructure); data export available on request</td></tr>
+  <tr><td>Authentication</td><td>Username/password; session-based; HTTPS enforced in production</td></tr>
+  <tr><td>Spell check</td><td>Browser spell check and autocomplete disabled on all answer inputs to maintain assessment integrity</td></tr>
+</table>
+
+<h2>5. Feature Roadmap</h2>
+<table class="spec">
+  <tr><th>Feature</th><th>Status</th></tr>
+  <tr><td>Section-timed assessment delivery</td><td><span class="status-badge done">Released</span></td></tr>
+  <tr><td>Auto-marking with partial marks and working detection</td><td><span class="status-badge done">Released</span></td></tr>
+  <tr><td>Session monitor with browser notifications</td><td><span class="status-badge done">Released</span></td></tr>
+  <tr><td>Assessor review queue and marking workflow</td><td><span class="status-badge done">Released</span></td></tr>
+  <tr><td>Working sheet upload and printable per-attempt sheet</td><td><span class="status-badge done">Released</span></td></tr>
+  <tr><td>Question active/inactive management</td><td><span class="status-badge done">Released</span></td></tr>
+  <tr><td>NQF placement recommendation engine</td><td><span class="status-badge done">Released</span></td></tr>
+  <tr><td>Reporting dashboard (live management view)</td><td><span class="status-badge future">Add-on available</span></td></tr>
+  <tr><td>Branded PDF executive report</td><td><span class="status-badge future">Add-on available</span></td></tr>
+  <tr><td>Learner working sheet scan capture via mobile camera</td><td><span class="status-badge future">Planned</span></td></tr>
+  <tr><td>Multi-tenant administration (head office view across sites)</td><td><span class="status-badge future">Planned</span></td></tr>
+</table>
+
+<h2>6. Data Model Summary</h2>
+<table class="spec">
+  <tr><th>Entity</th><th>Key fields</th></tr>
+  <tr><td>AssessmentTemplate</td><td>name, version, created_by, created_at</td></tr>
+  <tr><td>Section</td><td>template, title, order</td></tr>
+  <tr><td>Question</td><td>section, code, kind, max_marks, answer_key_json, is_active, marking_notes</td></tr>
+  <tr><td>Learner</td><td>first_names, surname, id_number, dob, gender, demographic</td></tr>
+  <tr><td>ExamSession</td><td>code, template, seat_limit, expires_at, created_by</td></tr>
+  <tr><td>Attempt</td><td>template, learner, session, code, status, started_at, submitted_at, section_timings_json, review_started_at</td></tr>
+  <tr><td>Response</td><td>attempt, question, response_json</td></tr>
+  <tr><td>Score</td><td>response, assessor, points, max_points, rubric_json</td></tr>
+  <tr><td>WorkingSheet</td><td>attempt, uploaded_by, uploaded_at, content_type, data (base64)</td></tr>
+</table>
+
+<h2>7. Glossary</h2>
+<table class="spec">
+  <tr><th>Term</th><th>Definition</th></tr>
+  <tr><td>Attempt</td><td>A single learner's sitting of an assessment, from start to submission</td></tr>
+  <tr><td>Auto-mark</td><td>Automated scoring based on the question's answer key</td></tr>
+  <tr><td>NQF</td><td>National Qualifications Framework (South Africa)</td></tr>
+  <tr><td>Review Queue</td><td>List of submitted attempts containing at least one question requiring assessor input</td></tr>
+  <tr><td>Rubric</td><td>A set of named marking criteria with individual point allocations</td></tr>
+  <tr><td>Session</td><td>A timed room in which a cohort of learners complete an assessment simultaneously</td></tr>
+  <tr><td>Working Sheet</td><td>A printed sheet on which learners show handwritten calculation working</td></tr>
+</table>
+
+</body>
+</html>
