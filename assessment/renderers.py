@@ -51,7 +51,7 @@ class TextRenderer(BaseRenderer):
         if self.response.response_json:
             try:
                 existing = json.loads(self.response.response_json).get("answer", "")
-            except Exception:
+            except (json.JSONDecodeError, AttributeError):
                 existing = ""
         self._current_answer = existing
         return TextResponseForm(
@@ -98,7 +98,7 @@ class LongDivisionRenderer(BaseRenderer):
         if self.response.response_json:
             try:
                 existing = json.loads(self.response.response_json).get("answer", "")
-            except Exception:
+            except (json.JSONDecodeError, AttributeError):
                 existing = ""
         self._current_answer = existing
         return None
@@ -122,7 +122,7 @@ class FormFillRenderer(BaseRenderer):
                 loaded = json.loads(self.response.response_json)
                 if isinstance(loaded, dict):
                     form_fill_values = loaded
-            except Exception:
+            except (json.JSONDecodeError, ValueError):
                 pass
         for field in self.spec.get("fields", []):
             field["value"] = form_fill_values.get(field["name"], "")

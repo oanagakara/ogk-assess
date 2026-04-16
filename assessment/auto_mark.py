@@ -79,8 +79,8 @@ def _working_present(response_text: str, keywords: list) -> bool:
 def _auto_mark_match(question, response, key) -> dict:
     """Mark a drag-and-drop match question."""
     data = json.loads(response.response_json or '{}')
-    expected = key.get('match', {})
-    marks_per = float(key.get('marks_per_match', 1))
+    expected = key.get("match", {})
+    marks_per = float(key.get("marks_per_match", 1))
     max_marks = float(question.max_marks or len(expected))
 
     correct_count = sum(
@@ -109,15 +109,15 @@ def _auto_mark_sentence_word(question, response, key) -> dict:
     and the response is at least min_words long.
     Always flags for assessor review.
     """
-    data = json.loads(response.response_json or '{}')
-    response_text = str(data.get('answer', '')).strip()
+    data = json.loads(response.response_json or "{}")
+    response_text = str(data.get("answer", "")).strip()
     max_marks = float(question.max_marks or 1)
 
-    root = key.get('sentence_word', '').lower()
-    min_words = key.get('min_words', 4)
+    root = key.get("sentence_word", "").lower()
+    min_words = key.get("min_words", 4)
 
     word_count = len(response_text.split())
-    pattern = r'\b' + re.escape(root) + r'(s|es|ed|ing|er|ers)?\b'
+    pattern = r"\b" + re.escape(root) + r"(s|es|ed|ing|er|ers)?\b"
     word_used = bool(re.search(pattern, response_text.lower()))
 
     if word_used and word_count >= min_words:
@@ -128,29 +128,29 @@ def _auto_mark_sentence_word(question, response, key) -> dict:
         note = f'Target word "{root}" not detected in response.'
     else:
         points = 0.0
-        note = f'Response too short ({word_count} words) — may not be a complete sentence.'
+        note = f"Response too short ({word_count} words) — may not be a complete sentence."
 
     return {
-        'points': points,
-        'max_points': max_marks,
-        'rubric_json': {
-            'mode': 'auto',
-            'auto_marked': True,
-            'needs_review': True,
-            'notes': note,
+        "points": points,
+        "max_points": max_marks,
+        "rubric_json": {
+            "mode": "auto",
+            "auto_marked": True,
+            "needs_review": True,
+            "notes": note,
         },
     }
 
 
 def _auto_mark_keyword_answer(question, response, key) -> dict:
     """Mark a question where the answer is defined by keyword presence."""
-    data = json.loads(response.response_json or '{}')
-    response_text = str(data.get('answer', '')).strip()
+    data = json.loads(response.response_json or "{}")
+    response_text = str(data.get("answer", "")).strip()
 
-    keywords     = key.get('keyword_answer', [])
-    max_marks    = float(question.max_marks or 1)
-    partial_marks = float(key.get('partial_marks', 0))
-    flag_always  = key.get('flag_always', False)
+    keywords = key.get("keyword_answer", [])
+    max_marks = float(question.max_marks or 1)
+    partial_marks = float(key.get("partial_marks", 0))
+    flag_always = key.get("flag_always", False)
 
     found = [kw for kw in keywords if kw.lower() in response_text.lower()]
     all_found = len(found) == len(keywords)
@@ -188,33 +188,33 @@ def auto_mark_response(question, response) -> dict | None:
     Attempt to auto-mark a single response.
     Returns a result dict or None if the question has no auto-mark key.
     """
-    key = json.loads(question.answer_key_json or '{}')
-    if not key.get('auto_mark'):
+    key = json.loads(question.answer_key_json or "{}")
+    if not key.get("auto_mark"):
         return None
 
     # Match questions
-    if question.kind == 'match' and key.get('match'):
+    if question.kind == "match" and key.get("match"):
         return _auto_mark_match(question, response, key)
 
     # Sentence-using-word questions
-    if key.get('sentence_word'):
+    if key.get("sentence_word"):
         return _auto_mark_sentence_word(question, response, key)
 
     # Keyword-only answer questions
-    if key.get('keyword_answer'):
+    if key.get("keyword_answer"):
         return _auto_mark_keyword_answer(question, response, key)
 
     # Standard numeric / text answer
-    data = json.loads(response.response_json or '{}')
-    response_text = str(data.get('answer', '')).strip()
+    data = json.loads(response.response_json or "{}")
+    response_text = str(data.get("answer", "")).strip()
 
-    answers           = [str(a) for a in key.get('answers', [])]
-    working_keywords  = key.get('working_keywords', [])
-    max_marks         = float(question.max_marks or 1)
-    partial_marks     = float(key.get('partial_marks', 0))
-    flag_if_no_work   = key.get('flag_if_no_working', False)
+    answers = [str(a) for a in key.get("answers", [])]
+    working_keywords = key.get("working_keywords", [])
+    max_marks = float(question.max_marks or 1)
+    partial_marks = float(key.get("partial_marks", 0))
+    flag_if_no_work = key.get("flag_if_no_working", False)
 
-    correct     = _answer_correct(response_text, answers) if answers else False
+    correct = _answer_correct(response_text, answers) if answers else False
     has_working = _working_present(response_text, working_keywords) if working_keywords else True
 
     needs_review = False
@@ -256,9 +256,34 @@ def auto_mark_response(question, response) -> dict | None:
     }
 
 
+def _is_blank_response(response) -> bool:
+    """True if the learner submitted no meaningful answer."""
+    data = json.loads(response.response_json or "{}")
+    if not data:
+        return True
+    # Flatten all string values and check if any contain non-whitespace
+    values = data.values() if isinstance(data, dict) else [data]
+    return not any(str(v).strip() for v in values)
+
+
+def _zero_score(question) -> dict:
+    return {
+        "points": 0.0,
+        "max_points": float(question.max_marks or 0),
+        "rubric_json": {
+            "mode": "auto",
+            "auto_marked": True,
+            "needs_review": False,
+            "notes": "No response submitted.",
+        },
+    }
+
+
 def auto_mark_attempt(attempt) -> int:
     """
-    Auto-mark all responses in an attempt that have an auto-mark key.
+    Auto-mark all responses in an attempt.
+    Blank responses receive 0 marks with no review flag.
+    Responses to questions without an answer key are left unscored unless blank.
     Skips responses that already have a manually set score.
     Returns the number of questions auto-marked.
     """
@@ -267,19 +292,24 @@ def auto_mark_attempt(attempt) -> int:
     responses = (
         Response.objects
         .filter(attempt=attempt)
-        .select_related('question')
+        .select_related("question")
     )
 
     count = 0
     for response in responses:
-        result = auto_mark_response(response.question, response)
-        if result is None:
-            continue
+        question = response.question
+
+        if _is_blank_response(response):
+            result = _zero_score(question)
+        else:
+            result = auto_mark_response(question, response)
+            if result is None:
+                continue
 
         # Don't overwrite a score the assessor already set manually
         try:
             existing = response.score
-            if (existing.rubric_json or {}).get('mode') == 'manual':
+            if (existing.rubric_json or {}).get("mode") == "manual":
                 continue
         except Score.DoesNotExist:
             pass

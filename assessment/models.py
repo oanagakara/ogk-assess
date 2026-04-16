@@ -58,13 +58,10 @@ class Question(models.Model):
     spec_json = models.TextField(blank=True, default="")
     answer_key_json = models.TextField(blank=True, default="")
     marking_notes = models.TextField(blank=True, default="")
+    is_active = models.BooleanField(default=True)
 
     class Meta:
-        ordering = [
-                "section__order",
-                "order",
-                "code"
-                ]
+        ordering = ["section__order", "order", "code"]
     
     def __str__(self) -> str:
         return f"{self.code} [{self.kind}]"
@@ -80,7 +77,7 @@ class Score(models.Model):
         blank=True
     )
     points = models.FloatField(default=0)
-    max_points =  models.FloatField(default=0)
+    max_points = models.FloatField(default=0)
     rubric_json = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -194,6 +191,8 @@ class Attempt(models.Model):
     last_activity_at = models.DateTimeField(blank=True, null=True)
     honesty_name = models.CharField(max_length=200, blank=True, default="")
     honesty_accepted_at = models.DateTimeField(blank=True, null=True)
+    section_timings_json = models.JSONField(default=dict, blank=True)
+    review_started_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.code} - {self.learner} - {self.status}"
@@ -246,6 +245,33 @@ class Attempt(models.Model):
         self.honesty_accepted_at = when
         self.last_activity_at = when
         self.save(update_fields=["honesty_name", "honesty_accepted_at", "last_activity_at"])
+
+    def section_started_at(self, section_pk: int):
+        ts = (self.section_timings_json or {}).get(str(section_pk))
+        if ts:
+            from django.utils.dateparse import parse_datetime
+            return parse_datetime(ts)
+        return None
+
+    def record_section_entry(self, section_pk: int, when=None) -> bool:
+        """Record first entry into a section. Returns True if newly recorded."""
+        when = when or timezone.now()
+        key = str(section_pk)
+        timings = dict(self.section_timings_json or {})
+        if key in timings:
+            return False
+        timings[key] = when.isoformat()
+        self.section_timings_json = timings
+        self.save(update_fields=["section_timings_json"])
+        return True
+
+    def start_review(self, when=None) -> None:
+        if self.review_started_at:
+            return
+        when = when or timezone.now()
+        self.review_started_at = when
+        self.last_activity_at = when
+        self.save(update_fields=["review_started_at", "last_activity_at"])
 
     def submit(self, when=None) -> None:
         when = when or timezone.now()

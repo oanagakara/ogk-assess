@@ -1,0 +1,65 @@
+{% extends "assessment/base.html" %}
+{% block title %}Review your work{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-lg">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body p-8 space-y-6 text-center">
+
+        <div class="flex justify-center">
+          <div class="p-4 rounded-full bg-success bg-opacity-15 text-success">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+          </div>
+        </div>
+
+        <div>
+          <h1 class="text-2xl font-bold">You finished early!</h1>
+          <p class="text-base-content opacity-60 mt-2">
+            You have completed all questions. You can use your remaining time to
+            review and update your answers.
+          </p>
+        </div>
+
+        <div class="stats shadow w-full">
+          <div class="stat">
+            <div class="stat-title">Questions</div>
+            <div class="stat-value text-primary">{{ total_questions }}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-title">Review time</div>
+            <div class="stat-value text-secondary">
+              {% with minutes=review_seconds|divisibleby:60 %}
+                {{ review_seconds|floatformat:"0" }}s
+              {% endwith %}
+            </div>
+            <div class="stat-desc">{{ review_seconds }} seconds total · 90s per question</div>
+          </div>
+        </div>
+
+        <p class="text-sm opacity-60">
+          Each question gets <strong>90 seconds</strong>. The timer advances automatically,
+          but you can use Prev / Next to move freely within your current slot.
+        </p>
+
+        <form method="post" class="flex flex-col gap-3">
+          {% csrf_token %}
+          <button type="submit" name="action" value="review"
+                  class="btn btn-primary btn-lg">
+            Start review →
+          </button>
+          <button type="submit" name="action" value="submit"
+                  class="btn btn-ghost">
+            Submit now without reviewing
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

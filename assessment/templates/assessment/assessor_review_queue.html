@@ -1,0 +1,56 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Review Queue{% endblock %}
+
+{% block assessor_content %}
+<div class="h-full flex flex-col gap-4 overflow-y-auto">
+
+  <div class="flex items-center justify-between shrink-0">
+    <h1 class="text-lg font-semibold">Review Queue</h1>
+    <span class="text-sm opacity-50">Submitted attempts with questions awaiting assessor input</span>
+  </div>
+
+  {% if attempts %}
+    <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div class="overflow-y-auto">
+        <table class="table table-sm w-full">
+          <thead class="sticky top-0 bg-base-100 z-10">
+            <tr>
+              <th class="text-xs">Code</th>
+              <th class="text-xs">Learner</th>
+              <th class="text-xs">Template</th>
+              <th class="text-xs">Submitted</th>
+              <th class="text-xs"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for attempt in attempts %}
+              <tr class="hover">
+                <td class="font-mono text-xs align-middle">{{ attempt.code }}</td>
+                <td class="align-middle text-sm">
+                  {{ attempt.learner.first_names }} {{ attempt.learner.surname }}
+                </td>
+                <td class="align-middle text-xs opacity-60">{{ attempt.template }}</td>
+                <td class="align-middle text-xs opacity-60 whitespace-nowrap">
+                  {{ attempt.submitted_at|date:"d M Y H:i"|default:"—" }}
+                </td>
+                <td class="align-middle text-right">
+                  <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}"
+                     class="btn btn-sm btn-primary">Mark →</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="flex-1 flex items-center justify-center">
+      <div class="text-center opacity-40">
+        <div class="text-sm">No attempts in the review queue.</div>
+        <div class="text-xs mt-1">All submitted attempts have been fully marked.</div>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

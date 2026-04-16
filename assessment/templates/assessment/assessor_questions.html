@@ -1,0 +1,94 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Questions{% endblock %}
+
+{% block assessor_content %}
+<div class="h-full flex flex-col gap-4 overflow-y-auto">
+
+  {# ── Header + template filter ── #}
+  <div class="flex items-center justify-between shrink-0 flex-wrap gap-2">
+    <h1 class="text-lg font-semibold">Questions</h1>
+    <form method="get" class="flex items-center gap-2">
+      <select name="template" class="select select-bordered select-sm"
+              onchange="this.form.submit()">
+        <option value="">All templates</option>
+        {% for t in templates %}
+          <option value="{{ t.pk }}" {% if t.pk == selected_template_id %}selected{% endif %}>
+            {{ t }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  {# ── Legend ── #}
+  <div class="flex items-center gap-4 text-xs opacity-60 shrink-0">
+    <span class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-success inline-block"></span> Active — included in assessments
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-error inline-block"></span> Inactive — hidden from learners
+    </span>
+  </div>
+
+  {% if questions %}
+
+    <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div class="overflow-y-auto">
+        <table class="table table-sm w-full">
+          <thead class="sticky top-0 bg-base-100 z-10">
+            <tr>
+              <th class="text-xs">Code</th>
+              <th class="text-xs">Template</th>
+              <th class="text-xs">Section</th>
+              <th class="text-xs">Kind</th>
+              <th class="text-xs text-right">Max marks</th>
+              <th class="text-xs text-center">Status</th>
+              <th class="text-xs"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for q in questions %}
+              <tr class="hover {% if not q.is_active %}opacity-50{% endif %}">
+                <td class="font-mono text-xs align-middle">{{ q.code }}</td>
+                <td class="text-xs opacity-60 align-middle whitespace-nowrap">{{ q.section.template }}</td>
+                <td class="text-xs opacity-60 align-middle">{{ q.section.title }}</td>
+                <td class="align-middle">
+                  <span class="badge badge-ghost badge-xs font-mono">{{ q.kind }}</span>
+                </td>
+                <td class="text-xs text-right align-middle font-semibold">{{ q.max_marks }}</td>
+                <td class="text-center align-middle">
+                  <span class="badge badge-xs {% if q.is_active %}badge-success{% else %}badge-error{% endif %}">
+                    {% if q.is_active %}Active{% else %}Inactive{% endif %}
+                  </span>
+                </td>
+                <td class="align-middle text-right">
+                  <form method="post"
+                        action="{% url 'assessment:assessor_toggle_question' q.pk %}"
+                        class="inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-xs {% if q.is_active %}btn-error btn-outline{% else %}btn-success btn-outline{% endif %}">
+                      {% if q.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  {% else %}
+    <div class="flex-1 flex items-center justify-center">
+      <div class="text-center opacity-40">
+        <div class="text-sm">No questions found.</div>
+        {% if selected_template_id %}
+          <div class="text-xs mt-1">Try selecting a different template.</div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Auto-marked — {{ attempt.code }}{% endblock %}
+
+{% block assessor_content %}
+<div class="h-full flex flex-col gap-4 overflow-y-auto">
+
+  {# ── Header ── #}
+  <div class="flex items-center justify-between shrink-0">
+    <div>
+      <div class="text-xs opacity-50 uppercase tracking-wide">Auto-marked questions</div>
+      <h1 class="text-lg font-semibold leading-tight">
+        {{ attempt.learner.first_names }} {{ attempt.learner.surname }}
+        <span class="font-mono text-sm opacity-50 ml-2">{{ attempt.code }}</span>
+      </h1>
+    </div>
+    <div class="flex items-center gap-2">
+      {% if review_count > 0 %}
+        <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}"
+           class="btn btn-sm btn-primary">
+          Review {{ review_count }} question{{ review_count|pluralize }} →
+        </a>
+      {% endif %}
+      <a href="{% url 'assessment:assessor_attempts' %}?tab=marked" class="btn btn-sm btn-ghost">← Back</a>
+    </div>
+  </div>
+
+  {% if rows %}
+
+    {# ── Table ── #}
+    <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div class="overflow-y-auto">
+        <table class="table table-sm w-full">
+          <thead class="sticky top-0 bg-base-100 z-10">
+            <tr>
+              <th class="text-xs">Code</th>
+              <th class="text-xs">Section</th>
+              <th class="text-xs">Learner response</th>
+              <th class="text-xs text-right">Score</th>
+              <th class="text-xs">Notes</th>
+              <th class="text-xs">Mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr class="hover">
+                <td class="font-mono text-xs align-top py-2">{{ row.question.code }}</td>
+                <td class="text-xs opacity-60 align-top py-2 whitespace-nowrap">{{ row.question.section.title }}</td>
+                <td class="text-xs align-top py-2 max-w-xs">
+                  {% if row.response_text %}
+                    <span class="whitespace-pre-wrap break-words">{{ row.response_text }}</span>
+                  {% else %}
+                    <span class="opacity-30">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-xs align-top py-2 text-right whitespace-nowrap font-semibold">
+                  {{ row.awarded|floatformat:"-2" }}
+                  <span class="font-normal opacity-50">/ {{ row.max_points|floatformat:"-2" }}</span>
+                </td>
+                <td class="text-xs align-top py-2 opacity-60 max-w-xs">
+                  {% if row.notes %}
+                    <span class="whitespace-pre-wrap break-words">{{ row.notes }}</span>
+                  {% else %}
+                    <span class="opacity-30">—</span>
+                  {% endif %}
+                </td>
+                <td class="align-top py-2">
+                  <span class="badge badge-xs {% if row.mode == 'auto' %}badge-success{% else %}badge-ghost{% endif %}">
+                    {{ row.mode|default:"—" }}
+                  </span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  {% else %}
+    <div class="flex-1 flex items-center justify-center">
+      <div class="text-center opacity-40">
+        <div class="text-sm">No auto-marked questions yet.</div>
+        <div class="text-xs mt-1">Questions will appear here once auto-marking runs at submission.</div>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
