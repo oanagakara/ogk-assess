@@ -91,15 +91,65 @@
 </div>
 
 <script>
+  const SESSION_CODE = "{{ session.code }}";
+  const SEAT_LIMIT   = {{ seat_limit }};
+
+  // Current submitted codes from server render
+  const submittedNow = new Set([
+    {% for slot in slots %}{% if slot and slot.status == 'submitted' %}"{{ slot.attempt.code }}",{% endif %}{% endfor %}
+  ]);
+  const allSubmitted = submittedNow.size === SEAT_LIMIT;
+
+  // ── Browser notifications ──────────────────────────────────────────────────
+
+  function notify(title, body) {
+    if (Notification.permission === "granted") {
+      new Notification(title, { body, icon: "/static/favicon.ico" });
+    }
+  }
+
+  function checkNotifications() {
+    const storageKey = "monitor_submitted_" + SESSION_CODE;
+    const prev = new Set(JSON.parse(localStorage.getItem(storageKey) || "[]"));
+    const prevAllDone = localStorage.getItem("monitor_alldone_" + SESSION_CODE) === "1";
+
+    // New submissions since last refresh
+    for (const code of submittedNow) {
+      if (!prev.has(code)) {
+        {% for slot in slots %}{% if slot and slot.status == 'submitted' %}
+        if (code === "{{ slot.attempt.code }}") {
+          notify("Learner submitted — {{ session.code }}", "{{ slot.learner_name }} has submitted their assessment.");
+        }
+        {% endif %}{% endfor %}
+      }
+    }
+
+    // All done notification (fire once)
+    if (allSubmitted && !prevAllDone) {
+      notify("All learners done — {{ session.code }}", "All " + SEAT_LIMIT + " learners have submitted.");
+      localStorage.setItem("monitor_alldone_" + SESSION_CODE, "1");
+    }
+
+    // Persist state for next refresh
+    localStorage.setItem(storageKey, JSON.stringify([...submittedNow]));
+  }
+
+  // Request permission once, then check
+  if (Notification.permission === "default") {
+    Notification.requestPermission().then(checkNotifications);
+  } else {
+    checkNotifications();
+  }
+
+  // ── Auto-refresh countdown ─────────────────────────────────────────────────
+
   let remaining = 30;
   const label = document.getElementById("refresh-label");
   const lastRefreshed = document.getElementById("last-refreshed");
 
-  // Stamp the last-refreshed time
   const now = new Date();
   lastRefreshed.textContent = "Last refreshed: " + now.toLocaleTimeString();
 
-  // Countdown every second — reload when it hits 0
   const timer = setInterval(() => {
     remaining -= 1;
     if (remaining <= 0) {
@@ -110,7 +160,6 @@
     }
   }, 1000);
 
-  // Keep timer running even when tab is in background (Page Visibility API)
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && remaining <= 0) {
       window.location.reload();

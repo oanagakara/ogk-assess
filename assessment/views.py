@@ -1,12 +1,13 @@
-from datetime import timedelta
+from datetime import date, timedelta
 import json
-import random
 import re
+import uuid
+from typing import NamedTuple
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator 
 
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -19,98 +20,22 @@ from .forms import (
     LearnerForm,
     StartForm,
 )
+from .auto_mark import auto_mark_attempt
 from .models import AssessmentTemplate, Attempt, ExamSession, Learner, Question, Response, Score, Section
+from .nqf import NQF_DISPLAY_GROUPS, build_question_metadata, compute_nqf_placement
 from .renderers import get_renderer
 from .services import claim_seat, claim_session_seat
 
 
-ASSESSMENT_DURATION = timedelta(hours=2)
-
-# ── NQF Placement configuration ──────────────────────────────────────────────
-# Maps display groups to the question-code prefixes that belong to each group.
-NQF_DISPLAY_GROUPS = {
-    "literacy": [
-        {"label": "Reading & Comprehension", "prefixes": ["LIT-A", "LIT-B", "LIT-C"]},
-        {"label": "Writing",                 "prefixes": ["LIT-D"]},
-    ],
-    "numeracy": [
-        {"label": "Basic Numeracy",          "prefixes": ["NUM-A", "NUM-B"]},
-        {"label": "Mathematics Skills",      "prefixes": ["NUM-C", "NUM-D"]},
-    ],
-}
-
-# Per-question percentage thresholds, derived from memo mark boundaries
-# converted to % of the memo's expected max for that question.
-# The system's actual max_marks per prefix differs from the memo (fewer questions
-# are loaded), so we normalise by computing pct = round(awarded/system_max*100)
-# and look up the level from these percentage bands.
-#
-# Derivation: upper bound of level L = floor(upper_mark / memo_max * 100).
-# Source: Media Works Memo v1.0.5 (literacy) & Workbook v1.0.6 p.v (numeracy).
-# LIT-D (Q4 writing rubric) falls through to NQF_PCT_THRESHOLDS.
-NQF_QUESTION_PCT_THRESHOLDS = {
-    # LIT-A  Q1 memo /10  — boundaries at marks 4, 6, 8
-    "LIT-A": [(0, 40, "L1"), (41, 60, "L2"), (61, 80, "L3"), (81, 100, "L4")],
-    # LIT-B  Q2 memo /14  — boundaries at marks 4, 8, 11
-    "LIT-B": [(0, 28, "L1"), (29, 57, "L2"), (58, 78, "L3"), (79, 100, "L4")],
-    # LIT-C  Q3 memo /20  — boundaries at marks 7, 12, 15
-    "LIT-C": [(0, 35, "L1"), (36, 60, "L2"), (61, 75, "L3"), (76, 100, "L4")],
-    # NUM-A  Q1 memo /15  — boundary at mark 9
-    "NUM-A": [(0, 60, "L1"), (61, 100, "L2")],
-    # NUM-B  Q2 memo /15  — boundaries at marks 4, 9
-    "NUM-B": [(0, 26, "L1"), (27, 60, "L2"), (61, 100, "L3")],
-    # NUM-C  Q3 memo /15  — boundaries at marks 3, 6, 12
-    "NUM-C": [(0, 20, "L1"), (21, 40, "L2"), (41, 80, "L3"), (81, 100, "L4")],
-    # NUM-D  Q4 memo /15  — boundaries at marks 2, 4, 7, 12 (13–15 counts as L4
-    #         for the modal calculation; Post L4 is a section-level override below)
-    "NUM-D": [(0, 13, "L1"), (14, 26, "L2"), (27, 46, "L3"), (47, 100, "L4")],
-}
-
-# % fallback thresholds for rubric questions (e.g. LIT-D) that have no
-# defined mark-range table in the memo.
-NQF_PCT_THRESHOLDS = [
-    (0,  39, "L1"),
-    (40, 59, "L2"),
-    (60, 79, "L3"),
-    (80, 100, "L4"),
-]
-
-# Numeracy Post-Level-4: ALL four questions must reach this % (≈ 13/15 in memo).
-NQF_POST_L4_NUM_PCT = 87
+ASSESSMENT_DURATION = timedelta(hours=2)   # hard cap: 45 min + 45 min + ~30 min review
+SECTION_DURATION = timedelta(minutes=45)
+REVIEW_SECONDS_PER_QUESTION = 90
 
 
-def _nqf_level_pct(pct: float, thresholds: list) -> str:
-    """Return level label for a percentage using (min_pct, max_pct, label) tuples."""
-    for lo, hi, label in thresholds:
-        if lo <= pct <= hi:
-            return label
-    return thresholds[-1][2]
-
-
-def _modal_level(levels: list) -> str:
-    """Most frequently achieved level. On tie, return the lower (more conservative) level."""
-    if not levels:
-        return "L1"
-    from collections import Counter
-    counts = Counter(levels)
-    max_count = max(counts.values())
-    _order = {"L1": 1, "L2": 2, "L3": 3, "L4": 4, "Post L4": 5}
-    tied = sorted(
-        [lv for lv, c in counts.items() if c == max_count],
-        key=lambda lv: _order.get(lv, 99),
-    )
-    return tied[0]
-
-
-def _nqf_suitable_text(level: str, subject: str) -> str:
-    """Return placement comment string for a given AET level and subject."""
-    if level == "Post L4":
-        return f"Post-AET Level for {subject} — no further AET training required"
-    num = int(level[1])
-    return f"NQF Level {num} for {subject}"
-
-
-# ── End NQF config ────────────────────────────────────────────────────────────
+class MarkingTotals(NamedTuple):
+    available: float
+    awarded: float
+    scored_count: int
 
 # Question codes that display the Thandi passage.
 # TODO: move to spec_json["passage_source"] in a data migration.
@@ -123,9 +48,45 @@ def _attempt_expires_at(attempt):
     return attempt.started_at + ASSESSMENT_DURATION
 
 
+def _section_expires_at(attempt, section_pk):
+    started = attempt.section_started_at(section_pk)
+    if not started:
+        return None
+    return started + SECTION_DURATION
+
+
+def _first_n_of_next_section(qs_section_ids, current_section_id):
+    """Return 1-based position of the first question in the section after current_section_id."""
+    in_current = False
+    for i, (_, sec_id) in enumerate(qs_section_ids):
+        if sec_id == current_section_id:
+            in_current = True
+        elif in_current:
+            return i + 1
+    return None
+
+
+def _is_last_section(qs_section_ids, current_section_id):
+    return _first_n_of_next_section(qs_section_ids, current_section_id) is None
+
+
+def _review_question_expires_at(attempt, n):
+    """Return when review slot n (1-based) expires."""
+    if not attempt.review_started_at:
+        return None
+    return attempt.review_started_at + timedelta(seconds=n * REVIEW_SECONDS_PER_QUESTION)
+
+
+def _current_review_n(attempt, total_questions):
+    """Return the 1-based review question the learner should be on right now."""
+    if not attempt.review_started_at:
+        return 1
+    elapsed = (timezone.now() - attempt.review_started_at).total_seconds()
+    return min(int(elapsed // REVIEW_SECONDS_PER_QUESTION) + 1, total_questions + 1)
+
+
 def _finalize_attempt(attempt, when=None):
     attempt.submit(when=when)
-    from .auto_mark import auto_mark_attempt
     auto_mark_attempt(attempt)
 
 
@@ -170,10 +131,6 @@ def _extract_inline_choices(prompt: str) -> list[str]:
     return [part.strip() for part in raw.split("/") if part.strip()]
 
 
-def _random_13_digit_id() -> str:
-    return "".join(str(random.randint(0, 9)) for _ in range(13))
-
-
 def _safe_json_loads(value, default=None):
     if default is None:
         default = {}
@@ -181,7 +138,7 @@ def _safe_json_loads(value, default=None):
         return default
     try:
         return json.loads(value)
-    except Exception:
+    except (json.JSONDecodeError, ValueError):
         return default
 
 
@@ -367,9 +324,8 @@ def assessor_dashboard(request):
         recent_qs = recent_qs.filter(status=q_status)
     if q_date:
         try:
-            from datetime import date as _date
             recent_qs = recent_qs.filter(
-                last_activity_at__date=_date.fromisoformat(q_date)
+                last_activity_at__date=date.fromisoformat(q_date)
             )
         except ValueError:
             pass
@@ -444,24 +400,32 @@ def assessor_attempts(request):
     })
 
 
-def _build_marking_row(attempt, question, index):
-    response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
+def _score_for_response(response):
     try:
-        score = response.score
+        return response.score
     except Score.DoesNotExist:
-        score = None
+        return None
 
-    rubric = _extract_rubric(question)
-    max_points = sum(item["max_points"] for item in rubric) if rubric else float(question.max_marks or 0)
-    awarded = float(score.points) if score else 0.0
 
-    saved_criteria = {}
-    if score and isinstance(score.rubric_json, dict):
-        for item in score.rubric_json.get("criteria", []):
-            if isinstance(item, dict) and item.get("key"):
-                saved_criteria[str(item["key"])] = item
+def _max_points_for_question(question, rubric):
+    if rubric:
+        return sum(item["max_points"] for item in rubric)
+    return float(question.max_marks or 0)
 
-    rubric_rows = [
+
+def _saved_criteria_from_score(score) -> dict:
+    """Parse the saved per-criterion points/feedback from a score's rubric_json."""
+    if not (score and isinstance(score.rubric_json, dict)):
+        return {}
+    return {
+        str(item["key"]): item
+        for item in score.rubric_json.get("criteria", [])
+        if isinstance(item, dict) and item.get("key")
+    }
+
+
+def _rubric_display_rows(rubric, saved_criteria) -> list:
+    return [
         {
             "key": c["key"],
             "label": c["label"],
@@ -472,7 +436,21 @@ def _build_marking_row(attempt, question, index):
         for c in rubric
     ]
 
-    notes = score.rubric_json.get("notes", "") if score and isinstance(score.rubric_json, dict) else ""
+
+def _score_notes(score) -> str:
+    if score and isinstance(score.rubric_json, dict):
+        return score.rubric_json.get("notes", "")
+    return ""
+
+
+def _build_marking_row(question, index, responses_by_qid):
+    response = responses_by_qid[question.pk]
+    score = _score_for_response(response)
+    rubric = _extract_rubric(question)
+    saved_criteria = _saved_criteria_from_score(score)
+    rubric_rows = _rubric_display_rows(rubric, saved_criteria)
+    max_points = _max_points_for_question(question, rubric)
+    awarded = float(score.points) if score else 0.0
 
     return {
         "index": index,
@@ -482,7 +460,7 @@ def _build_marking_row(attempt, question, index):
         "has_rubric": bool(rubric_rows),
         "rubric": rubric_rows,
         "manual_value": awarded if score and not rubric_rows else "",
-        "notes": notes,
+        "notes": _score_notes(score),
         "score": score,
         "awarded": awarded,
         "max_points": max_points,
@@ -539,23 +517,35 @@ def _save_question_score(request, attempt, question):
     )
 
 
-def _compute_marking_totals(attempt, markable_questions):
-    total_available = 0.0
-    total_awarded = 0.0
+def _requires_assessor_attention(score) -> bool:
+    """True if the question still needs assessor input."""
+    if score is None:
+        return True
+    if not isinstance(score.rubric_json, dict):
+        return True
+    return bool(score.rubric_json.get("needs_review", False))
+
+
+def _build_review_queue(markable_questions, responses_by_qid) -> list:
+    """Return the subset of markable questions that still need assessor attention."""
+    return [
+        q for q in markable_questions
+        if _requires_assessor_attention(_score_for_response(responses_by_qid[q.pk]))
+    ]
+
+
+def _compute_marking_totals(markable_questions, responses_by_qid) -> MarkingTotals:
+    available = 0.0
+    awarded = 0.0
     scored_count = 0
     for question in markable_questions:
-        response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
-        try:
-            score = response.score
-        except Score.DoesNotExist:
-            score = None
+        score = _score_for_response(responses_by_qid[question.pk])
         rubric = _extract_rubric(question)
-        max_points = sum(c["max_points"] for c in rubric) if rubric else float(question.max_marks or 0)
-        total_available += max_points
-        total_awarded += float(score.points) if score else 0.0
+        available += _max_points_for_question(question, rubric)
+        awarded += float(score.points) if score else 0.0
         if score is not None:
             scored_count += 1
-    return total_available, total_awarded, scored_count
+    return MarkingTotals(available=available, awarded=awarded, scored_count=scored_count)
 
 
 @login_required
@@ -570,35 +560,82 @@ def assessor_mark_attempt(request, code: str):
 
     markable_questions = [
         q for q in
-        Question.objects.filter(section__template=attempt.template)
+        Question.objects.filter(section__template=attempt.template, is_active=True)
         .select_related("section")
         .order_by("section__order", "order", "code")
         if _is_markable_question(q)
     ]
-    total_questions = len(markable_questions)
 
+    question_ids = [q.pk for q in markable_questions]
+    Response.objects.bulk_create(
+        [Response(attempt=attempt, question_id=qid, response_json="") for qid in question_ids],
+        ignore_conflicts=True,
+    )
+    responses_by_qid = {
+        r.question_id: r
+        for r in Response.objects.filter(
+            attempt=attempt, question_id__in=question_ids
+        ).select_related("score")
+    }
+
+    pending_questions = _build_review_queue(markable_questions, responses_by_qid)
+    questions_by_pk = {q.pk: q for q in markable_questions}
+
+    # Resolve which question to show from ?qid=, falling back to first pending
     try:
-        current_q = int(request.GET.get("q", 1))
+        requested_qid = int(request.GET.get("qid", 0))
     except (TypeError, ValueError):
-        current_q = 1
-    current_q = max(1, min(current_q, total_questions)) if total_questions > 0 else 1
+        requested_qid = 0
 
-    if request.method == "POST" and total_questions > 0:
-        _save_question_score(request, attempt, markable_questions[current_q - 1])
+    current_question = (
+        questions_by_pk.get(requested_qid)
+        or (pending_questions[0] if pending_questions else None)
+    )
+
+    if request.method == "POST" and current_question:
+        _save_question_score(request, attempt, current_question)
         action = request.POST.get("action", "save")
         if action == "done":
-            return redirect("assessment:assessor_attempts")
-        if action == "next":
-            target_q = min(total_questions, current_q + 1)
-        elif action == "prev":
-            target_q = max(1, current_q - 1)
-        else:
-            target_q = current_q
+            return redirect("assessment:assessor_review_queue")
         url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
-        return redirect(f"{url}?q={target_q}&saved=1")
+        # After save, go to next pending question (stable by pk, not position)
+        remaining = _build_review_queue(markable_questions, {
+            r.question_id: r
+            for r in Response.objects.filter(
+                attempt=attempt, question_id__in=question_ids
+            ).select_related("score")
+        })
+        next_question = remaining[0] if remaining else None
+        if next_question and action != "summary":
+            return redirect(f"{url}?qid={next_question.pk}&saved=1")
+        return redirect(f"{url}?summary=1")
 
-    total_available, total_awarded, scored_count = _compute_marking_totals(attempt, markable_questions)
-    current_row = _build_marking_row(attempt, markable_questions[current_q - 1], current_q) if total_questions > 0 else None
+    totals = _compute_marking_totals(markable_questions, responses_by_qid)
+    show_summary = request.GET.get("summary") == "1" or (not pending_questions and not current_question)
+
+    summary_rows = None
+    if show_summary:
+        summary_rows = [
+            _build_marking_row(q, idx + 1, responses_by_qid)
+            for idx, q in enumerate(markable_questions)
+        ]
+
+    current_row = (
+        _build_marking_row(current_question, markable_questions.index(current_question) + 1, responses_by_qid)
+        if current_question and not show_summary
+        else None
+    )
+
+    # Sidebar: all markable questions with pending/done status
+    sidebar_questions = [
+        {
+            "question": q,
+            "pending": _requires_assessor_attention(_score_for_response(responses_by_qid[q.pk])),
+            "active": current_question and q.pk == current_question.pk,
+            "url": reverse("assessment:assessor_mark_attempt", kwargs={"code": code}) + f"?qid={q.pk}",
+        }
+        for q in markable_questions
+    ]
 
     return render(
         request,
@@ -607,17 +644,70 @@ def assessor_mark_attempt(request, code: str):
             "attempt": attempt,
             "row": current_row,
             "saved": request.GET.get("saved") == "1",
-            "total_awarded": total_awarded,
-            "total_available": total_available,
-            "scored_count": scored_count,
-            "current_q": current_q,
-            "total_questions": total_questions,
-            "has_prev": current_q > 1,
-            "has_next": current_q < total_questions,
-            "prev_q": current_q - 1,
-            "next_q": current_q + 1,
+            "total_awarded": totals.awarded,
+            "total_available": totals.available,
+            "scored_count": totals.scored_count,
+            "pending_count": len(pending_questions),
+            "total_questions": len(markable_questions),
+            "show_summary": show_summary,
+            "summary_rows": summary_rows,
+            "sidebar_questions": sidebar_questions,
         },
     )
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_auto_marked_attempt(request, code: str):
+    """Read-only view of all scored questions not requiring assessor input."""
+    attempt = get_object_or_404(
+        Attempt.objects.select_related("learner", "template"),
+        code=code,
+    )
+
+    markable_questions = [
+        q for q in
+        Question.objects.filter(section__template=attempt.template, is_active=True)
+        .select_related("section")
+        .order_by("section__order", "order", "code")
+        if _is_markable_question(q)
+    ]
+
+    question_ids = [q.pk for q in markable_questions]
+    Response.objects.bulk_create(
+        [Response(attempt=attempt, question_id=qid, response_json="") for qid in question_ids],
+        ignore_conflicts=True,
+    )
+    responses_by_qid = {
+        r.question_id: r
+        for r in Response.objects.filter(
+            attempt=attempt, question_id__in=question_ids
+        ).select_related("score")
+    }
+
+    rows = []
+    for question in markable_questions:
+        score = _score_for_response(responses_by_qid[question.pk])
+        if score is None or _requires_assessor_attention(score):
+            continue
+        rubric = _extract_rubric(question)
+        rows.append({
+            "question": question,
+            "response_text": _render_response_for_marking(question, responses_by_qid[question.pk]),
+            "score": score,
+            "awarded": float(score.points),
+            "max_points": _max_points_for_question(question, rubric),
+            "notes": _score_notes(score),
+            "mode": score.rubric_json.get("mode", "") if isinstance(score.rubric_json, dict) else "",
+        })
+
+    review_count = len(markable_questions) - len(rows)
+
+    return render(request, "assessment/assessor_auto_marked_attempt.html", {
+        "attempt": attempt,
+        "rows": rows,
+        "review_count": review_count,
+    })
 
 
 @login_required
@@ -636,7 +726,6 @@ def assessor_new_attempt(request):
         form = AttemptForm(request.POST)
 
         if form.is_valid():
-            import uuid
             learner = Learner.objects.create(
                 first_names="Temp",
                 surname="Learner",
@@ -682,10 +771,9 @@ def _load_passage(question, spec) -> str:
 
 
 def _navigate(request, attempt, n, total):
-    """Return a redirect after saving, or None if no navigation key was posted."""
+    """Return a redirect based on the posted navigation button, or None if none was posted."""
     if "next" in request.POST:
         if n >= total:
-            _finalize_attempt(attempt)
             return redirect("assessment:attempt_submitted", code=attempt.code)
         return redirect("assessment:attempt_question", code=attempt.code, n=n + 1)
     if "prev" in request.POST:
@@ -693,7 +781,7 @@ def _navigate(request, attempt, n, total):
     return None
 
 
-def _base_ctx(attempt, question, spec, n, total, expires_at, passage="", form=None):
+def _base_context(attempt, question, spec, n, total, expires_at, passage="", form=None):
     return {
         "attempt": attempt,
         "question": question,
@@ -709,43 +797,51 @@ def _base_ctx(attempt, question, spec, n, total, expires_at, passage="", form=No
     }
 
 
-def _handle_info_only(request, attempt, question, spec, n, total, expires_at):
+def _handle_display_only(request, attempt, question, spec, n, total, expires_at, *, passage="", extra_context=None):
+    """Handle a question that shows content but collects no response (info or passage screens)."""
     if request.method == "POST" and "next" in request.POST:
         attempt.touch()
         if n >= total:
             return redirect("assessment:attempt_submit", code=attempt.code)
         return redirect("assessment:attempt_question", code=attempt.code, n=n + 1)
-    return render(request, "assessment/question.html",
-                  _base_ctx(attempt, question, spec, n, total, expires_at))
+    context = _base_context(attempt, question, spec, n, total, expires_at, passage=passage)
+    if extra_context:
+        context.update(extra_context)
+    return render(request, "assessment/question.html", context)
 
 
-def _handle_passage_only(request, attempt, question, spec, n, total, expires_at):
+def _handle_info_only(request, attempt, question, spec, n, total, expires_at, *, extra_context=None):
+    return _handle_display_only(request, attempt, question, spec, n, total, expires_at, extra_context=extra_context)
+
+
+def _handle_passage_only(request, attempt, question, spec, n, total, expires_at, *, extra_context=None):
     passage = _load_passage(question, spec)
-    if request.method == "POST" and "next" in request.POST:
-        attempt.touch()
-        if n >= total:
-            return redirect("assessment:attempt_submit", code=attempt.code)
-        return redirect("assessment:attempt_question", code=attempt.code, n=n + 1)
-    return render(request, "assessment/question.html",
-                  _base_ctx(attempt, question, spec, n, total, expires_at, passage=passage))
+    return _handle_display_only(request, attempt, question, spec, n, total, expires_at, passage=passage, extra_context=extra_context)
 
 
-def _handle_with_response(request, attempt, question, spec, n, total, expires_at):
+def _handle_with_response(request, attempt, question, spec, n, total, expires_at, *, end_redirect=None, extra_context=None):
     passage = _load_passage(question, spec)
-    resp, _ = Response.objects.get_or_create(attempt=attempt, question=question)
-    renderer = get_renderer(question, spec, resp)
+    response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
+    renderer = get_renderer(question, spec, response)
     form = renderer.get_form(request)
 
     if request.method == "POST":
         renderer.save(request, form)
         attempt.touch()
+        if "next" in request.POST and n >= total:
+            if end_redirect:
+                return end_redirect
+            _finalize_attempt(attempt)
+            return redirect("assessment:attempt_submitted", code=attempt.code)
         nav = _navigate(request, attempt, n, total)
         if nav:
             return nav
 
-    ctx = _base_ctx(attempt, question, spec, n, total, expires_at, passage=passage, form=form)
-    ctx.update(renderer.get_context())
-    return render(request, "assessment/question.html", ctx)
+    context = _base_context(attempt, question, spec, n, total, expires_at, passage=passage, form=form)
+    context.update(renderer.get_context())
+    if extra_context:
+        context.update(extra_context)
+    return render(request, "assessment/question.html", context)
 
 
 def attempt_question(request, code: str, n: int):
@@ -763,7 +859,7 @@ def attempt_question(request, code: str, n: int):
     expires_at = _attempt_expires_at(attempt)
 
     qs = (
-        Question.objects.filter(section__template=attempt.template)
+        Question.objects.filter(section__template=attempt.template, is_active=True)
         .select_related("section")
         .order_by("section__order", "order", "code")
     )
@@ -780,6 +876,40 @@ def attempt_question(request, code: str, n: int):
         Attempt.objects.filter(pk=attempt.pk).update(current_question=n)
         attempt.current_question = n
 
+    # ── Section timer logic ──────────────────────────────────────────────────
+    qs_section_ids = list(qs.values_list("pk", "section_id"))
+    section_pk = qs_section_ids[n - 1][1]
+
+    # Record first entry into this section (no-op on subsequent visits)
+    attempt.record_section_entry(section_pk)
+
+    now = timezone.now()
+    sec_expires = _section_expires_at(attempt, section_pk)
+
+    if sec_expires and now >= sec_expires:
+        # Time's up for this section — advance server-side
+        next_n = _first_n_of_next_section(qs_section_ids, section_pk)
+        if next_n:
+            return redirect("assessment:attempt_question", code=code, n=next_n)
+        # Last section expired — go straight to submit (no spare time for review)
+        _finalize_attempt(attempt)
+        return redirect("assessment:attempt_submitted", code=code)
+
+    # Where does JS redirect when this section's clock hits zero?
+    next_n = _first_n_of_next_section(qs_section_ids, section_pk)
+    if next_n:
+        section_timeout_url = reverse(
+            "assessment:attempt_question", kwargs={"code": code, "n": next_n}
+        )
+    else:
+        section_timeout_url = reverse("assessment:attempt_review_info", kwargs={"code": code})
+
+    # Offer review after the last question only if time is still on the clock
+    end_redirect = None
+    if _is_last_section(qs_section_ids, section_pk) and n == total:
+        end_redirect = redirect("assessment:attempt_review_info", code=code)
+    # ────────────────────────────────────────────────────────────────────────
+
     spec = _question_spec(question)
     layout = spec.get("layout", "default")
 
@@ -790,13 +920,22 @@ def attempt_question(request, code: str, n: int):
         spec["digit_range"] = list(range(spec.get("num_digits", 2)))
         spec["digit_bank"] = list(range(10))
 
+    extra_context = {
+        "section_expires_at": sec_expires,
+        "section_timeout_url": section_timeout_url,
+    }
+
     if layout in {"info_only", "info-only"}:
-        return _handle_info_only(request, attempt, question, spec, n, total, expires_at)
+        return _handle_info_only(request, attempt, question, spec, n, total, expires_at, extra_context=extra_context)
 
     if layout == "passage_only":
-        return _handle_passage_only(request, attempt, question, spec, n, total, expires_at)
+        return _handle_passage_only(request, attempt, question, spec, n, total, expires_at, extra_context=extra_context)
 
-    return _handle_with_response(request, attempt, question, spec, n, total, expires_at)
+    return _handle_with_response(
+        request, attempt, question, spec, n, total, expires_at,
+        end_redirect=end_redirect,
+        extra_context=extra_context,
+    )
 
 
 def attempt_submit(request, code: str):
@@ -812,9 +951,7 @@ def attempt_submit(request, code: str):
         return redirect("assessment:attempt_details", code=code)
 
     if request.method == "POST":
-        attempt.submit()
-        from .auto_mark import auto_mark_attempt
-        auto_mark_attempt(attempt)
+        _finalize_attempt(attempt)
         return redirect("assessment:attempt_submitted", code=code)
 
     answered = Response.objects.filter(attempt=attempt).exclude(response_json="").count()
@@ -913,30 +1050,22 @@ def session_join(request, code: str):
 @login_required
 @user_passes_test(is_assessor)
 def assessor_sessions(request):
-    now = timezone.now()
     sessions = (
         ExamSession.objects
         .select_related("template", "created_by")
         .annotate(attempt_count=Count("attempts"))
         .order_by("-created_at")
     )
-    rows = []
-    for s in sessions:
-        rows.append({
-            "session": s,
-            "is_open": now < s.expires_at,
-            "attempt_count": s.attempt_count,
-        })
+    rows = [
+        {"session": s, "is_open": s.is_open, "attempt_count": s.attempt_count}
+        for s in sessions
+    ]
     return render(request, "assessment/assessor_sessions.html", {"rows": rows})
 
 
 @login_required
 @user_passes_test(is_assessor)
 def assessor_results(request):
-    from django.db.models import Exists, OuterRef
-
-    # Only attempts that have at least one score
-    has_score = Score.objects.filter(response__attempt_id=OuterRef("pk"))
     attempts = (
         Attempt.objects
         .filter(status=Attempt.SUBMITTED, response__score__isnull=False)
@@ -945,137 +1074,20 @@ def assessor_results(request):
         .order_by("learner__surname", "learner__first_names")
     )
 
-    # Preload questions grouped by section for this template
-    # We'll build a mapping: question_pk → (section_kind, prefix)
     sections = Section.objects.filter(template__attempt__in=attempts).distinct()
     all_questions = (
         Question.objects
         .filter(section__in=sections)
         .select_related("section")
     )
-    q_meta = {}  # pk → {"prefix": "LIT-A", "max": 4.0, "section_title": "..."}
-    for q in all_questions:
-        prefix = "-".join(q.code.split("-")[:2])
-        q_meta[q.pk] = {
-            "prefix": prefix,
-            "max": float(q.max_marks or 0),
-            "section_title": q.section.title,
-        }
+    q_meta = build_question_metadata(all_questions)
 
-    def _section_kind(title: str) -> str:
-        t = title.upper()
-        if "LITERACY" in t and "MATH" not in t and "NUMER" not in t:
-            return "literacy"
-        if "NUMER" in t or "MATH" in t:
-            return "numeracy"
-        return "other"
+    rows = [compute_nqf_placement(attempt, q_meta) for attempt in attempts]
 
-    rows = []
-    for attempt in attempts:
-        # Collect scores: prefix → (awarded, max)
-        prefix_scores: dict[str, list[float, float]] = {}
-        section_scores: dict[str, list[float, float]] = {}  # "literacy"/"numeracy"
-
-        for response in attempt.response_set.select_related("score", "question__section").all():
-            meta = q_meta.get(response.question_id)
-            if not meta:
-                continue
-            prefix = meta["prefix"]
-            sk = _section_kind(meta["section_title"])
-            try:
-                pts = float(response.score.points)
-            except (AttributeError, Score.DoesNotExist):
-                pts = 0.0
-            mx = meta["max"]
-
-            if prefix not in prefix_scores:
-                prefix_scores[prefix] = [0.0, 0.0]
-            prefix_scores[prefix][0] += pts
-            prefix_scores[prefix][1] += mx
-
-            if sk not in section_scores:
-                section_scores[sk] = [0.0, 0.0]
-            section_scores[sk][0] += pts
-            section_scores[sk][1] += mx
-
-        def _group_data(groups):
-            result = []
-            for g in groups:
-                awarded = sum(prefix_scores.get(p, [0, 0])[0] for p in g["prefixes"])
-                maximum = sum(prefix_scores.get(p, [0, 0])[1] for p in g["prefixes"])
-                pct = round(awarded / maximum * 100) if maximum else 0
-                # Level for the group: modal across its constituent prefixes
-                g_levels = []
-                for p in g["prefixes"]:
-                    pa, pm = prefix_scores.get(p, [0, 0])
-                    pp = round(pa / pm * 100) if pm else 0
-                    th = NQF_QUESTION_PCT_THRESHOLDS.get(p, NQF_PCT_THRESHOLDS)
-                    g_levels.append(_nqf_level_pct(pp, th))
-                group_level = _modal_level(g_levels) if g_levels else "L1"
-                result.append({
-                    "label": g["label"],
-                    "awarded": awarded,
-                    "max": maximum,
-                    "pct": pct,
-                    "level": group_level,
-                })
-            return result
-
-        # ── Per-question level computation (percentage-normalised) ──────
-        # The system's actual marks per prefix differ from the memo's expected
-        # totals, so we normalise each prefix to a % of its system max and map
-        # that % to the memo-derived percentage bands.
-        lit_q_levels = []
-        num_q_levels = []
-        num_prefix_pcts = {}  # prefix → pct (for Post L4 check)
-
-        for prefix, (awarded, maximum) in prefix_scores.items():
-            pct = round(awarded / maximum * 100) if maximum else 0
-            thresholds = NQF_QUESTION_PCT_THRESHOLDS.get(prefix, NQF_PCT_THRESHOLDS)
-            level = _nqf_level_pct(pct, thresholds)
-
-            if prefix.startswith("LIT"):
-                lit_q_levels.append(level)
-            elif prefix.startswith("NUM"):
-                num_q_levels.append(level)
-                num_prefix_pcts[prefix] = pct
-
-        # Modal level per section
-        lit_level = _modal_level(lit_q_levels) if lit_q_levels else "L1"
-        num_level = _modal_level(num_q_levels) if num_q_levels else "L1"
-
-        # Post L4 override: all 4 numeracy questions must score ≥87% (≈ 13/15)
-        num_prefixes = {"NUM-A", "NUM-B", "NUM-C", "NUM-D"}
-        if (num_prefixes <= num_prefix_pcts.keys() and
-                all(num_prefix_pcts[p] >= NQF_POST_L4_NUM_PCT for p in num_prefixes)):
-            num_level = "Post L4"
-
-        lit = section_scores.get("literacy", [0, 0])
-        num = section_scores.get("numeracy", [0, 0])
-        lit_pct = round(lit[0] / lit[1] * 100) if lit[1] else 0
-        num_pct = round(num[0] / num[1] * 100) if num[1] else 0
-
-        rows.append({
-            "attempt": attempt,
-            "learner": attempt.learner,
-            "literacy_groups":  _group_data(NQF_DISPLAY_GROUPS["literacy"]),
-            "numeracy_groups":  _group_data(NQF_DISPLAY_GROUPS["numeracy"]),
-            "lit_total":  {"awarded": lit[0], "max": lit[1], "pct": lit_pct},
-            "num_total":  {"awarded": num[0], "max": num[1], "pct": num_pct},
-            "lit_level":  lit_level,
-            "num_level":  num_level,
-            "comment":    (
-                _nqf_suitable_text(lit_level, "Literacy") + ". " +
-                _nqf_suitable_text(num_level, "Numeracy") + "."
-            ),
-        })
-
-    lit_groups = NQF_DISPLAY_GROUPS["literacy"]
-    num_groups  = NQF_DISPLAY_GROUPS["numeracy"]
     return render(request, "assessment/assessor_results.html", {
         "rows":       rows,
-        "lit_groups": lit_groups,
-        "num_groups": num_groups,
+        "lit_groups": NQF_DISPLAY_GROUPS["literacy"],
+        "num_groups": NQF_DISPLAY_GROUPS["numeracy"],
     })
 
 
@@ -1111,7 +1123,7 @@ def session_monitor(request, code: str):
     )
 
     total_questions = Question.objects.filter(
-        section__template=session.template
+        section__template=session.template, is_active=True
     ).count()
 
     now = timezone.now()
@@ -1156,3 +1168,183 @@ def session_monitor(request, code: str):
         "seat_limit": session.seat_limit,
         "seats_taken": len(rows),
     })
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_questions(request):
+    templates = AssessmentTemplate.objects.order_by("name", "-created_at")
+
+    selected_template_id = None
+    try:
+        selected_template_id = int(request.GET.get("template", ""))
+    except (TypeError, ValueError):
+        pass
+
+    if selected_template_id:
+        questions = (
+            Question.objects
+            .filter(section__template_id=selected_template_id)
+            .select_related("section", "section__template")
+            .order_by("section__order", "order", "code")
+        )
+    else:
+        questions = (
+            Question.objects
+            .select_related("section", "section__template")
+            .order_by("section__template__name", "section__order", "order", "code")
+        )
+
+    return render(request, "assessment/assessor_questions.html", {
+        "templates": templates,
+        "selected_template_id": selected_template_id,
+        "questions": questions,
+    })
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_toggle_question(request, pk: int):
+    if request.method != "POST":
+        return redirect("assessment:assessor_questions")
+
+    question = get_object_or_404(Question, pk=pk)
+    question.is_active = not question.is_active
+    question.save(update_fields=["is_active"])
+
+    template_id = question.section.template_id
+    url = reverse("assessment:assessor_questions")
+    return redirect(f"{url}?template={template_id}")
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_review_queue(request):
+    """Submitted attempts that still have questions flagged for assessor review."""
+    from django.db.models import Exists, OuterRef
+
+    has_review_score = Score.objects.filter(
+        response__attempt_id=OuterRef("pk"),
+        rubric_json__needs_review=True,
+    )
+    has_unscored_markable = Response.objects.filter(
+        attempt_id=OuterRef("pk"),
+        score__isnull=True,
+        question__is_active=True,
+        question__max_marks__gt=0,
+    )
+    attempts = (
+        Attempt.objects
+        .filter(status=Attempt.SUBMITTED)
+        .filter(Exists(has_review_score) | Exists(has_unscored_markable))
+        .select_related("learner", "template")
+        .order_by("-submitted_at")
+    )
+    return render(request, "assessment/assessor_review_queue.html", {"attempts": attempts})
+
+
+def attempt_review_info(request, code: str):
+    """Offer the learner the choice to review or submit after finishing both sections."""
+    attempt = get_object_or_404(Attempt, code=code)
+
+    if attempt.status == Attempt.SUBMITTED:
+        return redirect("assessment:attempt_submitted", code=code)
+
+    if not attempt.has_honesty_declaration:
+        return redirect("assessment:attempt_details", code=code)
+
+    total_questions = Question.objects.filter(
+        section__template=attempt.template, is_active=True
+    ).count()
+    review_seconds = total_questions * REVIEW_SECONDS_PER_QUESTION
+
+    if request.method == "POST":
+        if request.POST.get("action") == "review":
+            attempt.start_review()
+            return redirect("assessment:attempt_review_question", code=code, n=1)
+        _finalize_attempt(attempt)
+        return redirect("assessment:attempt_submitted", code=code)
+
+    return render(request, "assessment/review_info.html", {
+        "attempt": attempt,
+        "total_questions": total_questions,
+        "review_seconds": review_seconds,
+    })
+
+
+def attempt_review_question(request, code: str, n: int):
+    """Review phase: 90 seconds per question, auto-advances."""
+    attempt = get_object_or_404(Attempt, code=code)
+
+    if attempt.status == Attempt.SUBMITTED:
+        return redirect("assessment:attempt_submitted", code=code)
+
+    if not attempt.review_started_at:
+        return redirect("assessment:attempt_review_info", code=code)
+
+    qs = (
+        Question.objects.filter(section__template=attempt.template, is_active=True)
+        .select_related("section")
+        .order_by("section__order", "order", "code")
+    )
+    total = qs.count()
+    if total == 0:
+        _finalize_attempt(attempt)
+        return redirect("assessment:attempt_submitted", code=code)
+
+    # Server-side enforcement: advance to the correct slot
+    correct_n = _current_review_n(attempt, total)
+    if correct_n > total:
+        _finalize_attempt(attempt)
+        return redirect("assessment:attempt_submitted", code=code)
+    if n < correct_n:
+        return redirect("assessment:attempt_review_question", code=code, n=correct_n)
+
+    n = max(1, min(n, total))
+    question = qs[n - 1]
+    spec = _question_spec(question)
+
+    if spec.get("kind_hint") == "mcq_or_choice" and not spec.get("choices"):
+        spec["choices"] = _extract_inline_choices(question.prompt)
+
+    if request.method == "POST":
+        learner_response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
+        renderer = get_renderer(question, spec, learner_response)
+        form = renderer.get_form(request)
+        renderer.save(request, form)
+        attempt.touch()
+        if n >= total:
+            _finalize_attempt(attempt)
+            return redirect("assessment:attempt_submitted", code=code)
+        return redirect("assessment:attempt_review_question", code=code, n=n + 1)
+
+    learner_response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
+    renderer = get_renderer(question, spec, learner_response)
+    renderer.get_form(request)
+
+    slot_expires = _review_question_expires_at(attempt, n)
+    if n < total:
+        timeout_url = reverse(
+            "assessment:attempt_review_question", kwargs={"code": code, "n": n + 1}
+        )
+    else:
+        timeout_url = reverse("assessment:attempt_review_submit", kwargs={"code": code})
+
+    context = _base_context(attempt, question, spec, n, total, expires_at=slot_expires)
+    context.update(renderer.get_context())
+    context.update({
+        "is_review": True,
+        "slot_expires_at": slot_expires,
+        "review_timeout_url": timeout_url,
+        "has_prev": n > 1,
+        "has_next": n < total,
+    })
+    return render(request, "assessment/review_question.html", context)
+
+
+def attempt_review_submit(request, code: str):
+    """Final auto-submit when the last review slot expires (GET redirect target)."""
+    attempt = get_object_or_404(Attempt, code=code)
+    if attempt.status != Attempt.SUBMITTED:
+        _finalize_attempt(attempt)
+    return redirect("assessment:attempt_submitted", code=code)

@@ -101,7 +101,17 @@ def test_final_question_submission_marks_attempt_submitted(
 
     attempt.refresh_from_db()
 
+    # Finishing the last question now redirects to the review info screen (section timer
+    # still has time on the clock). Submission happens after the learner chooses to
+    # submit or finishes the review phase.
     assert response.status_code == 302
+    assert response["Location"] == reverse("assessment:attempt_review_info", kwargs={"code": attempt.code})
+    assert attempt.status == Attempt.IN_PROGRESS
+
+    # Choosing "submit now" on the review info screen finalises the attempt.
+    review_url = reverse("assessment:attempt_review_info", kwargs={"code": attempt.code})
+    client.post(review_url, {"action": "submit"})
+    attempt.refresh_from_db()
     assert attempt.status == Attempt.SUBMITTED
     assert attempt.submitted_at is not None
 
