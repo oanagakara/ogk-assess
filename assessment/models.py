@@ -294,6 +294,25 @@ class Attempt(models.Model):
 
         self.save(update_fields=update_fields)
 
+class WorkingSheet(models.Model):
+    attempt = models.OneToOneField(
+        "Attempt", on_delete=models.CASCADE, related_name="working_sheet"
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    content_type = models.CharField(max_length=50)
+    original_filename = models.CharField(max_length=255, blank=True)
+    data = models.TextField()  # base64-encoded file content
+
+    def __str__(self) -> str:
+        return f"Working sheet — {self.attempt.code}"
+
+
 class Response(models.Model):
     attempt = models.ForeignKey("Attempt", on_delete=models.CASCADE)
     question = models.ForeignKey("Question", on_delete=models.CASCADE)

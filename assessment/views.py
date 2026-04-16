@@ -21,7 +21,7 @@ from .forms import (
     StartForm,
 )
 from .auto_mark import auto_mark_attempt
-from .models import AssessmentTemplate, Attempt, ExamSession, Learner, Question, Response, Score, Section
+from .models import AssessmentTemplate, Attempt, ExamSession, Learner, Question, Response, Score, Section, WorkingSheet
 from .nqf import NQF_DISPLAY_GROUPS, build_question_metadata, compute_nqf_placement
 from .renderers import get_renderer
 from .services import claim_seat, claim_session_seat
@@ -652,8 +652,16 @@ def assessor_mark_attempt(request, code: str):
             "show_summary": show_summary,
             "summary_rows": summary_rows,
             "sidebar_questions": sidebar_questions,
+            "working_sheet": _get_working_sheet(attempt),
         },
     )
+
+
+def _get_working_sheet(attempt):
+    try:
+        return attempt.working_sheet
+    except WorkingSheet.DoesNotExist:
+        return None
 
 
 @login_required
@@ -1348,3 +1356,90 @@ def attempt_review_submit(request, code: str):
     if attempt.status != Attempt.SUBMITTED:
         _finalize_attempt(attempt)
     return redirect("assessment:attempt_submitted", code=code)
+
+
+# ── Working sheet ──────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_working_sheet_upload(request, code: str):
+    """Upload or replace the working sheet scan for an attempt."""
+    import base64
+
+    attempt = get_object_or_404(Attempt.objects.select_related("learner"), code=code)
+
+    if request.method != "POST":
+        return redirect("assessment:assessor_mark_attempt", code=code)
+
+    uploaded_file = request.FILES.get("working_sheet")
+    if not uploaded_file:
+        return redirect(f"{reverse('assessment:assessor_mark_attempt', kwargs={'code': code})}?ws_error=1")
+
+    allowed_types = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
+    if uploaded_file.content_type not in allowed_types:
+        return redirect(f"{reverse('assessment:assessor_mark_attempt', kwargs={'code': code})}?ws_error=2")
+
+    encoded = base64.b64encode(uploaded_file.read()).decode("utf-8")
+
+    WorkingSheet.objects.update_or_create(
+        attempt=attempt,
+        defaults={
+            "uploaded_by": request.user,
+            "content_type": uploaded_file.content_type,
+            "original_filename": uploaded_file.name,
+            "data": encoded,
+        },
+    )
+
+    url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
+    return redirect(f"{url}?ws_saved=1")
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_working_sheet_image(request, code: str):
+    """Serve the stored working sheet image/PDF."""
+    import base64
+    from django.http import HttpResponse
+
+    attempt = get_object_or_404(Attempt, code=code)
+    sheet = get_object_or_404(WorkingSheet, attempt=attempt)
+    data = base64.b64decode(sheet.data)
+    response = HttpResponse(data, content_type=sheet.content_type)
+    safe_name = sheet.original_filename or f"working_sheet_{code}"
+    response["Content-Disposition"] = f'inline; filename="{safe_name}"'
+    return response
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_working_sheet_print(request, code: str):
+    """Printable working sheet for a specific attempt."""
+    attempt = get_object_or_404(
+        Attempt.objects.select_related("learner", "template"),
+        code=code,
+    )
+    working_questions = [
+        q for q in
+        Question.objects.filter(
+            section__template=attempt.template,
+            is_active=True,
+            max_marks__gt=0,
+        ).order_by("section__order", "order")
+        if _needs_working_space(q)
+    ]
+    return render(request, "assessment/working_sheet_print.html", {
+        "attempt": attempt,
+        "working_questions": working_questions,
+    })
+
+
+def _needs_working_space(question) -> bool:
+    """True if this question has expected working evidence in its answer key."""
+    import json as _json
+    key = _json.loads(question.answer_key_json or "{}")
+    return bool(
+        key.get("working_keywords")
+        or key.get("flag_if_no_working")
+        or key.get("flag_always")
+    )

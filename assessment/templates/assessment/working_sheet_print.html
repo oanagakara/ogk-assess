@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Working Sheet — {{ attempt.code }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 11pt;
+      color: #000;
+      background: #fff;
+      padding: 20mm 20mm 15mm 20mm;
+    }
+
+    /* ── Header ── */
+    .header {
+      border-bottom: 2px solid #000;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 14pt;
+      font-weight: bold;
+    }
+    .header .sub {
+      font-size: 9pt;
+      color: #555;
+      margin-top: 2px;
+    }
+    .learner-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .field-label {
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #666;
+      margin-bottom: 2px;
+    }
+    .field-value {
+      font-size: 11pt;
+      font-weight: bold;
+      border-bottom: 1px solid #aaa;
+      padding-bottom: 2px;
+      min-height: 20px;
+    }
+
+    /* ── Instructions ── */
+    .instructions {
+      background: #f5f5f5;
+      border-left: 3px solid #333;
+      padding: 8px 12px;
+      font-size: 9pt;
+      margin-bottom: 16px;
+    }
+
+    /* ── Question block ── */
+    .question-block {
+      margin-bottom: 18px;
+      page-break-inside: avoid;
+    }
+    .question-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+    .question-code {
+      font-size: 10pt;
+      font-weight: bold;
+      min-width: 80px;
+    }
+    .question-prompt {
+      font-size: 9pt;
+      color: #555;
+      flex: 1;
+    }
+    .question-marks {
+      font-size: 8pt;
+      color: #777;
+      white-space: nowrap;
+    }
+    .working-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .working-line {
+      border-bottom: 1px solid #ddd;
+      height: 22px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 24px;
+      border-top: 1px solid #ccc;
+      padding-top: 8px;
+      font-size: 8pt;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── Honesty declaration ── */
+    .declaration {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px 14px;
+      font-size: 9pt;
+    }
+    .declaration .sig-line {
+      margin-top: 10px;
+      border-bottom: 1px solid #000;
+      height: 24px;
+    }
+
+    @media print {
+      body { padding: 0; }
+      @page { margin: 20mm; size: A4 portrait; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Print button (hidden when printing) -->
+  <div class="no-print" style="text-align:right; margin-bottom:12px;">
+    <button onclick="window.print()"
+            style="padding:6px 16px; font-size:10pt; cursor:pointer;">
+      Print this sheet
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Working Sheet — {{ attempt.template.name }}</h1>
+    <div class="sub">For assessor use: attach to digital attempt after the session.</div>
+    <div class="learner-row">
+      <div>
+        <div class="field-label">Learner name</div>
+        <div class="field-value">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</div>
+      </div>
+      <div>
+        <div class="field-label">Attempt code</div>
+        <div class="field-value">{{ attempt.code }}</div>
+      </div>
+      <div>
+        <div class="field-label">Date</div>
+        <div class="field-value"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="instructions">
+    <strong>Instructions:</strong> Show all working for each question in the space provided.
+    Write your attempt code on every page. Hand this sheet to your assessor when you submit your digital assessment.
+  </div>
+
+  <!-- Working space per question -->
+  {% for question in working_questions %}
+    <div class="question-block">
+      <div class="question-header">
+        <span class="question-code">{{ question.code }}</span>
+        <span class="question-prompt">{{ question.prompt|truncatechars:90 }}</span>
+        <span class="question-marks">[{{ question.max_marks }} mark{{ question.max_marks|pluralize }}]</span>
+      </div>
+      <div class="working-lines">
+        {% for i in "1234567" %}
+          <div class="working-line"></div>
+        {% endfor %}
+      </div>
+    </div>
+  {% empty %}
+    <p style="color:#888; font-style:italic;">No working-required questions found for this template.</p>
+  {% endfor %}
+
+  <!-- Honesty declaration -->
+  <div class="declaration">
+    <strong>Declaration:</strong> I confirm that the working shown above is my own and was completed during the
+    assessment session without any unauthorised assistance.
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:8px;">
+      <div>
+        <div class="field-label">Signature</div>
+        <div class="sig-line"></div>
+      </div>
+      <div>
+        <div class="field-label">Date</div>
+        <div class="sig-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>{{ attempt.template.name }}{% if attempt.template.version %} ({{ attempt.template.version }}){% endif %}</span>
+    <span>Code: {{ attempt.code }}</span>
+    <span>Page 1 of 1</span>
+  </div>
+
+</body>
+</html>
