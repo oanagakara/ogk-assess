@@ -1425,6 +1425,7 @@ def assessor_working_sheet_print(request, code: str):
             section__template=attempt.template,
             is_active=True,
             max_marks__gt=0,
+            code__startswith="NUM-",
         ).order_by("section__order", "order")
         if _needs_working_space(q)
     ]
