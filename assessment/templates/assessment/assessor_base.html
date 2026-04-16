@@ -107,6 +107,7 @@
         New Code
       </a>
 
+      {% if request.user.is_staff %}
       <a href="{% url 'assessment:assessor_questions' %}"
          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
            {% if request.resolver_match.url_name == 'assessor_questions' or request.resolver_match.url_name == 'assessor_toggle_question' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}">
@@ -117,6 +118,7 @@
         </svg>
         Questions
       </a>
+      {% endif %}
 
       <a href="{% url 'assessment:assessor_sessions' %}"
          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors

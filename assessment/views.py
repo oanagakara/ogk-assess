@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+import csv
 import json
 import re
 import uuid
@@ -8,6 +9,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator 
 
 from django.db.models import Count, Prefetch, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -280,6 +282,10 @@ def is_assessor(user):
     return user.is_authenticated and (
         user.is_staff or user.groups.filter(name="assessor").exists()
     )
+
+
+def is_staff(user):
+    return user.is_authenticated and user.is_staff
 
 
 @login_required
@@ -1101,6 +1107,66 @@ def assessor_results(request):
 
 @login_required
 @user_passes_test(is_assessor)
+def assessor_results_export(request):
+    attempts = (
+        Attempt.objects
+        .filter(status=Attempt.SUBMITTED, response__score__isnull=False)
+        .select_related("learner", "template")
+        .distinct()
+        .order_by("learner__surname", "learner__first_names")
+    )
+
+    sections = Section.objects.filter(template__attempt__in=attempts).distinct()
+    all_questions = Question.objects.filter(section__in=sections).select_related("section")
+    q_meta = build_question_metadata(all_questions)
+
+    lit_groups = NQF_DISPLAY_GROUPS["literacy"]
+    num_groups = NQF_DISPLAY_GROUPS["numeracy"]
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="nqf_results.csv"'
+
+    writer = csv.writer(response)
+
+    header = [
+        "First Name", "Surname", "ID Number",
+        "Attempt Code", "Template", "Submitted At",
+    ]
+    for g in lit_groups:
+        header += [f"Lit: {g['label']} Awarded", f"Lit: {g['label']} Max", f"Lit: {g['label']} %"]
+    header += ["Literacy Level"]
+    for g in num_groups:
+        header += [f"Num: {g['label']} Awarded", f"Num: {g['label']} Max", f"Num: {g['label']} %"]
+    header += ["Numeracy Level", "NQF Placement"]
+    writer.writerow(header)
+
+    for attempt in attempts:
+        placement = compute_nqf_placement(attempt, q_meta)
+        learner = attempt.learner
+        submitted_at = attempt.submitted_at.strftime("%Y-%m-%d %H:%M") if attempt.submitted_at else ""
+
+        row = [
+            learner.first_names,
+            learner.surname,
+            learner.id_number,
+            attempt.code,
+            str(attempt.template),
+            submitted_at,
+        ]
+        for g in placement.literacy_groups:
+            row += [g["awarded"], g["max"], g["pct"]]
+        row += [placement.lit_level]
+        for g in placement.numeracy_groups:
+            row += [g["awarded"], g["max"], g["pct"]]
+        row += [placement.num_level, placement.comment]
+
+        writer.writerow(row)
+
+    return response
+
+
+@login_required
+@user_passes_test(is_assessor)
 def assessor_new_session(request):
     latest_template = AssessmentTemplate.objects.order_by("-created_at").first()
 
@@ -1179,7 +1245,7 @@ def session_monitor(request, code: str):
 
 
 @login_required
-@user_passes_test(is_assessor)
+@user_passes_test(is_staff)
 def assessor_questions(request):
     templates = AssessmentTemplate.objects.order_by("name", "-created_at")
 
@@ -1211,7 +1277,7 @@ def assessor_questions(request):
 
 
 @login_required
-@user_passes_test(is_assessor)
+@user_passes_test(is_staff)
 def assessor_toggle_question(request, pk: int):
     if request.method != "POST":
         return redirect("assessment:assessor_questions")

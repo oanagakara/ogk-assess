@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assessor Training Manual — NQF Learner Placement Assessment Platform</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #111; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.65; }
+
+  .cover { text-align: center; padding: 40px 0 32px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+  .cover h1 { font-size: 20pt; margin-bottom: 6px; }
+  .cover .subtitle { font-size: 12pt; color: #444; margin-top: 6px; }
+  .cover .tag { font-size: 9.5pt; color: #666; margin-top: 12px; }
+
+  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 9.5pt; }
+  .meta-table td { border: 1px solid #ddd; padding: 6px 10px; }
+  .meta-table td:first-child { font-weight: bold; background: #f5f5f5; width: 160px; }
+
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 28px; margin-bottom: 10px; color: #111; border-left: 4px solid #333; padding-left: 10px; }
+  h3 { font-size: 11pt; font-weight: bold; margin-top: 18px; margin-bottom: 6px; }
+  h4 { font-size: 10.5pt; font-weight: bold; margin-top: 12px; margin-bottom: 4px; color: #333; }
+
+  p { margin-bottom: 8px; }
+  ol { margin-left: 22px; margin-bottom: 10px; }
+  ul { margin-left: 22px; margin-bottom: 10px; }
+  li { margin-bottom: 4px; }
+
+  table.spec { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 9.5pt; }
+  table.spec th { background: #333; color: #fff; padding: 6px 10px; text-align: left; font-weight: bold; }
+  table.spec td { border: 1px solid #ccc; padding: 6px 10px; vertical-align: top; }
+  table.spec tr:nth-child(even) td { background: #f9f9f9; }
+
+  .callout { background: #f0f4ff; border-left: 3px solid #336; padding: 8px 14px; font-size: 9.5pt; margin: 10px 0 14px; }
+  .callout strong { display: block; margin-bottom: 3px; }
+  .callout-warn { background: #fff8e1; border-left: 3px solid #b8860b; padding: 8px 14px; font-size: 9.5pt; margin: 10px 0 14px; }
+  .callout-warn strong { display: block; margin-bottom: 3px; }
+
+  .toc { background: #f5f5f5; border: 1px solid #ddd; padding: 14px 20px; margin-bottom: 28px; font-size: 10pt; }
+  .toc h3 { margin-top: 0; margin-bottom: 10px; font-size: 10.5pt; }
+  .toc ol { margin-left: 18px; }
+  .toc li { margin-bottom: 5px; }
+  .toc a { color: #333; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  .checklist { list-style: none; margin-left: 0; }
+  .checklist li { margin-bottom: 6px; padding-left: 2px; }
+  .checklist li::before { content: "☐ "; font-size: 11pt; }
+
+  code { font-family: "Courier New", monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 2px; font-size: 9pt; }
+
+  .page-break { page-break-before: always; margin-top: 0; }
+  .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8.5pt; color: #888; text-align: center; }
+
+  @media print {
+    body { padding: 0; }
+    @page { margin: 20mm; size: A4 portrait; }
+    .no-print { display: none; }
+    h2 { page-break-after: avoid; }
+    h3 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:right; margin-bottom:16px;">
+  <button onclick="window.print()" style="padding:6px 16px; font-size:10pt; cursor:pointer;">Save as PDF</button>
+</div>
+
+<!-- Cover -->
+<div class="cover">
+  <div style="font-size:9pt; color:#888; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Assessor Training Manual</div>
+  <h1>NQF Learner Placement Assessment Platform</h1>
+  <div class="subtitle">Train-the-Trainer Edition</div>
+  <div class="tag">For assessors and train-the-trainer leads</div>
+</div>
+
+<table class="meta-table">
+  <tr><td>Version</td><td>1.0</td></tr>
+  <tr><td>Audience</td><td>Assessors and Train-the-Trainer leads</td></tr>
+  <tr><td>Support contact</td><td>DONAVAN BUGAN — <a href="mailto:your@email.com">donbugan@gmail.com</a> — +27 82 564 2182</td></tr>
+  <tr><td>Platform URL</td><td>https://assessment-engine-rxrh.onrender.com/accounts/login/</td></tr>
+</table>
+
+<div class="callout">
+  <strong>About this manual</strong>
+  This manual is written for the person who will train other assessors at their campus.
+  After working through it, you should be able to run an assessment session independently
+  and train a colleague in under two hours without outside assistance.
+</div>
+
+<!-- Table of Contents -->
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#s1">Logging In</a></li>
+    <li><a href="#s2">Before the Session</a></li>
+    <li><a href="#s3">Running the Session</a></li>
+    <li><a href="#s4">After the Session — Marking</a></li>
+    <li><a href="#s5">Results and Reporting</a></li>
+    <li><a href="#s6">Common Situations</a></li>
+    <li><a href="#s7">Quick Reference</a></li>
+  </ol>
+</div>
+
+<!-- ── Section 1 ── -->
+<h2 id="s1">1. Logging In</h2>
+
+<p>Navigate to <strong>https://assessment-engine-rxrh.onrender.com/accounts/login/</strong> in any modern desktop browser (Chrome, Edge, or Firefox recommended).</p>
+<p>Enter your <strong>username</strong> and <strong>password</strong>, then click <strong>Sign in</strong>.</p>
+<p>You will land on the <strong>Assessor Dashboard</strong>, which shows a summary of recent activity: attempts in progress, submitted, and awaiting marking.</p>
+
+<div class="callout-warn">
+  <strong>Important</strong>
+  Do not share your login credentials with learners or anyone who should not have assessor access.
+  Each assessor should have their own account. Contact <a href="mailto:your@email.com">donbugan@gmail.com</a> to request additional accounts.
+</div>
+
+<!-- ── Section 2 ── -->
+<h2 id="s2">2. Before the Session</h2>
+
+<h3>2.1 Create a Session</h3>
+<ol>
+  <li>Click <strong>Sessions</strong> in the left navigation bar.</li>
+  <li>Click <strong>New session</strong>.</li>
+  <li>Select the <strong>assessment template</strong> from the dropdown.</li>
+  <li>Set the <strong>seat limit</strong> to match the number of learners expected in this sitting.</li>
+  <li>Click <strong>Create session</strong>.</li>
+</ol>
+<p>A unique <strong>session code</strong> is generated (e.g., <code>AB12CD34</code>). This is what learners will enter to join.</p>
+
+<div class="callout">
+  <strong>Timing note</strong>
+  Sessions expire 2 hours after creation. Do not create the session more than 15 minutes before learners are expected to arrive.
+</div>
+
+<h3>2.2 Print Working Sheets</h3>
+<p>Learners write their calculation working by hand on a <strong>working sheet</strong> during the exam. You print one per learner as they join.</p>
+
+<p><strong>How to print:</strong></p>
+<ol>
+  <li>Open the <strong>Session monitor</strong> (Sessions → click your session → Monitor).</li>
+  <li>As each learner joins, their seat card appears.</li>
+  <li>Click <strong>Print working sheet</strong> on their seat card.</li>
+  <li>The sheet opens in a new browser tab — print it immediately and hand it to the learner.</li>
+</ol>
+
+<div class="callout">
+  <strong>What's on the sheet</strong>
+  The learner's name, their attempt code, and ruled working space for each numeracy question that requires shown working (NUM-B-2, NUM-B-3, NUM-C-1, NUM-C-3, NUM-D-2).
+</div>
+
+<div class="callout-warn">
+  <strong>Important</strong>
+  Collect the working sheet from the learner when they submit. You will scan or photograph it and upload it later during marking.
+</div>
+
+<h3>2.3 Share the Join URL and Session Code</h3>
+<p>Give learners the <strong>platform URL</strong> and the <strong>session code</strong>. They do not need a username or password — the session code is their entry point.</p>
+<p>The join flow takes approximately 2 minutes:</p>
+<ol>
+  <li>Enter session code</li>
+  <li>Enter personal details (name, ID number, etc.)</li>
+  <li>Accept honesty declaration</li>
+  <li>Assessment begins</li>
+</ol>
+
+<!-- ── Section 3 ── -->
+<h2 id="s3" class="page-break">3. Running the Session</h2>
+
+<h3>3.1 The Assessment Structure</h3>
+<p>Each assessment consists of two timed sections:</p>
+
+<table class="spec">
+  <tr><th>Section</th><th>Content</th><th>Time limit</th></tr>
+  <tr><td>Section 1</td><td>Literacy</td><td>45 minutes</td></tr>
+  <tr><td>Section 2</td><td>Numeracy</td><td>45 minutes</td></tr>
+</table>
+
+<p>A countdown timer is visible to the learner at all times. When a section's time expires, the learner is <strong>automatically moved to the next section</strong>. Any unanswered questions in the expired section receive zero marks.</p>
+<p>After both sections, learners may <strong>review their answers</strong> (90 seconds per question) or <strong>submit immediately</strong>.</p>
+
+<h3>3.2 Monitor Progress</h3>
+<p>The <strong>Session monitor</strong> shows a live grid of all seats. It refreshes every 30 seconds.</p>
+
+<table class="spec">
+  <tr><th>Seat colour</th><th>Meaning</th></tr>
+  <tr><td>Orange</td><td>Learner is in progress</td></tr>
+  <tr><td>Green</td><td>Learner has submitted</td></tr>
+  <tr><td>Red</td><td>Attempt was abandoned</td></tr>
+  <tr><td>White (dashed)</td><td>Seat is empty / not yet joined</td></tr>
+</table>
+
+<p>Each card shows the learner's name, current question, a progress bar, and time elapsed.</p>
+
+<div class="callout">
+  <strong>Browser notifications</strong>
+  The platform will ask permission to send browser notifications when you first open the session monitor. Allow this.
+  You will receive a notification each time a learner submits, and a final notification when all seats have submitted.
+</div>
+
+<h3>3.3 Learner Abandons or Cannot Continue</h3>
+<p>If a learner's computer crashes or they leave without submitting, their attempt will appear <strong>abandoned</strong> (red) after the session expires. This is expected. Do not attempt to restart it — create a new session if the learner needs to re-sit.</p>
+
+<!-- ── Section 4 ── -->
+<h2 id="s4" class="page-break">4. After the Session — Marking</h2>
+
+<h3>4.1 The Review Queue</h3>
+<p>After learners submit, navigate to <strong>Review Queue</strong> in the left navigation. This lists every attempt that still has questions requiring your input.</p>
+<p>The badge number next to "Review Queue" shows how many attempts are pending. This number decreases as you mark.</p>
+<p>Click <strong>Mark →</strong> next to an attempt to begin.</p>
+
+<h3>4.2 Upload the Working Sheet</h3>
+<p>Before marking numeracy questions, upload the learner's handwritten working sheet.</p>
+<ol>
+  <li>In the marking view, find the <strong>Working sheet</strong> card in the top strip.</li>
+  <li>Click <strong>Upload</strong>.</li>
+  <li>Select the scan or photo from your device. <em>(Accepted: JPEG, PNG, WEBP, PDF)</em></li>
+  <li>The file uploads immediately.</li>
+</ol>
+<p>Click <strong>View →</strong> at any time during marking to open the working sheet in a new tab alongside the digital responses.</p>
+
+<div class="callout">
+  <strong>Accepted file types</strong>
+  JPEG, PNG, WEBP, PDF. A clear phone photograph is sufficient — no scanner required.
+</div>
+
+<div class="callout-warn">
+  <strong>If the sheet was lost</strong>
+  Score the working questions based on the digital answer only. Note "Working sheet not available" in the assessor note field.
+</div>
+
+<h3>4.3 Navigating Questions</h3>
+<p>The <strong>sidebar</strong> on the left of the marking view lists every question requiring your input:</p>
+<ul>
+  <li><strong>Orange dot</strong> = still needs marking</li>
+  <li><strong>Green dot</strong> = done (you can still click to revise)</li>
+</ul>
+<p>Click any question to jump directly to it.</p>
+
+<h3>4.4 Scoring a Question</h3>
+<p>Each question shows three panels:</p>
+<ul>
+  <li><strong>Left top:</strong> The question prompt</li>
+  <li><strong>Left bottom:</strong> The learner's typed response</li>
+  <li><strong>Right:</strong> The scoring form</li>
+</ul>
+
+<p><strong>If a rubric is shown:</strong><br>
+Enter marks per criterion. An optional note field is available per criterion for written feedback.</p>
+
+<p><strong>If no rubric (manual mark):</strong><br>
+Enter a number in the "Points out of X" field. Use the assessor note field for written comments.</p>
+
+<div class="callout">
+  <strong>Marking guidance</strong>
+  Many questions show a blue <strong>Marking guidance</strong> box with the expected answer or scoring criteria. Always read this before awarding marks.
+</div>
+
+<h3>4.5 Navigation Buttons</h3>
+<table class="spec">
+  <tr><th>Button</th><th>What it does</th></tr>
+  <tr><td><strong>Save</strong></td><td>Saves current question, stays on the page</td></tr>
+  <tr><td><strong>Save &amp; Continue →</strong></td><td>Saves and moves to the next pending question</td></tr>
+  <tr><td><strong>Save &amp; Review Summary</strong></td><td>Saves the last pending question and shows the summary</td></tr>
+  <tr><td><strong>Summary</strong> (top-left link)</td><td>Jump to the summary screen at any time</td></tr>
+</table>
+
+<h3>4.6 The Marking Summary</h3>
+<p>After all questions are scored, the <strong>Summary</strong> screen shows a table of every question with:</p>
+<ul>
+  <li>Awarded marks</li>
+  <li>Maximum marks</li>
+  <li>Status: Done / Pending / Unscored</li>
+</ul>
+<p>Use the <strong>Edit</strong> links to return to any question and correct a score. When satisfied, click <strong>Done → Review Queue</strong> to finalise the attempt.</p>
+
+<div class="callout-warn">
+  <strong>Important</strong>
+  Clicking Done → Review Queue is final for this session. You can re-open any attempt from the Attempts list if you need to revise a mark later.
+</div>
+
+<h3>4.7 Auto-Marked Questions</h3>
+<p>The platform automatically scores many questions. Auto-marked scores appear:</p>
+<ul>
+  <li>On the question's sidebar dot (green = auto-marked, no review needed)</li>
+  <li>In the <strong>auto-marked results</strong> view, accessible from the attempt's row in the Attempts list</li>
+</ul>
+<p>You do not need to re-enter auto-marked scores. If you disagree with an auto-mark, open the question in the sidebar and save a manual override.</p>
+
+<!-- ── Section 5 ── -->
+<h2 id="s5" class="page-break">5. Results and Reporting</h2>
+
+<h3>5.1 Viewing Results</h3>
+<p>Navigate to <strong>Results</strong> in the left navigation. Results are shown per attempt with:</p>
+<ul>
+  <li>Total marks awarded</li>
+  <li>Total marks available</li>
+  <li>Percentage score</li>
+  <li>NQF placement recommendation</li>
+</ul>
+
+<h3>5.2 Exporting Data</h3>
+<p>Click <strong>Export CSV</strong> on the Results page to download a spreadsheet of all attempt scores. This file can be opened in Excel or Google Sheets.</p>
+
+<!-- ── Section 6 ── -->
+<h2 id="s6">6. Common Situations</h2>
+
+<table class="spec">
+  <tr><th>Situation</th><th>What to do</th></tr>
+  <tr>
+    <td>Learner cannot join — "invalid code"</td>
+    <td>Verify the session code is correct and the session has not expired (2-hour window from creation)</td>
+  </tr>
+  <tr>
+    <td>Learner's screen froze mid-attempt</td>
+    <td>Ask them to refresh the browser — progress is saved per question</td>
+  </tr>
+  <tr>
+    <td>Learner accidentally submitted early</td>
+    <td>The attempt is submitted and cannot be recalled. Note it and escalate to your line manager</td>
+  </tr>
+  <tr>
+    <td>Timer ran out before learner finished a section</td>
+    <td>This is expected behaviour. Unanswered questions receive zero marks automatically</td>
+  </tr>
+  <tr>
+    <td>Review Queue badge shows 0 but you have unmarked attempts</td>
+    <td>All auto-markable questions are done. Check the Attempts list for attempts without full scores</td>
+  </tr>
+  <tr>
+    <td>You scored a question incorrectly</td>
+    <td>Go to Attempts → find the attempt → click Mark → use the sidebar to navigate to the question → save the correct mark</td>
+  </tr>
+  <tr>
+    <td>Working sheet was not collected</td>
+    <td>Score the digital response only; note the absence in the assessor note</td>
+  </tr>
+  <tr>
+    <td>Learner disputes a score</td>
+    <td>Retrieve the attempt from the Attempts list and review the response and your assessor note</td>
+  </tr>
+</table>
+
+<!-- ── Section 7 ── -->
+<h2 id="s7" class="page-break">7. Quick Reference</h2>
+
+<h3>Navigation</h3>
+<table class="spec">
+  <tr><th>Page</th><th>Where to find it</th></tr>
+  <tr><td>Dashboard</td><td>Click <strong>Dashboard</strong> in the left nav</td></tr>
+  <tr><td>Sessions</td><td>Click <strong>Sessions</strong> in the left nav</td></tr>
+  <tr><td>Session monitor</td><td>Sessions → click your session</td></tr>
+  <tr><td>Review Queue</td><td>Click <strong>Review Queue</strong> in the left nav</td></tr>
+  <tr><td>All attempts</td><td>Click <strong>Attempts</strong> in the left nav</td></tr>
+  <tr><td>Results</td><td>Click <strong>Results</strong> in the left nav</td></tr>
+</table>
+
+<h3>Key Facts</h3>
+<table class="spec">
+  <tr><th>Item</th><th>Value</th></tr>
+  <tr><td>Section time limit</td><td>45 minutes per section</td></tr>
+  <tr><td>Total hard cap</td><td>2 hours</td></tr>
+  <tr><td>Review phase</td><td>90 seconds per question</td></tr>
+  <tr><td>Session validity</td><td>2 hours from creation</td></tr>
+  <tr><td>Working sheet formats accepted</td><td>JPEG, PNG, WEBP, PDF</td></tr>
+  <tr><td>Support email</td><td><a href="mailto:your@email.com">donbugan@gmail.com</a></td></tr>
+  <tr><td>Platform URL</td><td>https://assessment-engine-rxrh.onrender.com/accounts/login/</td></tr>
+</table>
+
+<h3>Trainer Checklist — Before Going Live with a New Assessor</h3>
+<ul class="checklist">
+  <li>New assessor account created and password set</li>
+  <li>Assessor has logged in and can see the Dashboard</li>
+  <li>Assessor has successfully created a test session</li>
+  <li>Assessor has printed a test working sheet</li>
+  <li>Assessor has navigated the marking view (use a test attempt)</li>
+  <li>Assessor has uploaded a test working sheet scan</li>
+  <li>Assessor can find the Results page and export CSV</li>
+  <li>Assessor knows the support contact</li>
+</ul>
+
+<div class="footer">
+  End of manual — Version 1.0 &nbsp;·&nbsp; For updates to this document contact <a href="mailto:your@email.com">donbugan@gmail.com</a>
+</div>
+
+</body>
+</html>
