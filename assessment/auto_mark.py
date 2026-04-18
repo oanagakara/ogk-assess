@@ -82,6 +82,7 @@ def _auto_mark_match(question, response, key) -> dict:
     expected = key.get("match", {})
     marks_per = float(key.get("marks_per_match", 1))
     max_marks = float(question.max_marks or len(expected))
+    flag_always = key.get("flag_always", False)
 
     correct_count = sum(
         1 for target_id, word in expected.items()
@@ -96,7 +97,7 @@ def _auto_mark_match(question, response, key) -> dict:
         "rubric_json": {
             "mode": "auto",
             "auto_marked": True,
-            "needs_review": False,
+            "needs_review": flag_always,
             "notes": note,
         },
     }
@@ -122,7 +123,7 @@ def _auto_mark_sentence_word(question, response, key) -> dict:
 
     if word_used and word_count >= min_words:
         points = max_marks
-        note = f'Word "{root}" used in a sentence of {word_count} words — flagged for assessor review.'
+        note = f'Word "{root}" used in a sentence of {word_count} words.'
     elif not word_used:
         points = 0.0
         note = f'Target word "{root}" not detected in response.'
@@ -136,7 +137,7 @@ def _auto_mark_sentence_word(question, response, key) -> dict:
         "rubric_json": {
             "mode": "auto",
             "auto_marked": True,
-            "needs_review": True,
+            "needs_review": False,
             "notes": note,
         },
     }
@@ -169,7 +170,9 @@ def _auto_mark_keyword_answer(question, response, key) -> dict:
         points = 0.0
         note = f"None of the required terms ({', '.join(keywords)}) detected."
 
-    needs_review = flag_always or some_found or (not all_found)
+    # Review needed if: always-flag set, OR partial match (ambiguous), OR all found but flag_always.
+    # A zero-keyword match is unambiguously wrong — no review needed.
+    needs_review = flag_always or some_found
 
     return {
         "points": points,
@@ -180,6 +183,83 @@ def _auto_mark_keyword_answer(question, response, key) -> dict:
             "needs_review": needs_review,
             "notes": note,
         },
+    }
+
+
+def _auto_mark_keyword_per_mark(question, response, key) -> dict:
+    """
+    Each listed keyword found independently awards one mark (or marks_per_keyword).
+    Scoring is additive and unambiguous — no review unless flag_always is set.
+    """
+    data = json.loads(response.response_json or "{}")
+    response_text = str(data.get("answer", "")).strip().lower()
+    max_marks = float(question.max_marks or 0)
+    marks_per = float(key.get("marks_per_keyword", 1))
+    flag_always = key.get("flag_always", False)
+
+    keywords = key.get("keyword_per_mark", [])
+    found = [kw for kw in keywords if kw.lower() in response_text]
+    points = min(len(found) * marks_per, max_marks)
+
+    note = (
+        f"Found: {', '.join(found)}. {points}/{max_marks} marks."
+        if found else "None of the expected terms found."
+    )
+    return {
+        "points": points,
+        "max_points": max_marks,
+        "rubric_json": {"mode": "auto", "auto_marked": True, "needs_review": flag_always, "notes": note},
+    }
+
+
+def _auto_mark_tiered_keyword(question, response, key) -> dict:
+    """
+    Tiered keyword scoring. Tiers are evaluated in order; the first matching tier wins.
+
+    Each tier:
+      marks       — points to award if this tier matches
+      require_all — list of phrases; ALL must appear in the response
+      require_any — list of phrases; AT LEAST ONE must appear
+      require_not — list of phrases; if ANY appear, this tier is skipped
+      min_words   — minimum word count the response must reach (optional)
+
+    If no tier matches, zero marks are awarded.
+    """
+    data = json.loads(response.response_json or "{}")
+    response_text = str(data.get("answer", "")).strip()
+    response_lower = response_text.lower()
+    word_count = len(response_text.split())
+    max_marks = float(question.max_marks or 0)
+    flag_always = key.get("flag_always", False)
+
+    for tier in key.get("tiered_keyword", []):
+        tier_marks = float(tier.get("marks", 0))
+        min_words = int(tier.get("min_words", 0))
+        require_all = tier.get("require_all", [])
+        require_any = tier.get("require_any", [])
+        require_not = tier.get("require_not", [])
+
+        if min_words and word_count < min_words:
+            continue
+        if require_all and not all(phrase.lower() in response_lower for phrase in require_all):
+            continue
+        if require_any and not any(phrase.lower() in response_lower for phrase in require_any):
+            continue
+        if require_not and any(phrase.lower() in response_lower for phrase in require_not):
+            continue
+
+        note = tier.get("note") or f"{tier_marks}/{max_marks} marks awarded."
+        return {
+            "points": tier_marks,
+            "max_points": max_marks,
+            "rubric_json": {"mode": "auto", "auto_marked": True, "needs_review": flag_always, "notes": note},
+        }
+
+    no_match_note = key.get("no_match_note") or "No criteria met — zero marks awarded."
+    return {
+        "points": 0.0,
+        "max_points": max_marks,
+        "rubric_json": {"mode": "auto", "auto_marked": True, "needs_review": flag_always, "notes": no_match_note},
     }
 
 
@@ -204,6 +284,14 @@ def auto_mark_response(question, response) -> dict | None:
     if key.get("keyword_answer"):
         return _auto_mark_keyword_answer(question, response, key)
 
+    # Per-keyword independent scoring
+    if key.get("keyword_per_mark"):
+        return _auto_mark_keyword_per_mark(question, response, key)
+
+    # Tiered keyword scoring
+    if key.get("tiered_keyword"):
+        return _auto_mark_tiered_keyword(question, response, key)
+
     # Standard numeric / text answer
     data = json.loads(response.response_json or "{}")
     response_text = str(data.get("answer", "")).strip()
@@ -212,6 +300,7 @@ def auto_mark_response(question, response) -> dict | None:
     working_keywords = key.get("working_keywords", [])
     max_marks = float(question.max_marks or 1)
     partial_marks = float(key.get("partial_marks", 0))
+    flag_always = key.get("flag_always", False)
     flag_if_no_work = key.get("flag_if_no_working", False)
 
     correct = _answer_correct(response_text, answers) if answers else False
@@ -221,7 +310,11 @@ def auto_mark_response(question, response) -> dict | None:
 
     if not correct:
         points = 0.0
-        note = "Incorrect or blank answer."
+        needs_review = flag_always
+        note = (
+            "Incorrect answer — verify against working sheet."
+            if flag_always else "Incorrect or blank answer."
+        )
     elif working_keywords and not has_working:
         if partial_marks > 0:
             points = partial_marks
@@ -233,14 +326,12 @@ def auto_mark_response(question, response) -> dict | None:
             )
         else:
             points = max_marks
-            if flag_if_no_work:
-                needs_review = True
-                note = "Correct answer. Working not detected — flagged for review."
-            else:
-                note = "Correct answer."
+            needs_review = flag_always or flag_if_no_work
+            note = "Correct answer. Verify working sheet." if needs_review else "Correct answer."
     else:
         points = max_marks
-        note = "Correct answer and working detected."
+        needs_review = flag_always
+        note = "Correct answer. Verify working sheet." if flag_always else "Correct answer."
 
     return {
         "points": points,
@@ -249,6 +340,7 @@ def auto_mark_response(question, response) -> dict | None:
             "mode": "auto",
             "auto_marked": True,
             "needs_review": needs_review,
+            "verify_working": flag_always,
             "answer_found": correct,
             "working_found": has_working,
             "notes": note,

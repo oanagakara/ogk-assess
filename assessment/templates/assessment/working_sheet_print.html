@@ -6,203 +6,272 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html, body { height: 100%; }
+
     body {
       font-family: Arial, sans-serif;
-      font-size: 11pt;
+      font-size: 9.5pt;
       color: #000;
+      background: #e0e0e0;
+    }
+
+    /* ── Print button ── */
+    .no-print {
+      text-align: right;
+      padding: 8px 12px;
+      background: #e0e0e0;
+    }
+
+    /* ── Page shell: fixed A4, flex column ── */
+    .page {
+      width: 210mm;
+      height: 297mm;
+      margin: 0 auto;
+      padding: 12mm 14mm;
       background: #fff;
-      padding: 20mm 20mm 15mm 20mm;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     /* ── Header ── */
     .header {
       border-bottom: 2px solid #000;
-      padding-bottom: 8px;
-      margin-bottom: 16px;
+      padding-bottom: 5px;
+      flex-shrink: 0;
     }
-    .header h1 {
-      font-size: 14pt;
-      font-weight: bold;
+    .header-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
     }
-    .header .sub {
-      font-size: 9pt;
-      color: #555;
-      margin-top: 2px;
-    }
+    .header h1 { font-size: 12pt; font-weight: bold; }
+    .header-note { font-size: 7pt; color: #666; }
     .learner-row {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-top: 10px;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 5px;
     }
     .field-label {
-      font-size: 8pt;
+      font-size: 6.5pt;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #666;
-      margin-bottom: 2px;
+      color: #888;
+      margin-bottom: 1px;
     }
     .field-value {
-      font-size: 11pt;
+      font-size: 10pt;
       font-weight: bold;
       border-bottom: 1px solid #aaa;
-      padding-bottom: 2px;
-      min-height: 20px;
+      min-height: 15px;
     }
 
-    /* ── Instructions ── */
+    /* ── Instruction banner ── */
     .instructions {
-      background: #f5f5f5;
-      border-left: 3px solid #333;
-      padding: 8px 12px;
-      font-size: 9pt;
-      margin-bottom: 16px;
+      font-size: 7.5pt;
+      color: #444;
+      border-left: 2.5px solid #888;
+      padding: 3px 8px;
+      background: #f7f7f7;
+      flex-shrink: 0;
     }
 
-    /* ── Question block ── */
+    /* ── Two-column question area: fills all remaining space ── */
+    .questions-area {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      gap: 14px;
+    }
+
+    .questions-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* ── Question block: each takes equal share of its column ── */
     .question-block {
-      margin-bottom: 18px;
-      page-break-inside: avoid;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
     }
     .question-header {
       display: flex;
       align-items: baseline;
-      gap: 8px;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 4px;
-      margin-bottom: 6px;
+      gap: 6px;
+      border-bottom: 1.5px solid #333;
+      padding-bottom: 2px;
+      flex-shrink: 0;
     }
-    .question-code {
-      font-size: 10pt;
-      font-weight: bold;
-      min-width: 80px;
-    }
-    .question-prompt {
-      font-size: 9pt;
-      color: #555;
+    .question-code { font-size: 8.5pt; font-weight: bold; white-space: nowrap; }
+    .question-prompt { font-size: 7.5pt; color: #555; flex: 1; line-height: 1.2; }
+    .question-marks { font-size: 7pt; color: #888; white-space: nowrap; }
+
+    /* ── Working space: fills question block, lines divide evenly ── */
+    .working-space {
       flex: 1;
-    }
-    .question-marks {
-      font-size: 8pt;
-      color: #777;
-      white-space: nowrap;
-    }
-    .working-lines {
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      gap: 0;
     }
     .working-line {
-      border-bottom: 1px solid #ddd;
-      height: 22px;
+      flex: 1;
+      border-bottom: 1px solid #ccc;
     }
 
-    /* ── Footer ── */
+    /* ── Declaration ── */
+    .declaration {
+      border: 1px solid #bbb;
+      padding: 5px 10px;
+      font-size: 7.5pt;
+      flex-shrink: 0;
+    }
+    .decl-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 4px;
+    }
+    .sig-line {
+      border-bottom: 1px solid #000;
+      height: 16px;
+      margin-top: 2px;
+    }
+
+    /* ── Footer: pinned at bottom ── */
     .footer {
-      margin-top: 24px;
       border-top: 1px solid #ccc;
-      padding-top: 8px;
-      font-size: 8pt;
-      color: #888;
+      padding-top: 3px;
+      font-size: 7pt;
+      color: #999;
       display: flex;
       justify-content: space-between;
+      flex-shrink: 0;
     }
 
-    /* ── Honesty declaration ── */
-    .declaration {
-      margin-top: 20px;
-      border: 1px solid #ccc;
-      padding: 10px 14px;
-      font-size: 9pt;
-    }
-    .declaration .sig-line {
-      margin-top: 10px;
-      border-bottom: 1px solid #000;
-      height: 24px;
-    }
-
+    /* ── Print ── */
     @media print {
-      body { padding: 0; }
-      @page { margin: 20mm; size: A4 portrait; }
+      body { background: #fff; }
       .no-print { display: none; }
+      .page {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+      }
+      @page {
+        margin: 12mm 14mm;
+        size: A4 portrait;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- Print button (hidden when printing) -->
-  <div class="no-print" style="text-align:right; margin-bottom:12px;">
-    <button onclick="window.print()"
-            style="padding:6px 16px; font-size:10pt; cursor:pointer;">
+  <div class="no-print">
+    <button onclick="window.print()" style="padding:5px 14px; font-size:9pt; cursor:pointer;">
       Print this sheet
     </button>
   </div>
 
-  <!-- Header -->
-  <div class="header">
-    <h1>Working Sheet — {{ attempt.template.name }}</h1>
-    <div class="sub">For assessor use: attach to digital attempt after the session.</div>
-    <div class="learner-row">
-      <div>
-        <div class="field-label">Learner name</div>
-        <div class="field-value">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</div>
+  <div class="page">
+
+    <div class="header">
+      <div class="header-top">
+        <h1>Working Sheet — Numeracy</h1>
+        <span class="header-note">Hand to assessor on submission &bull; One page</span>
       </div>
-      <div>
-        <div class="field-label">Attempt code</div>
-        <div class="field-value">{{ attempt.code }}</div>
-      </div>
-      <div>
-        <div class="field-label">Date</div>
-        <div class="field-value"></div>
+      <div class="learner-row">
+        <div>
+          <div class="field-label">Learner name</div>
+          <div class="field-value">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</div>
+        </div>
+        <div>
+          <div class="field-label">Attempt code</div>
+          <div class="field-value">{{ attempt.code }}</div>
+        </div>
+        <div>
+          <div class="field-label">Date</div>
+          <div class="field-value"></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Instructions -->
-  <div class="instructions">
-    <strong>Instructions:</strong> Show all working for each question in the space provided.
-    Write your attempt code on every page. Hand this sheet to your assessor when you submit your digital assessment.
-  </div>
+    <div class="instructions">
+      <strong>Instructions:</strong> Show all working in the space provided.
+      Write your attempt code at the top. Submit this sheet with your digital assessment.
+    </div>
 
-  <!-- Working space per question -->
-  {% for question in working_questions %}
-    <div class="question-block">
-      <div class="question-header">
-        <span class="question-code">{{ question.code }}</span>
-        <span class="question-prompt">{{ question.prompt|truncatechars:90 }}</span>
-        <span class="question-marks">[{{ question.max_marks }} mark{{ question.max_marks|pluralize }}]</span>
-      </div>
-      <div class="working-lines">
-        {% for i in "1234567" %}
-          <div class="working-line"></div>
+    <div class="questions-area">
+
+      <div class="questions-col">
+        {% for question in working_questions|slice:":4" %}
+          <div class="question-block">
+            <div class="question-header">
+              <span class="question-code">{{ question.code }}</span>
+              <span class="question-prompt">{{ question.prompt|truncatechars:75 }}</span>
+              <span class="question-marks">[{{ question.max_marks }}m]</span>
+            </div>
+            <div class="working-space">
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+            </div>
+          </div>
         {% endfor %}
       </div>
-    </div>
-  {% empty %}
-    <p style="color:#888; font-style:italic;">No working-required questions found for this template.</p>
-  {% endfor %}
 
-  <!-- Honesty declaration -->
-  <div class="declaration">
-    <strong>Declaration:</strong> I confirm that the working shown above is my own and was completed during the
-    assessment session without any unauthorised assistance.
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:8px;">
-      <div>
-        <div class="field-label">Signature</div>
-        <div class="sig-line"></div>
+      <div class="questions-col">
+        {% for question in working_questions|slice:"4:" %}
+          <div class="question-block">
+            <div class="question-header">
+              <span class="question-code">{{ question.code }}</span>
+              <span class="question-prompt">{{ question.prompt|truncatechars:75 }}</span>
+              <span class="question-marks">[{{ question.max_marks }}m]</span>
+            </div>
+            <div class="working-space">
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+              <div class="working-line"></div>
+            </div>
+          </div>
+        {% endfor %}
       </div>
-      <div>
-        <div class="field-label">Date</div>
-        <div class="sig-line"></div>
+
+    </div>
+
+    <div class="declaration">
+      <strong>Declaration:</strong> The working shown is my own, completed during the session without unauthorised assistance.
+      <div class="decl-fields">
+        <div>
+          <div class="field-label">Signature</div>
+          <div class="sig-line"></div>
+        </div>
+        <div>
+          <div class="field-label">Date</div>
+          <div class="sig-line"></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    <span>{{ attempt.template.name }}{% if attempt.template.version %} ({{ attempt.template.version }}){% endif %}</span>
-    <span>Code: {{ attempt.code }}</span>
-    <span>Page 1 of 1</span>
+    <div class="footer">
+      <span>{{ attempt.template.name }}{% if attempt.template.version %} v{{ attempt.template.version }}{% endif %}</span>
+      <span>Code: {{ attempt.code }}</span>
+      <span>Page 1 of 1</span>
+    </div>
+
   </div>
 
 </body>

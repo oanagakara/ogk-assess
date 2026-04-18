@@ -532,6 +532,26 @@ def _requires_assessor_attention(score) -> bool:
     return bool(score.rubric_json.get("needs_review", False))
 
 
+def _review_type(score) -> str:
+    """
+    Classify why a question is in the review queue.
+
+    process      — answer correct, working evidence absent; assessor verifies the working sheet.
+    comprehension — auto-flagged; assessor adjudicates meaning or quality.
+    manual       — no auto-mark; assessor scores from scratch.
+    """
+    if score is None:
+        return "manual"
+    rubric = score.rubric_json if isinstance(score.rubric_json, dict) else {}
+    if rubric.get("auto_marked"):
+        if rubric.get("verify_working"):
+            return "process"
+        if rubric.get("answer_found") and rubric.get("working_found") is False:
+            return "process"
+        return "comprehension"
+    return "manual"
+
+
 def _build_review_queue(markable_questions, responses_by_qid) -> list:
     """Return the subset of markable questions that still need assessor attention."""
     return [
@@ -584,14 +604,41 @@ def assessor_mark_attempt(request, code: str):
         ).select_related("score")
     }
 
+    # Defensively auto-mark any responses the engine missed (edge cases in
+    # submission flow). Keeps auto-markable questions out of the review queue.
+    has_unscored = any(
+        _score_for_response(responses_by_qid[q.pk]) is None
+        for q in markable_questions
+    )
+    if has_unscored:
+        auto_mark_attempt(attempt)
+        responses_by_qid = {
+            r.question_id: r
+            for r in Response.objects.filter(
+                attempt=attempt, question_id__in=question_ids
+            ).select_related("score")
+        }
+
     pending_questions = _build_review_queue(markable_questions, responses_by_qid)
     questions_by_pk = {q.pk: q for q in markable_questions}
 
-    # Resolve which question to show from ?qid=, falling back to first pending
+    # Resolve which question to show from ?qid=, falling back to first pending.
+    # Audit-only questions (auto_done) are restricted to staff.
     try:
         requested_qid = int(request.GET.get("qid", 0))
     except (TypeError, ValueError):
         requested_qid = 0
+
+    def _is_audit_only(q) -> bool:
+        score = _score_for_response(responses_by_qid.get(q.pk))
+        if score is None or _requires_assessor_attention(score):
+            return False
+        rubric = score.rubric_json if isinstance(score.rubric_json, dict) else {}
+        return bool(rubric.get("auto_marked"))
+
+    requested_question = questions_by_pk.get(requested_qid)
+    if requested_question and _is_audit_only(requested_question) and not request.user.is_staff:
+        requested_qid = 0  # silently drop the request — fall through to first pending
 
     current_question = (
         questions_by_pk.get(requested_qid)
@@ -632,16 +679,30 @@ def assessor_mark_attempt(request, code: str):
         else None
     )
 
-    # Sidebar: all markable questions with pending/done status
-    sidebar_questions = [
-        {
+    # Sidebar: all markable questions with pending/done status.
+    # auto_done — correctly auto-marked, no review required; shown in spot-check section only.
+    def _is_auto_done(score) -> bool:
+        """Scored and needs no further assessor action — goes to audit log."""
+        if score is None or _requires_assessor_attention(score):
+            return False
+        return True
+
+    def _sidebar_item(q):
+        score = _score_for_response(responses_by_qid[q.pk])
+        return {
             "question": q,
-            "pending": _requires_assessor_attention(_score_for_response(responses_by_qid[q.pk])),
+            "pending": _requires_assessor_attention(score),
+            "auto_done": _is_auto_done(score),
             "active": current_question and q.pk == current_question.pk,
             "url": reverse("assessment:assessor_mark_attempt", kwargs={"code": code}) + f"?qid={q.pk}",
+            "review_type": _review_type(score),
         }
-        for q in markable_questions
-    ]
+
+    all_sidebar = [_sidebar_item(q) for q in markable_questions]
+    # Questions needing assessor attention — shown in the main sidebar list.
+    sidebar_questions = [i for i in all_sidebar if not i["auto_done"]]
+    # Auto-marked, no review — hidden by default; accessible for spot-checking.
+    sidebar_spot = [i for i in all_sidebar if i["auto_done"]]
 
     return render(
         request,
@@ -658,6 +719,7 @@ def assessor_mark_attempt(request, code: str):
             "show_summary": show_summary,
             "summary_rows": summary_rows,
             "sidebar_questions": sidebar_questions,
+            "sidebar_spot": sidebar_spot,
             "working_sheet": _get_working_sheet(attempt),
         },
     )
@@ -1485,16 +1547,17 @@ def assessor_working_sheet_print(request, code: str):
         Attempt.objects.select_related("learner", "template"),
         code=code,
     )
-    working_questions = [
-        q for q in
+    _WORKING_SHEET_CODES = {
+        "NUM-A-4", "NUM-B-1", "NUM-B-2", "NUM-B-3",
+        "NUM-C-1", "NUM-C-3", "NUM-D-2",
+    }
+    working_questions = list(
         Question.objects.filter(
             section__template=attempt.template,
             is_active=True,
-            max_marks__gt=0,
-            code__startswith="NUM-",
+            code__in=_WORKING_SHEET_CODES,
         ).order_by("section__order", "order")
-        if _needs_working_space(q)
-    ]
+    )
     return render(request, "assessment/working_sheet_print.html", {
         "attempt": attempt,
         "working_questions": working_questions,
@@ -1510,3 +1573,151 @@ def _needs_working_space(question) -> bool:
         or key.get("flag_if_no_working")
         or key.get("flag_always")
     )
+
+
+# ---------------------------------------------------------------------------
+# Scoring transparency helpers
+# ---------------------------------------------------------------------------
+
+def _key_to_criteria_lines(key: dict) -> list[str]:
+    """
+    Convert a parsed answer_key_json into a list of plain-English criterion
+    strings that a client can read to understand how the question is scored.
+    """
+    lines = []
+
+    if key.get("match"):
+        expected = key["match"]
+        lines.append(f"Match question — {len(expected)} pair(s).")
+        lines.append(f"Marks per correct match: {key.get('marks_per_match', 1)}.")
+        for target, word in expected.items():
+            lines.append(f"  {target} → \"{word}\"")
+        return lines
+
+    if key.get("sentence_word"):
+        word = key["sentence_word"]
+        min_w = key.get("min_words", 4)
+        lines.append(f"Learner must use the word \"{word}\" (or a common inflection) in a sentence.")
+        lines.append(f"Minimum sentence length: {min_w} words.")
+        lines.append("Always flagged for assessor review.")
+        return lines
+
+    if key.get("keyword_answer"):
+        kws = key["keyword_answer"]
+        partial = key.get("partial_marks", 0)
+        lines.append(f"All of the following must appear in the response:")
+        for kw in kws:
+            lines.append(f"  • \"{kw}\"")
+        if partial:
+            lines.append(f"Partial marks ({partial}) if only some keywords found.")
+        if key.get("flag_always"):
+            lines.append("Always flagged for assessor review.")
+        return lines
+
+    if key.get("keyword_per_mark"):
+        kws = key["keyword_per_mark"]
+        mpp = key.get("marks_per_keyword", 1)
+        lines.append(f"Each keyword found independently awards {mpp} mark(s):")
+        for kw in kws:
+            lines.append(f"  • \"{kw}\"")
+        if key.get("flag_always"):
+            lines.append("Always flagged for assessor review.")
+        return lines
+
+    if key.get("tiered_keyword"):
+        lines.append("Tiered scoring — first matching tier wins:")
+        for i, tier in enumerate(key["tiered_keyword"], 1):
+            tier_marks = tier.get("marks", 0)
+            parts = [f"Tier {i} → {tier_marks} mark(s)"]
+            if tier.get("require_all"):
+                parts.append(f"require ALL of: {', '.join(repr(k) for k in tier['require_all'])}")
+            if tier.get("require_any"):
+                parts.append(f"require ANY of: {', '.join(repr(k) for k in tier['require_any'])}")
+            if tier.get("require_not"):
+                parts.append(f"exclude if: {', '.join(repr(k) for k in tier['require_not'])}")
+            if tier.get("min_words"):
+                parts.append(f"min words: {tier['min_words']}")
+            lines.append("  " + " | ".join(parts))
+        no_match = key.get("no_match_note", "No criteria met → 0 marks.")
+        lines.append(f"No tier matched: {no_match}")
+        if key.get("flag_always"):
+            lines.append("Always flagged for assessor review.")
+        return lines
+
+    # Standard numeric/text answer
+    answers = key.get("answers", [])
+    if answers:
+        lines.append(f"Accepted answer(s): {', '.join(repr(str(a)) for a in answers)}")
+    working_kws = key.get("working_keywords", [])
+    if working_kws:
+        lines.append(f"Working evidence required (all must appear): {', '.join(repr(k) for k in working_kws)}")
+        partial = key.get("partial_marks", 0)
+        if partial:
+            lines.append(f"Partial marks ({partial}) if answer correct but working absent.")
+    if key.get("flag_always"):
+        lines.append("Always flagged for assessor review.")
+    elif key.get("flag_if_no_working"):
+        lines.append("Flagged for review if working evidence absent.")
+    return lines
+
+
+@login_required
+@user_passes_test(is_staff)
+def assessor_scoring_breakdown(request, code: str):
+    """
+    Staff-only view showing how each question in an attempt was scored:
+    the marking criteria, the learner's response, and the auto-marker's decision.
+    """
+    attempt = get_object_or_404(
+        Attempt.objects.select_related("learner", "template"),
+        code=code,
+    )
+
+    questions = (
+        Question.objects
+        .filter(section__template=attempt.template, is_active=True)
+        .select_related("section")
+        .order_by("section__order", "order", "code")
+    )
+
+    question_ids = [q.pk for q in questions]
+    responses_by_qid = {
+        r.question_id: r
+        for r in Response.objects.filter(
+            attempt=attempt, question_id__in=question_ids
+        ).select_related("score")
+    }
+
+    rows = []
+    for question in questions:
+        response = responses_by_qid.get(question.pk)
+        key = json.loads(question.answer_key_json or "{}")
+        auto_markable = bool(key.get("auto_mark"))
+
+        score = None
+        rubric = {}
+        if response:
+            score = getattr(response, "score", None)
+            if score:
+                rubric = score.rubric_json if isinstance(score.rubric_json, dict) else {}
+
+        criteria_lines = _key_to_criteria_lines(key) if auto_markable else []
+
+        rows.append({
+            "question": question,
+            "response_text": _render_response_for_marking(question, response) if response else "",
+            "auto_markable": auto_markable,
+            "criteria_lines": criteria_lines,
+            "score": score,
+            "awarded": float(score.points) if score else None,
+            "max_marks": float(question.max_marks or 0),
+            "notes": rubric.get("notes", ""),
+            "needs_review": rubric.get("needs_review", False),
+            "mode": rubric.get("mode", ""),
+            "marking_notes": question.marking_notes or "",
+        })
+
+    return render(request, "assessment/assessor_scoring_breakdown.html", {
+        "attempt": attempt,
+        "rows": rows,
+    })

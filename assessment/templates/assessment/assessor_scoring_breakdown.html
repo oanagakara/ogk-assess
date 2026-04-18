@@ -1,0 +1,118 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Scoring breakdown — {{ attempt.code }}{% endblock %}
+
+{% block assessor_content %}
+<div class="h-full flex flex-col gap-4 overflow-y-auto">
+
+  {# ── Header ── #}
+  <div class="flex items-center justify-between shrink-0">
+    <div>
+      <div class="text-xs opacity-50 uppercase tracking-wide">Scoring breakdown</div>
+      <h1 class="text-lg font-semibold leading-tight">
+        {{ attempt.learner.first_names }} {{ attempt.learner.surname }}
+        <span class="font-mono text-sm opacity-50 ml-2">{{ attempt.code }}</span>
+      </h1>
+      <p class="text-xs opacity-50 mt-0.5">How each question was scored — staff only</p>
+    </div>
+    <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}" class="btn btn-sm btn-ghost">← Back to marking</a>
+  </div>
+
+  {# ── Key ── #}
+  <div class="flex gap-3 shrink-0 text-xs">
+    <span class="flex items-center gap-1">
+      <span class="badge badge-xs badge-success">auto</span> Auto-marked
+    </span>
+    <span class="flex items-center gap-1">
+      <span class="badge badge-xs badge-warning">review</span> Flagged for review
+    </span>
+    <span class="flex items-center gap-1">
+      <span class="badge badge-xs badge-ghost">manual</span> Manually scored
+    </span>
+    <span class="flex items-center gap-1">
+      <span class="badge badge-xs badge-neutral">—</span> No answer key
+    </span>
+  </div>
+
+  {# ── Question rows ── #}
+  <div class="flex flex-col gap-3 pb-6">
+    {% for row in rows %}
+      <div class="card bg-base-100 shadow-sm border border-base-200">
+        <div class="card-body p-4 gap-3">
+
+          {# ── Row header ── #}
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-mono text-xs font-semibold">{{ row.question.code }}</span>
+              <span class="text-xs opacity-50">{{ row.question.section.title }}</span>
+              {% if row.mode == "auto" and not row.needs_review %}
+                <span class="badge badge-xs badge-success">auto</span>
+              {% elif row.mode == "auto" and row.needs_review %}
+                <span class="badge badge-xs badge-warning">review</span>
+              {% elif row.mode == "manual" %}
+                <span class="badge badge-xs badge-ghost">manual</span>
+              {% elif not row.auto_markable %}
+                <span class="badge badge-xs badge-neutral">no key</span>
+              {% endif %}
+            </div>
+            <div class="text-sm font-semibold whitespace-nowrap shrink-0">
+              {% if row.awarded is not None %}
+                {{ row.awarded|floatformat:"-2" }}
+                <span class="font-normal opacity-40">/ {{ row.max_marks|floatformat:"-2" }}</span>
+              {% else %}
+                <span class="opacity-30 text-xs">unscored</span>
+              {% endif %}
+            </div>
+          </div>
+
+          {# ── Prompt ── #}
+          <p class="text-sm leading-snug">{{ row.question.prompt }}</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+
+            {# ── Learner response ── #}
+            <div class="flex flex-col gap-1">
+              <div class="font-semibold opacity-50 uppercase tracking-wide text-[10px]">Learner response</div>
+              {% if row.response_text %}
+                <div class="whitespace-pre-wrap break-words leading-relaxed">{{ row.response_text }}</div>
+              {% else %}
+                <div class="opacity-30 italic">No response</div>
+              {% endif %}
+            </div>
+
+            {# ── Scoring criteria ── #}
+            <div class="flex flex-col gap-1">
+              <div class="font-semibold opacity-50 uppercase tracking-wide text-[10px]">Scoring criteria</div>
+              {% if row.criteria_lines %}
+                <ul class="flex flex-col gap-0.5 leading-relaxed">
+                  {% for line in row.criteria_lines %}
+                    <li class="whitespace-pre-wrap">{{ line }}</li>
+                  {% endfor %}
+                </ul>
+              {% elif row.marking_notes %}
+                <div class="opacity-60 whitespace-pre-wrap leading-relaxed">{{ row.marking_notes }}</div>
+              {% else %}
+                <div class="opacity-30 italic">No auto-mark criteria</div>
+              {% endif %}
+            </div>
+
+            {# ── Auto-marker decision ── #}
+            <div class="flex flex-col gap-1">
+              <div class="font-semibold opacity-50 uppercase tracking-wide text-[10px]">Auto-marker decision</div>
+              {% if row.notes %}
+                <div class="whitespace-pre-wrap leading-relaxed">{{ row.notes }}</div>
+              {% elif row.score %}
+                <div class="opacity-30 italic">No notes recorded</div>
+              {% else %}
+                <div class="opacity-30 italic">Not yet scored</div>
+              {% endif %}
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
