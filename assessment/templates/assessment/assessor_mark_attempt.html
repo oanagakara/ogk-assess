@@ -62,10 +62,10 @@
         <div class="text-xs opacity-50">Working sheet</div>
           {% if working_sheet %}
           <div class="flex items-center gap-2">
-            <a href="{% url 'assessment:assessor_working_sheet_image' attempt.code %}"
-               target="_blank"
-               class="text-sm font-semibold text-info hover:underline truncate max-w-[120px]"
-               title="{{ working_sheet.original_filename }}">View →</a>
+            <button type="button"
+                    data-ws-open
+                    class="text-sm font-semibold text-info hover:underline truncate max-w-[120px]"
+                    title="{{ working_sheet.original_filename }}">View →</button>
             <a href="{% url 'assessment:assessor_working_sheet_print' attempt.code %}"
                target="_blank" class="text-xs opacity-50 hover:opacity-100">Print</a>
           </div>
@@ -92,21 +92,86 @@
 
   </div>
 
+  {% if request.user.is_staff %}
+    <div class="flex justify-end shrink-0">
+      <a href="{% url 'assessment:assessor_scoring_breakdown' attempt.code %}"
+         class="btn btn-xs btn-ghost opacity-60 hover:opacity-100">
+        Scoring breakdown →
+      </a>
+    </div>
+  {% endif %}
+
   {# ── Body: sidebar + main ── #}
   <div class="flex-1 min-h-0 flex gap-3">
 
-    {# ── Sidebar: all markable questions ── #}
+    {# ── Sidebar: review queue + collapsible spot-check ── #}
     <div class="w-44 shrink-0 flex flex-col gap-1 overflow-y-auto">
+
+      {# Questions needing assessor attention #}
       {% for item in sidebar_questions %}
         <a href="{{ item.url }}"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors
+           {% if item.active %}data-sidebar-active{% endif %}
+           class="flex flex-col px-3 py-2 rounded-lg text-sm transition-colors
                   {% if item.active %}bg-primary text-primary-content{% elif item.pending %}bg-warning bg-opacity-20 hover:bg-warning hover:bg-opacity-30{% else %}bg-base-100 hover:bg-base-200 opacity-60{% endif %}">
-          <span class="w-1.5 h-1.5 rounded-full shrink-0
-                       {% if item.pending %}bg-warning{% else %}bg-success{% endif %}
-                       {% if item.active %}opacity-0{% endif %}"></span>
-          <span class="font-mono text-xs truncate">{{ item.question.code }}</span>
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0
+                         {% if item.pending %}bg-warning{% else %}bg-success{% endif %}
+                         {% if item.active %}opacity-0{% endif %}"></span>
+            <span class="font-mono text-xs truncate">{{ item.question.code }}</span>
+          </div>
+          {% if item.pending %}
+            <span class="ml-3.5 mt-0.5 text-xs opacity-60 leading-tight
+                         {% if item.active %}opacity-80{% endif %}">
+              {% if item.review_type == "process" %}Verify working
+              {% elif item.review_type == "comprehension" %}Comprehension
+              {% else %}Manual mark
+              {% endif %}
+            </span>
+          {% endif %}
         </a>
       {% endfor %}
+
+      {# Audit log: auto-verified questions — not part of the marking workflow #}
+      {% if sidebar_spot %}
+        <div class="mt-3 border-t border-base-300 pt-2">
+          {% if request.user.is_staff %}
+            {# Staff: functional audit log #}
+            <details class="group"
+                     {% for item in sidebar_spot %}{% if item.active %}open{% endif %}{% endfor %}>
+              <summary class="flex items-center gap-1.5 px-1 py-1 cursor-pointer
+                              text-xs opacity-40 hover:opacity-60 select-none list-none uppercase tracking-wider">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                     class="shrink-0 transition-transform group-open:rotate-90">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"/>
+                </svg>
+                Audit log
+              </summary>
+              <div class="mt-1 flex flex-col gap-0.5">
+                {% for item in sidebar_spot %}
+                  <a href="{{ item.url }}"
+                     {% if item.active %}data-sidebar-active{% endif %}
+                     class="flex items-center gap-2 px-3 py-1 rounded text-sm transition-colors
+                            {% if item.active %}bg-base-300 text-base-content{% else %}hover:bg-base-200 opacity-30 hover:opacity-60{% endif %}">
+                    <span class="font-mono text-xs truncate">{{ item.question.code }}</span>
+                  </a>
+                {% endfor %}
+              </div>
+            </details>
+          {% else %}
+            {# Non-staff: locked — visible, not accessible #}
+            <div class="flex items-center gap-1.5 px-1 py-1 opacity-30 cursor-default select-none">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+              </svg>
+              <span class="text-xs uppercase tracking-wider">Audit log</span>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
       {% if not show_summary %}
         <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}?summary=1"
            class="mt-2 btn btn-xs btn-ghost w-full">Summary →</a>
@@ -228,7 +293,19 @@
               </div>
             </div>
 
-            <div class="card bg-base-100 shadow min-h-0 flex flex-col">
+            <div id="detail-pane" class="card bg-base-100 shadow min-h-0 flex flex-col relative">
+              {% if row.question.code|slice:":4" == "NUM-" and working_sheet %}
+                <button type="button"
+                        data-ws-open
+                        class="absolute top-3 right-3 z-10 btn btn-xs btn-outline btn-info gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none"
+                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+                  </svg>
+                  Working sheet
+                </button>
+              {% endif %}
               <div class="card-body p-4 flex flex-col gap-4 min-h-0 overflow-y-auto">
 
                 {% if row.question.marking_notes %}
@@ -323,4 +400,106 @@
     </div>
   </div>
 </div>
+
+{% if working_sheet %}
+<!-- Backdrop -->
+<div id="ws-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:400;"></div>
+<!-- Modal panel -->
+<div id="ws-panel" style="display:none;position:fixed;z-index:401;background:#ffffff;border-radius:10px;box-shadow:0 24px 64px rgba(0,0,0,0.4);overflow:hidden;flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #e5e7eb;flex-shrink:0;background:#ffffff;">
+    <span style="font-weight:600;font-size:13px;color:#111;">Working sheet — {{ attempt.learner.first_names }} {{ attempt.learner.surname }}</span>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="{% url 'assessment:assessor_working_sheet_image' attempt.code %}" target="_blank"
+         style="font-size:11px;color:#6b7280;text-decoration:underline;white-space:nowrap;">Open in new tab →</a>
+      <button id="ws-close-btn" style="background:none;border:none;cursor:pointer;font-size:13px;color:#555;padding:4px 8px;line-height:1;">Close ✕</button>
+    </div>
+  </div>
+  <div id="ws-modal-body" style="flex:1;min-height:0;background:#f3f4f6;overflow:hidden;"></div>
+</div>
+
+<script>
+  (function () {
+    var backdrop = document.getElementById('ws-backdrop');
+    var panel    = document.getElementById('ws-panel');
+    var body     = document.getElementById('ws-modal-body');
+    var wsUrl    = "{% url 'assessment:assessor_working_sheet_image' attempt.code %}";
+    var isPdf    = {% if working_sheet.content_type == "application/pdf" %}true{% else %}false{% endif %};
+    var blobUrl  = null;
+    var INSET    = 38;
+
+    function positionPanel() {
+      panel.style.width     = Math.round(window.innerWidth  * 0.97) + 'px';
+      panel.style.height    = Math.round(window.innerHeight * 0.96) + 'px';
+      panel.style.left      = '50%';
+      panel.style.top       = '50%';
+      panel.style.transform = 'translate(-50%, -50%)';
+    }
+
+    function showPanel() {
+      backdrop.style.display = 'block';
+      panel.style.display    = 'flex';
+    }
+
+    function hidePanel() {
+      backdrop.style.display = 'none';
+      panel.style.display    = 'none';
+    }
+
+    function showLoading() {
+      body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#888;">Loading worksheet\u2026</div>';
+    }
+
+    function renderBlob(url) {
+      body.innerHTML = '';
+      if (isPdf) {
+        var iframe = document.createElement('iframe');
+        iframe.src = url + '#view=Fit&toolbar=0';
+        iframe.style.cssText = 'width:100%;height:100%;border:0;display:block;';
+        body.appendChild(iframe);
+      } else {
+        var wrap = document.createElement('div');
+        wrap.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:8px;';
+        var img = document.createElement('img');
+        img.src = url; img.alt = 'Working sheet';
+        img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+        wrap.appendChild(img);
+        body.appendChild(wrap);
+      }
+    }
+
+    function openWs() {
+      positionPanel();
+      showPanel();
+      if (blobUrl) { return; }
+      showLoading();
+      fetch(wsUrl, { credentials: 'same-origin' })
+        .then(function(r) { return r.blob(); })
+        .then(function(blob) {
+          blobUrl = URL.createObjectURL(blob);
+          renderBlob(blobUrl);
+        })
+        .catch(function() {
+          body.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;font-size:13px;color:#888;"><span>Could not load worksheet.</span><a href="' + wsUrl + '" target="_blank" style="text-decoration:underline;">Open in new tab \u2192</a></div>';
+        });
+    }
+
+    document.querySelectorAll('[data-ws-open]').forEach(function(btn) {
+      btn.addEventListener('click', openWs);
+    });
+    document.getElementById('ws-close-btn').addEventListener('click', hidePanel);
+    backdrop.addEventListener('click', hidePanel);
+  })();
+</script>
+{% endif %}
+
+<script>
+  // After navigation, scroll the active sidebar item into view so it isn't
+  // out of focus when the page reloads with the selected question.
+  (function () {
+    var active = document.querySelector("[data-sidebar-active]");
+    if (active) {
+      active.scrollIntoView({ block: "nearest", behavior: "instant" });
+    }
+  })();
+</script>
 {% endblock %}

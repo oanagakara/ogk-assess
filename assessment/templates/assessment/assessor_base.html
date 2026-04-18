@@ -1,41 +1,68 @@
 {% extends "assessment/base.html" %}
 
 {% block body %}
+<style>
+  #sidebar { transition: width 0.2s ease; }
+  #sidebar[data-collapsed] { width: 3.5rem; }
+  #sidebar[data-collapsed] .sl { display: none; }
+  #sidebar[data-collapsed] nav a,
+  #sidebar[data-collapsed] nav summary { justify-content: center; padding-left: 0.5rem; padding-right: 0.5rem; }
+  #sidebar[data-collapsed] .nav-sub { display: none; }
+  #sidebar[data-collapsed] .brand-area { justify-content: center; padding: 1.1rem 0; }
+  #sidebar[data-collapsed] .bottom-area { align-items: center; }
+  #sidebar[data-collapsed] .bottom-theme { justify-content: center; }
+  #sidebar[data-collapsed] .bottom-user { justify-content: center; }
+</style>
+
 <div class="flex h-screen overflow-hidden">
 
   {# ── Sidebar ── #}
-  <aside class="w-56 shrink-0 flex flex-col bg-base-300 border-r border-base-200">
+  <aside id="sidebar" class="w-56 shrink-0 flex flex-col bg-base-300 border-r border-base-200">
 
-    {# Brand #}
-    <div class="px-5 py-5 border-b border-base-200">
-      <span class="font-bold text-base tracking-tight">iCan Assess</span>
+    {# Brand + collapse toggle #}
+    <div class="brand-area flex items-center justify-between px-5 py-5 border-b border-base-200">
+      <span class="sl font-bold text-base tracking-tight">iCan Assess</span>
+      <button id="sidebar-toggle" class="btn btn-ghost btn-xs px-1 opacity-50 hover:opacity-100" title="Toggle sidebar">
+        <svg id="sidebar-icon-collapse" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 19l-7-7 7-7M18 19l-7-7 7-7"/>
+        </svg>
+        <svg id="sidebar-icon-expand" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <path d="M13 5l7 7-7 7M6 5l7 7-7 7"/>
+        </svg>
+      </button>
     </div>
 
     {# Nav #}
-    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
 
       <a href="{% url 'assessment:assessor_dashboard' %}"
          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-           {% if request.resolver_match.url_name == 'assessor_dashboard' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}">
+           {% if request.resolver_match.url_name == 'assessor_dashboard' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}"
+         title="Dashboard">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"
-             stroke-linecap="round" stroke-linejoin="round">
+             stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
           <path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
         </svg>
-        Dashboard
+        <span class="sl">Dashboard</span>
       </a>
 
       <a href="{% url 'assessment:assessor_review_queue' %}"
          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-           {% if request.resolver_match.url_name == 'assessor_review_queue' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}">
+           {% if request.resolver_match.url_name == 'assessor_review_queue' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}"
+         title="Review Queue">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"
-             stroke-linecap="round" stroke-linejoin="round">
+             stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
           <path d="M16.862 4.487 18.549 2.8a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
         </svg>
-        <span class="flex-1">Review Queue</span>
+        <span class="sl flex-1">Review Queue</span>
         {% if nav_counts.needs_review %}
-          <span class="badge badge-sm badge-warning">{{ nav_counts.needs_review }}</span>
+          <span class="sl badge badge-sm badge-warning">{{ nav_counts.needs_review }}</span>
         {% endif %}
       </a>
 
@@ -44,19 +71,20 @@
       <details id="nav-attempts"
                {% if url_name == 'assessor_attempts' or url_name == 'assessor_mark_attempt' or url_name == 'assessor_auto_marked_attempt' or url_name == 'assessor_results' %}open{% endif %}>
         <summary class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer list-none
-                        text-base-content opacity-70 hover:opacity-100 hover:bg-base-200 transition-colors select-none">
+                        text-base-content opacity-70 hover:opacity-100 hover:bg-base-200 transition-colors select-none"
+                 title="Attempts">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"
-               stroke-linecap="round" stroke-linejoin="round">
+               stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
             <path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
           </svg>
-          <span class="flex-1">Attempts</span>
+          <span class="sl flex-1">Attempts</span>
           {% if nav_counts.total %}
-            <span class="badge badge-sm badge-ghost">{{ nav_counts.total }}</span>
+            <span class="sl badge badge-sm badge-ghost">{{ nav_counts.total }}</span>
           {% endif %}
         </summary>
 
-        <div class="ml-6 mt-1 space-y-0.5">
+        <div class="nav-sub ml-6 mt-1 space-y-0.5">
 
           <a href="{% url 'assessment:assessor_attempts' %}?tab=in_progress"
              class="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
@@ -98,66 +126,70 @@
 
       <a href="{% url 'assessment:assessor_new_attempt' %}"
          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-           {% if request.resolver_match.url_name == 'assessor_new_attempt' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}">
+           {% if request.resolver_match.url_name == 'assessor_new_attempt' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}"
+         title="New Code">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"
-             stroke-linecap="round" stroke-linejoin="round">
+             stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
           <path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
         </svg>
-        New Code
+        <span class="sl">New Code</span>
       </a>
 
       {% if request.user.is_staff %}
       <a href="{% url 'assessment:assessor_questions' %}"
          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-           {% if request.resolver_match.url_name == 'assessor_questions' or request.resolver_match.url_name == 'assessor_toggle_question' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}">
+           {% if request.resolver_match.url_name == 'assessor_questions' or request.resolver_match.url_name == 'assessor_toggle_question' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}"
+         title="Questions">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"
-             stroke-linecap="round" stroke-linejoin="round">
+             stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
           <path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/>
         </svg>
-        Questions
+        <span class="sl">Questions</span>
       </a>
       {% endif %}
 
       <a href="{% url 'assessment:assessor_sessions' %}"
          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-           {% if request.resolver_match.url_name == 'assessor_sessions' or request.resolver_match.url_name == 'assessor_new_session' or request.resolver_match.url_name == 'session_monitor' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}">
+           {% if request.resolver_match.url_name == 'assessor_sessions' or request.resolver_match.url_name == 'assessor_new_session' or request.resolver_match.url_name == 'session_monitor' %}bg-primary text-primary-content{% else %}text-base-content opacity-70 hover:opacity-100 hover:bg-base-200{% endif %}"
+         title="Sessions">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"
-             stroke-linecap="round" stroke-linejoin="round">
+             stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
           <path d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/>
         </svg>
-        Sessions
+        <span class="sl">Sessions</span>
       </a>
 
     </nav>
 
     {# Bottom: theme toggle + user + logout #}
-    <div class="px-4 py-4 border-t border-base-200 space-y-3">
+    <div class="bottom-area px-4 py-4 border-t border-base-200 space-y-3">
 
-      <div class="flex items-center gap-2 opacity-60">
+      <div class="bottom-theme flex items-center gap-2 opacity-60">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round">
           <path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/>
         </svg>
         <input type="checkbox" id="theme-toggle" class="toggle toggle-xs"/>
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
+        <svg class="sl" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/>
         </svg>
       </div>
 
-      <div class="flex items-center justify-between gap-2">
+      <div class="bottom-user flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 min-w-0">
-          <div class="w-7 h-7 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs font-bold shrink-0">
+          <div class="w-7 h-7 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs font-bold shrink-0"
+               title="{{ request.user.username }}">
             {{ request.user.username|first|upper }}
           </div>
-          <span class="text-sm truncate opacity-80">{{ request.user.username }}</span>
+          <span class="sl text-sm truncate opacity-80">{{ request.user.username }}</span>
         </div>
-        <form method="post" action="{% url 'logout' %}">
+        <form method="post" action="{% url 'logout' %}" class="sl">
           {% csrf_token %}
           <button type="submit" class="btn btn-ghost btn-xs px-2" title="Logout">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
@@ -181,25 +213,49 @@
 
 <script>
   (function () {
-    var root = document.documentElement;
-    var toggle = document.getElementById("theme-toggle");
-    if (!toggle) return;
-    var saved = localStorage.getItem("theme") || "business";
-    toggle.checked = (saved === "corporate");
-    toggle.addEventListener("change", function () {
-      var next = toggle.checked ? "corporate" : "business";
-      root.setAttribute("data-theme", next);
-      localStorage.setItem("theme", next);
+    var sidebar = document.getElementById("sidebar");
+    var toggleBtn = document.getElementById("sidebar-toggle");
+    var iconCollapse = document.getElementById("sidebar-icon-collapse");
+    var iconExpand = document.getElementById("sidebar-icon-expand");
+
+    function setCollapsed(collapsed) {
+      if (collapsed) {
+        sidebar.setAttribute("data-collapsed", "");
+        iconCollapse.style.display = "none";
+        iconExpand.style.display = "";
+      } else {
+        sidebar.removeAttribute("data-collapsed");
+        iconCollapse.style.display = "";
+        iconExpand.style.display = "none";
+      }
+      localStorage.setItem("sidebar-collapsed", collapsed ? "1" : "0");
+    }
+
+    // Restore on load
+    setCollapsed(localStorage.getItem("sidebar-collapsed") === "1");
+
+    toggleBtn.addEventListener("click", function () {
+      setCollapsed(!sidebar.hasAttribute("data-collapsed"));
     });
 
-    // Persist attempts nav collapse state
+    // Theme toggle
+    var root = document.documentElement;
+    var themeToggle = document.getElementById("theme-toggle");
+    if (themeToggle) {
+      var saved = localStorage.getItem("theme") || "business";
+      themeToggle.checked = (saved === "corporate");
+      themeToggle.addEventListener("change", function () {
+        var next = themeToggle.checked ? "corporate" : "business";
+        root.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+      });
+    }
+
+    // Persist attempts sub-nav collapse state
     var details = document.getElementById("nav-attempts");
     if (details) {
       var navOpen = localStorage.getItem("nav-attempts-open");
-      // Only override if user has manually toggled (not on attempts pages)
-      if (navOpen === "false" && !details.hasAttribute("open")) {
-        // already closed by server-side logic, leave it
-      } else if (navOpen === "false") {
+      if (navOpen === "false" && details.hasAttribute("open")) {
         details.removeAttribute("open");
       }
       details.addEventListener("toggle", function () {
