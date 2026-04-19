@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Marking Rubric — NQF Learner Placement Assessment</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #111; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.65; }
+
+  .cover { text-align: center; padding: 40px 0 32px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+  .cover h1 { font-size: 20pt; margin-bottom: 6px; }
+  .cover .subtitle { font-size: 11pt; color: #444; margin-top: 6px; }
+  .cover .tag { font-size: 9pt; color: #888; margin-top: 10px; font-style: italic; }
+
+  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 9.5pt; }
+  .meta-table td { border: 1px solid #ddd; padding: 6px 10px; }
+  .meta-table td:first-child { font-weight: bold; background: #f5f5f5; width: 160px; }
+
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 28px; margin-bottom: 10px; color: #111; border-left: 4px solid #333; padding-left: 10px; }
+  h3 { font-size: 10.5pt; font-weight: bold; margin-top: 18px; margin-bottom: 6px; color: #333; }
+
+  p { margin-bottom: 8px; }
+
+  .q-block { border: 1px solid #ddd; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .q-header { background: #333; color: #fff; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .q-header .code { font-weight: bold; font-size: 11pt; font-family: "Courier New", monospace; }
+  .q-header .marks { font-size: 9pt; opacity: 0.85; }
+  .q-prompt { background: #f9f9f9; padding: 8px 14px; font-size: 9.5pt; border-bottom: 1px solid #eee; font-style: italic; color: #444; }
+  .q-body { padding: 10px 14px; }
+
+  table.tiers { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 6px; }
+  table.tiers th { background: #555; color: #fff; padding: 5px 10px; text-align: left; }
+  table.tiers td { border: 1px solid #ddd; padding: 6px 10px; vertical-align: top; }
+  table.tiers tr:nth-child(even) td { background: #f9f9f9; }
+  .marks-cell { text-align: center; font-weight: bold; width: 70px; }
+
+  .badge-auto { display: inline-block; background: #d4edda; color: #155724; border-radius: 3px; padding: 1px 7px; font-size: 8pt; font-weight: bold; }
+  .badge-manual { display: inline-block; background: #fff3cd; color: #856404; border-radius: 3px; padding: 1px 7px; font-size: 8pt; font-weight: bold; }
+  .badge-review { display: inline-block; background: #f8d7da; color: #721c24; border-radius: 3px; padding: 1px 7px; font-size: 8pt; font-weight: bold; }
+
+  .note { background: #f0f4ff; border-left: 3px solid #336; padding: 7px 12px; font-size: 9pt; margin-top: 8px; }
+  code { font-family: "Courier New", monospace; background: #f0f0f0; padding: 1px 4px; font-size: 9pt; }
+
+  .page-break { page-break-before: always; margin-top: 0; }
+  .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8.5pt; color: #888; text-align: center; }
+
+  @media print {
+    body { padding: 0; }
+    @page { margin: 20mm; size: A4 portrait; }
+    .no-print { display: none; }
+    h2 { page-break-after: avoid; }
+    .q-block { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:right; margin-bottom:16px;">
+  <button onclick="window.print()" style="padding:6px 16px; font-size:10pt; cursor:pointer;">Save as PDF</button>
+</div>
+
+<div class="cover">
+  <div style="font-size:9pt; color:#888; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Internal Marking Reference</div>
+  <h1>Marking Rubric</h1>
+  <div class="subtitle">NQF Learner Placement Assessment</div>
+  <div class="tag">Auto-marking engine criteria — for moderator and developer reference</div>
+</div>
+
+<table class="meta-table">
+  <tr><td>Version</td><td>1.2</td></tr>
+  <tr><td>Date</td><td>April 2026</td></tr>
+  <tr><td>Status</td><td>Confirmed — all literacy answer keys workshopped and applied</td></tr>
+  <tr><td>Contact</td><td>Donavan Bugan — donbugan@gmail.com</td></tr>
+</table>
+
+<p>This document describes how the auto-marking engine scores each question. Badge legend:</p>
+<p>
+  <span class="badge-auto">AUTO</span> &nbsp; Fully auto-marked — no assessor input required &nbsp;&nbsp;
+  <span class="badge-review">REVIEW</span> &nbsp; Always sent to assessor review queue &nbsp;&nbsp;
+  <span class="badge-manual">MANUAL</span> &nbsp; No answer key — assessor marks manually
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2>Section 1 — Literacy</h2>
+
+<!-- LIT-A-1 -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-A-1</span>
+    <span class="marks">Max 4 marks &nbsp; <span class="badge-auto">AUTO</span></span>
+  </div>
+  <div class="q-prompt">Match the words to the correct meaning: Salary · Interview · Contract · Apply</div>
+  <div class="q-body">
+    <table class="tiers">
+      <tr><th>Criterion</th><th class="marks-cell">Marks</th></tr>
+      <tr><td>Each correctly matched pair (t1–t4)</td><td class="marks-cell">1 each</td></tr>
+    </table>
+    <div class="note">Scored per-pair. Partial marks apply automatically. No review.</div>
+  </div>
+</div>
+
+<!-- LIT-A-2 -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-A-2A / 2B</span>
+    <span class="marks">Max 1 mark each &nbsp; <span class="badge-auto">AUTO</span></span>
+  </div>
+  <div class="q-prompt">Fill in the correct form of the word.</div>
+  <div class="q-body">
+    <table class="tiers">
+      <tr><th>Question</th><th>Expected answer</th><th class="marks-cell">Marks</th></tr>
+      <tr><td>LIT-A-2A</td><td><code>went</code></td><td class="marks-cell">1</td></tr>
+      <tr><td>LIT-A-2B</td><td><code>fill</code></td><td class="marks-cell">1</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- LIT-A-3 -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-A-3A / 3B / 3C</span>
+    <span class="marks">Max 1 mark each &nbsp; <span class="badge-review">REVIEW</span></span>
+  </div>
+  <div class="q-prompt">Write a sentence using the given word.</div>
+  <div class="q-body">
+    <table class="tiers">
+      <tr><th>Criterion</th><th class="marks-cell">Marks</th></tr>
+      <tr><td>Target word used in a complete sentence (≥ 4 words)</td><td class="marks-cell">1</td></tr>
+      <tr><td>Word not used or sentence too short</td><td class="marks-cell">0</td></tr>
+    </table>
+    <div class="note">Always flagged for assessor review — sentence quality and grammar checked by assessor.</div>
+  </div>
+</div>
+
+<!-- LIT-B-1 -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-B-1</span>
+    <span class="marks">Max 1 mark &nbsp; <span class="badge-auto">AUTO</span></span>
+  </div>
+  <div class="q-prompt">How old is Maria? (Reading passage comprehension)</div>
+  <div class="q-body">
+    <table class="tiers">
+      <tr><th>Answer</th><th class="marks-cell">Marks</th></tr>
+      <tr><td><code>23</code></td><td class="marks-cell">1</td></tr>
+      <tr><td>Any other answer</td><td class="marks-cell">0</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- LIT-B-2 -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-B-2</span>
+    <span class="marks">Max 2 marks &nbsp; <span class="badge-auto">AUTO</span></span>
+  </div>
+  <div class="q-prompt">What programme does she want to join?</div>
+  <div class="q-body">
+    <table class="tiers">
+      <tr><th>Term found in response</th><th class="marks-cell">Marks</th></tr>
+      <tr><td><code>Office Administration</code></td><td class="marks-cell">1</td></tr>
+      <tr><td><code>learnership</code></td><td class="marks-cell">1</td></tr>
+    </table>
+    <div class="note">Each term scores independently. Full answer: "Office Administration learnership" = 2 marks. Either term alone = 1 mark. No review.</div>
+  </div>
+</div>
+
+<!-- LIT-B-3 -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-B-3</span>
+    <span class="marks">Max 2 marks &nbsp; <span class="badge-auto">AUTO</span></span>
+  </div>
+  <div class="q-prompt">Why does she want to join the learnership?</div>
+  <div class="q-body">
+    <p><strong>Memo answer:</strong> "She wants to support her family."</p>
+    <table class="tiers" style="margin-top:8px;">
+      <tr><th>Tier</th><th>Condition</th><th class="marks-cell">Marks</th></tr>
+      <tr>
+        <td><strong>Correct</strong></td>
+        <td>Response contains <code>family</code> AND at least one of: <code>support</code> · <code>help</code> · <code>provide</code> · <code>care</code> · <code>look after</code></td>
+        <td class="marks-cell">2</td>
+      </tr>
+      <tr>
+        <td><strong>No match</strong></td>
+        <td>Any other response — including "family" alone</td>
+        <td class="marks-cell">0</td>
+      </tr>
+    </table>
+    <div class="note">No partial mark for mentioning family without a motive. No review required.</div>
+  </div>
+</div>
+
+<!-- LIT-B-4 -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-B-4</span>
+    <span class="marks">Max 2 marks &nbsp; <span class="badge-review">REVIEW</span></span>
+  </div>
+  <div class="q-prompt">In your own words, what is the main message of Maria's story?</div>
+  <div class="q-body">
+    <p>Open-ended response. Always reviewed by assessor. No auto-mark criteria — assessor awards 0, 1, or 2 marks based on comprehension demonstrated.</p>
+  </div>
+</div>
+
+<!-- LIT-C-1 -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-C-1</span>
+    <span class="marks">Max 3 marks &nbsp; <span class="badge-auto">AUTO</span></span>
+  </div>
+  <div class="q-prompt">Why is this form important?</div>
+  <div class="q-body">
+    <p><strong>Memo answer:</strong> "The form collects basic personal information including full name, ID number, contact number, grade and disability status."</p>
+    <table class="tiers" style="margin-top:8px;">
+      <tr><th>Tier</th><th>Condition</th><th class="marks-cell">Marks</th></tr>
+      <tr>
+        <td><strong>Full answer</strong></td>
+        <td>Response contains ALL of: <code>full name</code> · <code>ID number</code> · <code>contact</code> · <code>grade</code> · <code>disability</code></td>
+        <td class="marks-cell">3</td>
+      </tr>
+      <tr>
+        <td><strong>Partial — phrase</strong></td>
+        <td>Response contains <code>basic personal information</code></td>
+        <td class="marks-cell">2</td>
+      </tr>
+      <tr>
+        <td><strong>Partial — keyword</strong></td>
+        <td>Response contains <code>basic information</code></td>
+        <td class="marks-cell">1</td>
+      </tr>
+      <tr>
+        <td><strong>No match</strong></td>
+        <td>None of the above</td>
+        <td class="marks-cell">0</td>
+      </tr>
+    </table>
+    <div class="note">Tiers checked in order — first matching tier wins. No review required.</div>
+  </div>
+</div>
+
+<!-- LIT-C-2 -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-C-2</span>
+    <span class="marks">Max 2 marks &nbsp; <span class="badge-auto">AUTO</span></span>
+  </div>
+  <div class="q-prompt">What does "if any" mean?</div>
+  <div class="q-body">
+    <p><strong>Memo answer:</strong> "It means that it exists."</p>
+    <table class="tiers" style="margin-top:8px;">
+      <tr><th>Tier</th><th>Condition</th><th class="marks-cell">Marks</th></tr>
+      <tr>
+        <td><strong>Full answer</strong></td>
+        <td>Response contains <code>exist</code> / <code>exists</code> / <code>existing</code> / <code>existence</code> AND response is ≥ 4 words</td>
+        <td class="marks-cell">2</td>
+      </tr>
+      <tr>
+        <td><strong>Partial</strong></td>
+        <td>Response contains <code>exist</code> / <code>exists</code> / <code>existing</code> / <code>existence</code> (any word count)</td>
+        <td class="marks-cell">1</td>
+      </tr>
+      <tr>
+        <td><strong>No match</strong></td>
+        <td>No form of "exist" detected</td>
+        <td class="marks-cell">0</td>
+      </tr>
+    </table>
+    <div class="note">Tiers checked in order. No review required.</div>
+  </div>
+</div>
+
+<!-- LIT-D-WRITE -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">LIT-D-WRITE</span>
+    <span class="marks">Max 8 marks &nbsp; <span class="badge-review">REVIEW</span> <span class="badge-manual">MANUAL</span></span>
+  </div>
+  <div class="q-prompt">Writing task: "Why I want to join a learnership and what skills I want to develop." (6–8 sentences)</div>
+  <div class="q-body">
+    <p>Always reviewed by assessor. Scored on a rubric with criteria assessed by the assessor. No auto-mark criteria.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 class="page-break">Section 2 — Numeracy</h2>
+
+<p>All numeracy questions with a defined answer use numeric/text matching with normalisation (comma decimals, currency symbols, unit noise). Questions with <code>working_keywords</code> check for evidence of calculation steps.</p>
+
+<!-- NUM-A -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">NUM-A-1 / A-2 / A-3 / A-4</span>
+    <span class="marks">Max 1 mark each &nbsp; <span class="badge-auto">AUTO</span></span>
+  </div>
+  <div class="q-prompt">Basic numeracy operations.</div>
+  <div class="q-body">
+    <table class="tiers">
+      <tr><th>Question</th><th>Expected answer</th><th class="marks-cell">Marks</th></tr>
+      <tr><td>NUM-A-1</td><td><code>72</code></td><td class="marks-cell">1</td></tr>
+      <tr><td>NUM-A-2</td><td><code>62</code></td><td class="marks-cell">1</td></tr>
+      <tr><td>NUM-A-3</td><td><code>42</code></td><td class="marks-cell">1</td></tr>
+      <tr><td>NUM-A-4</td><td><code>21</code></td><td class="marks-cell">1</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- NUM-B -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">NUM-B-1 / B-2 / B-3</span>
+    <span class="marks">Max 1 mark each &nbsp; <span class="badge-auto">AUTO</span> / <span class="badge-review">REVIEW</span> (working)</span>
+  </div>
+  <div class="q-prompt">Applied numeracy — percentage and multiplication.</div>
+  <div class="q-body">
+    <table class="tiers">
+      <tr><th>Question</th><th>Expected answer</th><th>Working keywords</th><th class="marks-cell">Review if no working</th></tr>
+      <tr><td>NUM-B-1</td><td><code>30</code></td><td>—</td><td class="marks-cell">No</td></tr>
+      <tr><td>NUM-B-2</td><td><code>50</code></td><td><code>200</code> · <code>25</code></td><td class="marks-cell">Yes</td></tr>
+      <tr><td>NUM-B-3</td><td><code>360</code></td><td><code>40</code> · <code>9</code></td><td class="marks-cell">Yes</td></tr>
+    </table>
+    <div class="note">For B-2 and B-3: correct answer with working detected = 1 mark, no review. Correct answer but no working = 1 mark, flagged for review. Wrong answer = 0 marks, no review.</div>
+  </div>
+</div>
+
+<!-- NUM-C -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">NUM-C-1 / C-2 / C-3</span>
+    <span class="marks">Max 1 mark each &nbsp; <span class="badge-auto">AUTO</span> / <span class="badge-review">REVIEW</span> (working)</span>
+  </div>
+  <div class="q-prompt">Applied mathematics — time, percentage, subtraction.</div>
+  <div class="q-body">
+    <table class="tiers">
+      <tr><th>Question</th><th>Expected answer</th><th>Working keywords</th><th class="marks-cell">Review if no working</th></tr>
+      <tr><td>NUM-C-1</td><td><code>8.5</code> or <code>8,5</code></td><td><code>8</code> · <code>30</code></td><td class="marks-cell">Yes</td></tr>
+      <tr><td>NUM-C-2</td><td><code>30</code></td><td>—</td><td class="marks-cell">No</td></tr>
+      <tr><td>NUM-C-3</td><td><code>1700</code></td><td><code>2300</code> · <code>600</code></td><td class="marks-cell">Yes</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- NUM-D -->
+<div class="q-block">
+  <div class="q-header">
+    <span class="code">NUM-D-1 / D-2</span>
+    <span class="marks">Max 1 mark each &nbsp; <span class="badge-auto">AUTO</span> / <span class="badge-review">REVIEW</span> (working)</span>
+  </div>
+  <div class="q-prompt">Applied mathematics — rate and division.</div>
+  <div class="q-body">
+    <table class="tiers">
+      <tr><th>Question</th><th>Expected answer</th><th>Working keywords</th><th class="marks-cell">Review if no working</th></tr>
+      <tr><td>NUM-D-1</td><td><code>10</code></td><td>—</td><td class="marks-cell">No</td></tr>
+      <tr><td>NUM-D-2</td><td><code>4</code></td><td><code>20</code> · <code>5</code></td><td class="marks-cell">Yes</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2>Blank Response Policy</h2>
+<p>Any question where the learner submitted no answer (empty or whitespace only) is automatically scored zero marks and does not enter the review queue, regardless of question type.</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2>Review Queue Summary</h2>
+<table style="width:100%; border-collapse:collapse; font-size:9.5pt;">
+  <tr style="background:#333; color:#fff;">
+    <th style="padding:6px 10px; text-align:left;">Question</th>
+    <th style="padding:6px 10px; text-align:left;">Always reviewed?</th>
+    <th style="padding:6px 10px; text-align:left;">Reviewed only when…</th>
+  </tr>
+  <tr style="background:#f9f9f9;"><td style="padding:6px 10px; border:1px solid #ddd;">LIT-A-3A/B/C</td><td style="padding:6px 10px; border:1px solid #ddd;">Yes</td><td style="padding:6px 10px; border:1px solid #ddd;">—</td></tr>
+  <tr><td style="padding:6px 10px; border:1px solid #ddd;">LIT-B-3</td><td style="padding:6px 10px; border:1px solid #ddd;">No</td><td style="padding:6px 10px; border:1px solid #ddd;">Never (auto-resolved)</td></tr>
+  <tr style="background:#f9f9f9;"><td style="padding:6px 10px; border:1px solid #ddd;">LIT-B-4</td><td style="padding:6px 10px; border:1px solid #ddd;">Yes</td><td style="padding:6px 10px; border:1px solid #ddd;">—</td></tr>
+  <tr><td style="padding:6px 10px; border:1px solid #ddd;">LIT-D-WRITE</td><td style="padding:6px 10px; border:1px solid #ddd;">Yes</td><td style="padding:6px 10px; border:1px solid #ddd;">—</td></tr>
+  <tr style="background:#f9f9f9;"><td style="padding:6px 10px; border:1px solid #ddd;">NUM-B-2, B-3</td><td style="padding:6px 10px; border:1px solid #ddd;">No</td><td style="padding:6px 10px; border:1px solid #ddd;">Correct answer detected but working keywords absent</td></tr>
+  <tr><td style="padding:6px 10px; border:1px solid #ddd;">NUM-C-1, C-3</td><td style="padding:6px 10px; border:1px solid #ddd;">No</td><td style="padding:6px 10px; border:1px solid #ddd;">Correct answer detected but working keywords absent</td></tr>
+  <tr style="background:#f9f9f9;"><td style="padding:6px 10px; border:1px solid #ddd;">NUM-D-2</td><td style="padding:6px 10px; border:1px solid #ddd;">No</td><td style="padding:6px 10px; border:1px solid #ddd;">Correct answer detected but working keywords absent</td></tr>
+  <tr><td style="padding:6px 10px; border:1px solid #ddd;">All others</td><td style="padding:6px 10px; border:1px solid #ddd;">No</td><td style="padding:6px 10px; border:1px solid #ddd;">Never (auto-resolved)</td></tr>
+</table>
+
+<div class="footer">
+  NQF Learner Placement Assessment — Marking Rubric v1.1 &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp; donbugan@gmail.com
+</div>
+
+</body>
+</html>
