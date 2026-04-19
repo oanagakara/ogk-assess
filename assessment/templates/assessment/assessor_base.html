@@ -11,6 +11,7 @@
   #sidebar[data-collapsed] .brand-area { justify-content: center; padding: 1.1rem 0; }
   #sidebar[data-collapsed] .bottom-area { align-items: center; }
   #sidebar[data-collapsed] .bottom-theme { justify-content: center; }
+  #sidebar[data-collapsed] .bottom-font { display: none; }
   #sidebar[data-collapsed] .bottom-user { justify-content: center; }
 </style>
 
@@ -181,6 +182,21 @@
         </svg>
       </div>
 
+      <div class="bottom-font flex items-center gap-2 opacity-60">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
+          <path d="M4 7V5h16v2M9 20h6M12 5v15"/>
+        </svg>
+        <select id="font-picker" class="select select-xs bg-transparent border-none text-xs w-full focus:outline-none">
+          <option value="">System</option>
+          <option value="inter">Inter</option>
+          <option value="lato">Lato</option>
+          <option value="merriweather">Merriweather</option>
+          <option value="nunito">Nunito Sans</option>
+        </select>
+      </div>
+
       <div class="bottom-user flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 min-w-0">
           <div class="w-7 h-7 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs font-bold shrink-0"
@@ -248,6 +264,28 @@
         var next = themeToggle.checked ? "corporate" : "business";
         root.setAttribute("data-theme", next);
         localStorage.setItem("theme", next);
+      });
+    }
+
+    // Font picker
+    var fontMap = {
+      "inter":        "'Inter', sans-serif",
+      "lato":         "'Lato', sans-serif",
+      "merriweather": "'Merriweather', serif",
+      "nunito":       "'Nunito Sans', sans-serif"
+    };
+    var fontPicker = document.getElementById("font-picker");
+    if (fontPicker) {
+      var savedFont = localStorage.getItem("font") || "";
+      fontPicker.value = savedFont;
+      fontPicker.addEventListener("change", function () {
+        var key = fontPicker.value;
+        if (fontMap[key]) {
+          document.documentElement.style.setProperty("--font-body", fontMap[key]);
+        } else {
+          document.documentElement.style.removeProperty("--font-body");
+        }
+        localStorage.setItem("font", key);
       });
     }
 
