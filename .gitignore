@@ -39,3 +39,4 @@ current_questions_export.json
 
 # Claude skills
 .skills/
+staticfiles/
