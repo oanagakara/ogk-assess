@@ -355,6 +355,28 @@ class WorkingSheet(models.Model):
         return f"Working sheet — {self.attempt.code}"
 
 
+class ScoreAuditLog(models.Model):
+    score       = models.ForeignKey("Score", on_delete=models.CASCADE, related_name="audit_log")
+    changed_by  = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    changed_at  = models.DateTimeField(auto_now_add=True)
+    action      = models.CharField(max_length=10)        # 'created' | 'updated'
+    mode        = models.CharField(max_length=10, blank=True)  # 'auto' | 'manual'
+    points_before = models.FloatField(null=True, blank=True)
+    points_after  = models.FloatField()
+    max_points    = models.FloatField()
+    notes         = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["changed_at"]
+        verbose_name = "Score audit entry"
+        verbose_name_plural = "Score audit log"
+
+    def __str__(self):
+        return f"{self.score} · {self.action} · {self.changed_at:%Y-%m-%d %H:%M}"
+
+
 class Response(models.Model):
     attempt = models.ForeignKey("Attempt", on_delete=models.CASCADE)
     question = models.ForeignKey("Question", on_delete=models.CASCADE)

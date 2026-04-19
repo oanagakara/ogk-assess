@@ -1,8 +1,29 @@
 from django.contrib import admin
 
-from .models import AssessmentTemplate, Section, Question, Learner, Attempt, Response, Tenant
+from .models import AssessmentTemplate, Section, Question, Learner, Attempt, Response, Tenant, Score, ScoreAuditLog
 
 admin.site.register([AssessmentTemplate, Section, Question, Learner, Attempt, Response])
+
+
+@admin.register(ScoreAuditLog)
+class ScoreAuditLogAdmin(admin.ModelAdmin):
+    list_display  = ("score", "action", "mode", "points_before", "points_after", "max_points", "changed_by", "changed_at")
+    list_filter   = ("action", "mode", "changed_at")
+    search_fields = ("score__response__attempt__code", "changed_by__username", "notes")
+    readonly_fields = (
+        "score", "changed_by", "changed_at", "action", "mode",
+        "points_before", "points_after", "max_points", "notes",
+    )
+    ordering = ("-changed_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Tenant)
