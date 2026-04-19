@@ -5,13 +5,18 @@ pip install -r requirements.txt
 python manage.py collectstatic --no-input
 python manage.py migrate
 python manage.py shell -c "
-from assessment.models import Question
+from assessment.models import Question, AssessmentTemplate
+from django.core.management import call_command
 if not Question.objects.exists():
-    from django.core.management import call_command
     call_command('loaddata', 'questions')
-    print('Questions loaded.')
+    print('questions fixture loaded.')
 else:
-    print('Questions already exist — skipping loaddata.')
+    print('Questions already exist — skipping questions fixture.')
+if not AssessmentTemplate.objects.filter(pk=5).exists():
+    call_command('loaddata', 'lit_nqf_general')
+    print('lit_nqf_general fixture loaded.')
+else:
+    print('Template pk=5 already exists — skipping lit_nqf_general fixture.')
 "
 
 # Create assessor group with full permissions on all assessment models (if it doesn't exist)
