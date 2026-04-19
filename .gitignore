@@ -40,3 +40,6 @@ current_questions_export.json
 # Claude skills
 .skills/
 staticfiles/
+
+# Local dev/demo scripts
+simulate_*.py
