@@ -73,6 +73,7 @@
   <ol>
     <li>Platform overview</li>
     <li>Accessing the admin interface</li>
+    <li>First-time deployment on Render</li>
     <li>Onboarding a new client (tenant)</li>
     <li>Tenant record field reference</li>
     <li>Environment variables reference</li>
@@ -82,6 +83,7 @@
     <li>Marking and results</li>
     <li>Template and branding overrides</li>
     <li>Troubleshooting</li>
+    <!-- 12 sections total -->
   </ol>
 </div>
 
@@ -103,17 +105,85 @@
 <!-- ─────────────────────────────────────────── -->
 <h2>2. Accessing the admin interface</h2>
 
-<p>The Django admin is available at <code>/admin/</code> on each deployment. Only superuser accounts can log in here. Assessors use <code>/accounts/login/</code> instead.</p>
-
-<h3>Creating a superuser (first-time setup)</h3>
-<p>Run this in the Render shell (or locally with the venv active):</p>
-<pre>python manage.py createsuperuser</pre>
-<p>Enter a username, email (optional), and strong password when prompted.</p>
+<p>The Django admin URL is configurable per deployment via the <code>ADMIN_URL_PREFIX</code> environment variable (default: <code>_platform-admin</code>). Your admin URL is:</p>
+<pre>https://&lt;your-hostname&gt;/&lt;ADMIN_URL_PREFIX&gt;/</pre>
+<p>Only superuser accounts can log in here. Assessors use <code>/accounts/login/</code> instead.</p>
 
 <div class="warn"><strong>Keep superuser credentials separate from assessor credentials.</strong> Superusers can modify any record including marks and scores.</div>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>3. Onboarding a new client (tenant)</h2>
+<h2>3. First-time deployment on Render</h2>
+
+<p>Follow these steps every time you create a new Render service for a client. This covers the full sequence from deploy to a working, branded site.</p>
+
+<div class="step"><div class="step-num">1</div><div class="step-body">
+  <strong>Deploy the service</strong><br>
+  Push your code to GitHub. In the Render dashboard, create a new <em>Web Service</em> connected to your repository. Use the branch you want to deploy (typically <code>main</code>).
+</div></div>
+
+<div class="step"><div class="step-num">2</div><div class="step-body">
+  <strong>Bind a PostgreSQL database</strong><br>
+  In Render, create a new <em>PostgreSQL</em> instance and bind it to the service. Render automatically injects <code>DATABASE_URL</code> into the service's environment.
+</div></div>
+
+<div class="step"><div class="step-num">3</div><div class="step-body">
+  <strong>Set environment variables</strong><br>
+  In the service → <em>Environment</em> tab, add the following. Mark sensitive values as <strong>Secret</strong> (eye icon → lock).
+
+  <table style="margin-top:10px;">
+    <tr><th>Variable</th><th>Value</th><th>Secret?</th></tr>
+    <tr><td><code>DJANGO_SECRET_KEY</code></td><td>Generate: <code>python -c "import secrets; print(secrets.token_urlsafe(50))"</code></td><td>Yes</td></tr>
+    <tr><td><code>DEBUG</code></td><td><code>False</code></td><td>No</td></tr>
+    <tr><td><code>ALLOWED_HOSTS</code></td><td>Your Render hostname, e.g. <code>myapp.onrender.com</code>. No <code>https://</code>, no trailing slash. Add a custom domain here too if you have one, comma-separated.</td><td>No</td></tr>
+    <tr><td><code>TENANT_SLUG</code></td><td>The slug of the Tenant record you will create in step 6. Example: <code>default</code></td><td>No</td></tr>
+    <tr><td><code>DATABASE_URL</code></td><td>Auto-injected by Render when you bind a database. Do not set manually.</td><td>Yes</td></tr>
+    <tr><td><code>ADMIN_URL_PREFIX</code></td><td>A hard-to-guess path segment, e.g. <code>_mgmt-2026</code>. Write this down — you will need it to access the admin.</td><td>No</td></tr>
+    <tr><td><code>ANTHROPIC_API_KEY</code></td><td>Your <code>sk-ant-api03-…</code> key. Required for AI marking.</td><td>Yes</td></tr>
+    <tr><td><code>DJANGO_SUPERUSER_USERNAME</code></td><td>Username for the initial superuser account.</td><td>Yes</td></tr>
+    <tr><td><code>DJANGO_SUPERUSER_PASSWORD</code></td><td>Strong password (12+ characters).</td><td>Yes</td></tr>
+    <tr><td><code>DJANGO_SUPERUSER_EMAIL</code></td><td>Your email address.</td><td>Yes</td></tr>
+  </table>
+</div></div>
+
+<div class="step"><div class="step-num">4</div><div class="step-body">
+  <strong>Wait for the deploy to complete</strong><br>
+  The build script (<code>build.sh</code>) runs <code>collectstatic</code>, <code>migrate</code>, and creates the superuser automatically on first deploy. Watch the Render <em>Logs</em> tab — a successful deploy ends with the gunicorn startup line.
+</div></div>
+
+<div class="step"><div class="step-num">5</div><div class="step-body">
+  <strong>Log in to the admin</strong><br>
+  Navigate to:
+  <pre>https://&lt;your-hostname&gt;/&lt;ADMIN_URL_PREFIX&gt;/</pre>
+  Log in with the superuser credentials you set in step 3.
+  <div class="warn" style="margin-top:8px;">If you see a 500 error, check Render logs. The most common cause is <code>ALLOWED_HOSTS</code> not matching the hostname exactly.</div>
+</div></div>
+
+<div class="step"><div class="step-num">6</div><div class="step-body">
+  <strong>Create the Tenant record</strong><br>
+  Admin → <em>Tenants</em> → <em>Add tenant</em>. At minimum, fill in:
+  <ul>
+    <li><strong>Name</strong> — displayed in the sidebar, titles, and login page</li>
+    <li><strong>Slug</strong> — must match <code>TENANT_SLUG</code> exactly (auto-filled from Name, verify it)</li>
+    <li><strong>Is active</strong> — must be checked</li>
+  </ul>
+  All colour and logo fields are optional now and can be filled in later. Save the record.
+  <div class="note" style="margin-top:8px;">Until the Tenant record exists, the site shows "Assessment" as the name. Everything else still works — branding is cosmetic.</div>
+</div></div>
+
+<div class="step"><div class="step-num">7</div><div class="step-body">
+  <strong>Verify</strong><br>
+  Visit your deployment URL (not the admin path). Confirm:
+  <ul>
+    <li>The login page loads and shows your organisation name.</li>
+    <li>No 500 errors in the Render logs.</li>
+    <li>Log in as an assessor and create a test session end-to-end.</li>
+  </ul>
+</div></div>
+
+<div class="note"><strong>ALLOWED_HOSTS after a custom domain:</strong> If you later add a custom domain (e.g. <code>assess.acme-training.co.za</code>), add it to <code>ALLOWED_HOSTS</code> as a comma-separated value alongside the Render hostname and trigger a redeploy.</div>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>4. Onboarding a new client (tenant)</h2>
 
 <p>Full onboarding for a new client takes approximately 20 minutes once you have their branding assets.</p>
 
@@ -173,7 +243,7 @@ python manage.py createsuperuser</pre>
 <div class="note"><strong>Default fallback:</strong> If <code>TENANT_SLUG</code> is not set, the system falls back to <code>default</code>. The default tenant should exist in every database as a safety net.</div>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>4. Tenant record field reference</h2>
+<h2>5. Tenant record field reference</h2>
 
 <h3>Identity</h3>
 <table>
@@ -224,20 +294,26 @@ python manage.py createsuperuser</pre>
 </table>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>5. Environment variables reference</h2>
+<h2>6. Environment variables reference</h2>
 
 <table>
   <tr><th>Variable</th><th>Required</th><th>Notes</th></tr>
+  <tr class="env-row"><td>DJANGO_SECRET_KEY</td><td>Yes</td><td>Random string, 50+ characters. Generate with: <code>python -c "import secrets; print(secrets.token_urlsafe(50))"</code>. Never reuse between deployments. Mark as Secret.</td></tr>
+  <tr class="env-row"><td>DEBUG</td><td>No</td><td>Set to <code>False</code> in production. Defaults to <code>False</code> if unset.</td></tr>
+  <tr class="env-row"><td>ALLOWED_HOSTS</td><td>Production: yes</td><td>Comma-separated list of hostnames that may serve the app. Example: <code>myapp.onrender.com,assess.acme.co.za</code>. No <code>https://</code> prefix. If unset, defaults to <code>*</code> (development only — never leave unset in production).</td></tr>
   <tr class="env-row"><td>TENANT_SLUG</td><td>Production: yes</td><td>Must match the slug of an active Tenant record in the database. If unset, falls back to <code>default</code>.</td></tr>
-  <tr class="env-row"><td>DJANGO_SECRET_KEY</td><td>Yes</td><td>Random string, 50+ characters. Generate with: <code>python -c "import secrets; print(secrets.token_urlsafe(50))"</code>. Never reuse between deployments.</td></tr>
-  <tr class="env-row"><td>DATABASE_URL</td><td>Production: yes</td><td>PostgreSQL connection string provided by Render. If unset, Django falls back to a local SQLite file (development only).</td></tr>
-  <tr class="env-row"><td>DEBUG</td><td>No</td><td>Set to <code>False</code> in production. Defaults to <code>True</code> if unset (never leave this in production).</td></tr>
+  <tr class="env-row"><td>DATABASE_URL</td><td>Production: yes</td><td>PostgreSQL connection string provided by Render when a database is bound. If unset, falls back to local SQLite (development only). Mark as Secret.</td></tr>
+  <tr class="env-row"><td>ADMIN_URL_PREFIX</td><td>No</td><td>URL path segment for the Django admin. Default: <code>_platform-admin</code>. Change per deployment to obscure the admin path. Do not include a trailing slash.</td></tr>
+  <tr class="env-row"><td>ANTHROPIC_API_KEY</td><td>If AI marking active</td><td>Your <code>sk-ant-api03-…</code> key. Required for the LIT-D-WRITE AI marking feature. Mark as Secret.</td></tr>
+  <tr class="env-row"><td>DJANGO_SUPERUSER_USERNAME</td><td>First deploy only</td><td>Used by <code>build.sh</code> to create the initial superuser. Mark as Secret.</td></tr>
+  <tr class="env-row"><td>DJANGO_SUPERUSER_PASSWORD</td><td>First deploy only</td><td>Initial superuser password. Mark as Secret.</td></tr>
+  <tr class="env-row"><td>DJANGO_SUPERUSER_EMAIL</td><td>First deploy only</td><td>Initial superuser email. Mark as Secret.</td></tr>
 </table>
 
 <div class="danger"><strong>Never set DEBUG=True in a production deployment.</strong> It exposes stack traces, internal settings, and database queries to any visitor who triggers an error.</div>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>6. Managing users and assessors</h2>
+<h2>7. Managing users and assessors</h2>
 
 <h3>User types</h3>
 <table>
@@ -261,7 +337,7 @@ python manage.py createsuperuser</pre>
 <p>Go to <code>/admin/</code> → <em>Users</em> → select the user → <em>Password</em> section → <em>this form</em> link → set new password → Save.</p>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>7. Assessment templates and questions</h2>
+<h2>8. Assessment templates and questions</h2>
 
 <p>Assessment templates define the structure of an exam. Each template contains sections, and each section contains questions. Templates are shared across all sessions.</p>
 
@@ -282,7 +358,7 @@ python manage.py createsuperuser</pre>
 <p>Answer keys are stored as JSON in the <code>answer_key_json</code> field. These drive auto-marking. Refer to the fixture files in <code>assessment/fixtures/</code> for format examples per question type.</p>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>8. Running a session</h2>
+<h2>9. Running a session</h2>
 
 <h3>Creating a session</h3>
 <ol>
@@ -306,7 +382,7 @@ python manage.py createsuperuser</pre>
 <p>From <em>Sessions</em> → click a session code → <em>Monitor</em>. The monitor page shows all active attempts in real time (auto-refreshes every 30 seconds). Use this during exam delivery to watch for learners who stall or go inactive.</p>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>9. Marking and results</h2>
+<h2>10. Marking and results</h2>
 
 <h3>Auto-marking</h3>
 <p>When a learner submits, all question types except <code>LIT-D-WRITE</code> (long-form writing) are auto-marked immediately. Auto-marked scores appear in the <em>Marked</em> tab.</p>
@@ -320,7 +396,7 @@ python manage.py createsuperuser</pre>
 <div class="note">The CSV export is restricted to staff users. Standard assessors see the results table but do not see the export button.</div>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>10. Template and branding overrides</h2>
+<h2>11. Template and branding overrides</h2>
 
 <p>Most branding changes (colours, name, logo, footer) require only a Tenant record update in admin — no code change or redeploy. The cache clears automatically on save.</p>
 
@@ -348,7 +424,7 @@ python manage.py createsuperuser</pre>
 <p>If a client needs styling that CSS variables cannot cover, drop a file at <code>static/tenants/&lt;slug&gt;/custom.css</code>. Add a link tag to the relevant base template override for that client. This is an escape hatch — use sparingly.</p>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>11. Troubleshooting</h2>
+<h2>12. Troubleshooting</h2>
 
 <table>
   <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
