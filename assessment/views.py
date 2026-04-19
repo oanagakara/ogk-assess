@@ -23,7 +23,7 @@ from .forms import (
     StartForm,
 )
 from .auto_mark import auto_mark_attempt
-from .models import AssessmentTemplate, Attempt, ExamSession, Learner, Question, Response, Score, Section, WorkingSheet
+from .models import AssessmentTemplate, Attempt, ExamSession, Learner, Question, Response, Score, ScoreAuditLog, Section, WorkingSheet
 from .nqf import NQF_DISPLAY_GROUPS, build_question_metadata, compute_nqf_placement
 from .renderers import get_renderer
 from .services import claim_seat, claim_session_seat
@@ -1764,4 +1764,24 @@ def assessor_scoring_breakdown(request, code: str):
     return render(request, "assessment/assessor_scoring_breakdown.html", {
         "attempt": attempt,
         "rows": rows,
+    })
+
+
+@login_required
+@user_passes_test(is_staff)
+def assessor_score_audit_log(request, code: str):
+    """Per-attempt score audit log — every score creation and change."""
+    attempt = get_object_or_404(
+        Attempt.objects.select_related("learner", "template"),
+        code=code,
+    )
+    entries = (
+        ScoreAuditLog.objects
+        .filter(score__response__attempt=attempt)
+        .select_related("score__response__question", "changed_by")
+        .order_by("changed_at")
+    )
+    return render(request, "assessment/assessor_score_audit_log.html", {
+        "attempt": attempt,
+        "entries": entries,
     })

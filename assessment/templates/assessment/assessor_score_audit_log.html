@@ -1,0 +1,90 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Score audit log — {{ attempt.code }}{% endblock %}
+
+{% block assessor_content %}
+<div class="h-full flex flex-col gap-4 overflow-y-auto">
+
+  {# ── Header ── #}
+  <div class="flex items-center justify-between shrink-0">
+    <div>
+      <div class="text-xs opacity-50 uppercase tracking-wide">Score audit log</div>
+      <h1 class="text-lg font-semibold leading-tight">
+        {{ attempt.learner.first_names }} {{ attempt.learner.surname }}
+        <span class="font-mono text-sm opacity-50 ml-2">{{ attempt.code }}</span>
+      </h1>
+      <p class="text-xs opacity-50 mt-0.5">Every score write — staff only</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="window.print()" class="btn btn-sm btn-outline">Print / PDF</button>
+      <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}" class="btn btn-sm btn-ghost">← Back to marking</a>
+    </div>
+  </div>
+
+  {# ── Table ── #}
+  {% if entries %}
+  <div class="overflow-x-auto shrink-0">
+    <table class="table table-sm w-full text-xs">
+      <thead>
+        <tr class="opacity-60">
+          <th>Time</th>
+          <th>Question</th>
+          <th>Action</th>
+          <th>Mode</th>
+          <th>Before</th>
+          <th>After</th>
+          <th>Max</th>
+          <th>By</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr class="hover">
+          <td class="font-mono whitespace-nowrap">{{ entry.changed_at|date:"Y-m-d H:i:s" }}</td>
+          <td class="font-mono">{{ entry.score.response.question.code }}</td>
+          <td>
+            {% if entry.action == "created" %}
+              <span class="badge badge-xs badge-success">created</span>
+            {% else %}
+              <span class="badge badge-xs badge-warning">updated</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if entry.mode == "auto" %}
+              <span class="badge badge-xs badge-info">auto</span>
+            {% elif entry.mode == "manual" %}
+              <span class="badge badge-xs badge-ghost">manual</span>
+            {% else %}
+              <span class="opacity-40">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if entry.points_before is not None %}
+              {{ entry.points_before|floatformat:1 }}
+            {% else %}
+              <span class="opacity-40">—</span>
+            {% endif %}
+          </td>
+          <td class="font-semibold">{{ entry.points_after|floatformat:1 }}</td>
+          <td class="opacity-60">{{ entry.max_points|floatformat:1 }}</td>
+          <td>{{ entry.changed_by.username|default:"system" }}</td>
+          <td class="max-w-xs truncate opacity-70" title="{{ entry.notes }}">{{ entry.notes|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-sm opacity-50 mt-4">No audit entries yet for this attempt.</div>
+  {% endif %}
+
+</div>
+
+<style>
+  @media print {
+    nav, aside, header, .btn, button { display: none !important; }
+    body { background: white; color: black; }
+    table { font-size: 11px; }
+  }
+</style>
+{% endblock %}

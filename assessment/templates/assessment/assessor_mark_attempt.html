@@ -93,7 +93,11 @@
   </div>
 
   {% if request.user.is_staff %}
-    <div class="flex justify-end shrink-0">
+    <div class="flex justify-end gap-2 shrink-0">
+      <a href="{% url 'assessment:assessor_score_audit_log' attempt.code %}"
+         class="btn btn-xs btn-ghost opacity-60 hover:opacity-100">
+        Audit log →
+      </a>
       <a href="{% url 'assessment:assessor_scoring_breakdown' attempt.code %}"
          class="btn btn-xs btn-ghost opacity-60 hover:opacity-100">
         Scoring breakdown →
