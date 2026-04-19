@@ -22,7 +22,13 @@
 
     {# Brand + collapse toggle #}
     <div class="brand-area flex items-center justify-between px-5 py-5 border-b border-base-200">
-      <span class="sl font-bold text-base tracking-tight">{{ tenant.name|default:"Assessment" }}</span>
+      <div class="sl min-w-0">
+        {% if tenant.logo_url %}
+          <img src="{{ tenant.logo_url }}" alt="{{ tenant.logo_alt_text }}" class="max-h-8 max-w-[140px] object-contain">
+        {% else %}
+          <span class="font-bold text-base tracking-tight">{{ tenant.name|default:"Assessment" }}</span>
+        {% endif %}
+      </div>
       <button id="sidebar-toggle" class="btn btn-ghost btn-xs px-1 opacity-50 hover:opacity-100" title="Toggle sidebar">
         <svg id="sidebar-icon-collapse" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
