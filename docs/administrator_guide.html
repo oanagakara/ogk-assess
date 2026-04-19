@@ -106,7 +106,7 @@
 <h2>2. Accessing the admin interface</h2>
 
 <p>The Django admin URL is configurable per deployment via the <code>ADMIN_URL_PREFIX</code> environment variable (default: <code>_platform-admin</code>). Your admin URL is:</p>
-<pre>https://&lt;your-hostname&gt;/&lt;ADMIN_URL_PREFIX&gt;/</pre>
+<pre>https://assessment-engine-rxrh.onrender.com/&lt;ADMIN_URL_PREFIX&gt;/</pre>
 <p>Only superuser accounts can log in here. Assessors use <code>/accounts/login/</code> instead.</p>
 
 <div class="warn"><strong>Keep superuser credentials separate from assessor credentials.</strong> Superusers can modify any record including marks and scores.</div>
@@ -134,7 +134,7 @@
     <tr><th>Variable</th><th>Value</th><th>Secret?</th></tr>
     <tr><td><code>DJANGO_SECRET_KEY</code></td><td>Generate: <code>python -c "import secrets; print(secrets.token_urlsafe(50))"</code></td><td>Yes</td></tr>
     <tr><td><code>DEBUG</code></td><td><code>False</code></td><td>No</td></tr>
-    <tr><td><code>ALLOWED_HOSTS</code></td><td>Your Render hostname, e.g. <code>myapp.onrender.com</code>. No <code>https://</code>, no trailing slash. Add a custom domain here too if you have one, comma-separated.</td><td>No</td></tr>
+    <tr><td><code>ALLOWED_HOSTS</code></td><td>Your Render hostname, e.g. <code>assessment-engine-rxrh.onrender.com</code>. No <code>https://</code>, no trailing slash. Add a custom domain here too if you have one, comma-separated.</td><td>No</td></tr>
     <tr><td><code>TENANT_SLUG</code></td><td>The slug of the Tenant record you will create in step 6. Example: <code>default</code></td><td>No</td></tr>
     <tr><td><code>DATABASE_URL</code></td><td>Auto-injected by Render when you bind a database. Do not set manually.</td><td>Yes</td></tr>
     <tr><td><code>ADMIN_URL_PREFIX</code></td><td>A hard-to-guess path segment, e.g. <code>_mgmt-2026</code>. Write this down — you will need it to access the admin.</td><td>No</td></tr>
@@ -153,7 +153,7 @@
 <div class="step"><div class="step-num">5</div><div class="step-body">
   <strong>Log in to the admin</strong><br>
   Navigate to:
-  <pre>https://&lt;your-hostname&gt;/&lt;ADMIN_URL_PREFIX&gt;/</pre>
+  <pre>https://assessment-engine-rxrh.onrender.com/&lt;ADMIN_URL_PREFIX&gt;/</pre>
   Log in with the superuser credentials you set in step 3.
   <div class="warn" style="margin-top:8px;">If you see a 500 error, check Render logs. The most common cause is <code>ALLOWED_HOSTS</code> not matching the hostname exactly.</div>
 </div></div>
@@ -300,7 +300,7 @@ python manage.py createsuperuser</pre>
   <tr><th>Variable</th><th>Required</th><th>Notes</th></tr>
   <tr class="env-row"><td>DJANGO_SECRET_KEY</td><td>Yes</td><td>Random string, 50+ characters. Generate with: <code>python -c "import secrets; print(secrets.token_urlsafe(50))"</code>. Never reuse between deployments. Mark as Secret.</td></tr>
   <tr class="env-row"><td>DEBUG</td><td>No</td><td>Set to <code>False</code> in production. Defaults to <code>False</code> if unset.</td></tr>
-  <tr class="env-row"><td>ALLOWED_HOSTS</td><td>Production: yes</td><td>Comma-separated list of hostnames that may serve the app. Example: <code>myapp.onrender.com,assess.acme.co.za</code>. No <code>https://</code> prefix. If unset, defaults to <code>*</code> (development only — never leave unset in production).</td></tr>
+  <tr class="env-row"><td>ALLOWED_HOSTS</td><td>Production: yes</td><td>Comma-separated list of hostnames that may serve the app. Example: <code>assessment-engine-rxrh.onrender.com,assess.acme.co.za</code>. No <code>https://</code> prefix. If unset, defaults to <code>*</code> (development only — never leave unset in production).</td></tr>
   <tr class="env-row"><td>TENANT_SLUG</td><td>Production: yes</td><td>Must match the slug of an active Tenant record in the database. If unset, falls back to <code>default</code>.</td></tr>
   <tr class="env-row"><td>DATABASE_URL</td><td>Production: yes</td><td>PostgreSQL connection string provided by Render when a database is bound. If unset, falls back to local SQLite (development only). Mark as Secret.</td></tr>
   <tr class="env-row"><td>ADMIN_URL_PREFIX</td><td>No</td><td>URL path segment for the Django admin. Default: <code>_platform-admin</code>. Change per deployment to obscure the admin path. Do not include a trailing slash.</td></tr>
