@@ -1,6 +1,28 @@
 from django.db.models import Exists, OuterRef, Q
 
 from .models import Attempt, Response, Score
+from .tenant import get_active_tenant
+
+
+def tenant_branding(request):
+    tenant = get_active_tenant()
+    if tenant is None:
+        return {}
+    return {
+        "tenant": tenant,
+        "brand_css_vars": _css_vars(tenant),
+    }
+
+
+def _css_vars(tenant):
+    return (
+        f"--brand-primary:{tenant.color_primary};"
+        f"--brand-secondary:{tenant.color_secondary};"
+        f"--brand-accent:{tenant.color_accent};"
+        f"--brand-text:{tenant.color_text};"
+        f"--brand-bg:{tenant.color_bg};"
+        f"--brand-font:'{tenant.font_family_primary}';"
+    )
 
 
 def assessor_nav_counts(request):

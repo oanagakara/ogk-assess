@@ -21,7 +21,7 @@
 
     {# Brand + collapse toggle #}
     <div class="brand-area flex items-center justify-between px-5 py-5 border-b border-base-200">
-      <span class="sl font-bold text-base tracking-tight">iCan Assess</span>
+      <span class="sl font-bold text-base tracking-tight">{{ tenant.name|default:"Assessment" }}</span>
       <button id="sidebar-toggle" class="btn btn-ghost btn-xs px-1 opacity-50 hover:opacity-100" title="Toggle sidebar">
         <svg id="sidebar-icon-collapse" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"

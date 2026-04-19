@@ -1,12 +1,54 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model 
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 import secrets
 import string
 
 
-# Create your models here.
+class Tenant(models.Model):
+    name               = models.CharField(max_length=120)
+    slug               = models.SlugField(unique=True)
+    legal_name         = models.CharField(max_length=200, blank=True)
+
+    logo_url           = models.CharField(max_length=300, blank=True)
+    logo_white_url     = models.CharField(max_length=300, blank=True)
+    favicon_url        = models.CharField(max_length=300, blank=True)
+    logo_alt           = models.CharField(max_length=120, blank=True)
+    banner_url         = models.CharField(max_length=300, blank=True)
+
+    color_primary      = models.CharField(max_length=7, default="#1a1a2e")
+    color_secondary    = models.CharField(max_length=7, default="#16213e")
+    color_accent       = models.CharField(max_length=7, default="#0f3460")
+    color_text         = models.CharField(max_length=7, default="#111111")
+    color_bg           = models.CharField(max_length=7, default="#ffffff")
+
+    font_family_primary   = models.CharField(max_length=100, default="Arial, sans-serif")
+    font_family_secondary = models.CharField(max_length=100, blank=True)
+
+    tagline      = models.CharField(max_length=200, blank=True)
+    footer_line  = models.CharField(max_length=300, blank=True)
+    support_email = models.EmailField(blank=True)
+    website_url   = models.URLField(blank=True)
+
+    is_active  = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Tenant"
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def logo_alt_text(self):
+        return self.logo_alt or self.name
+
+    @property
+    def template_dir(self):
+        return f"tenants/{self.slug}/"
+
+
 class AssessmentTemplate(models.Model):
     name = models.CharField(max_length=200)
     version = models.CharField(max_length=50, blank=True, default="")
