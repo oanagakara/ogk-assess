@@ -65,6 +65,10 @@ def test_learner_question_page_shows_timer(client, assessment_template, section,
         status=Attempt.IN_PROGRESS,
     )
 
+    session = client.session
+    session["learner_attempt_code"] = attempt.code
+    session.save()
+
     url = reverse("assessment:attempt_question", kwargs={"code": attempt.code, "n": 1})
     response = client.get(url)
 
@@ -96,6 +100,10 @@ def test_final_question_submission_marks_attempt_submitted(
         status=Attempt.IN_PROGRESS,
     )
 
+    session = client.session
+    session["learner_attempt_code"] = attempt.code
+    session.save()
+
     url = reverse("assessment:attempt_question", kwargs={"code": attempt.code, "n": 1})
     response = client.post(url, {"answer": "4", "next": "1"})
 
@@ -109,6 +117,7 @@ def test_final_question_submission_marks_attempt_submitted(
     assert attempt.status == Attempt.IN_PROGRESS
 
     # Choosing "submit now" on the review info screen finalises the attempt.
+    # Session key is already set from above; re-save in case session was cycled.
     review_url = reverse("assessment:attempt_review_info", kwargs={"code": attempt.code})
     client.post(review_url, {"action": "submit"})
     attempt.refresh_from_db()
@@ -208,6 +217,11 @@ def test_non_final_mark_page_shows_save_and_next(
         status=Attempt.SUBMITTED,
     )
 
+    q1 = Question.objects.get(section=section, order=1)
+    q2 = Question.objects.get(section=section, order=2)
+    Response.objects.create(attempt=attempt, question=q1, response_json=json.dumps({"answer": "A1"}))
+    Response.objects.create(attempt=attempt, question=q2, response_json=json.dumps({"answer": "A2"}))
+
     client.force_login(assessor)
 
     url = reverse("assessment:assessor_mark_attempt", kwargs={"code": attempt.code})
@@ -216,8 +230,8 @@ def test_non_final_mark_page_shows_save_and_next(
     html = response.content.decode()
 
     assert response.status_code == 200
-    assert "Save & Next" in html
-    assert "Save & Done" not in html
+    assert "Save & Continue" in html
+    assert "Save & Review Summary" not in html
 
 
 @pytest.mark.django_db
@@ -243,6 +257,9 @@ def test_final_mark_page_shows_save_and_done(
         status=Attempt.SUBMITTED,
     )
 
+    q1 = Question.objects.get(section=section, order=1)
+    Response.objects.create(attempt=attempt, question=q1, response_json=json.dumps({"answer": "A1"}))
+
     client.force_login(assessor)
 
     url = reverse("assessment:assessor_mark_attempt", kwargs={"code": attempt.code})
@@ -251,8 +268,8 @@ def test_final_mark_page_shows_save_and_done(
     html = response.content.decode()
 
     assert response.status_code == 200
-    assert "Save & Done" in html
-    assert "Save & Next" not in html
+    assert "Save & Review Summary" in html
+    assert "Save & Continue" not in html
 
 
 @pytest.mark.django_db
@@ -299,7 +316,7 @@ def test_save_done_on_final_question_persists_score_and_redirects_to_attempts(
     score = Score.objects.get(response__attempt=attempt, response__question=question)
 
     assert response.status_code == 302
-    assert response.url == reverse("assessment:assessor_attempts")
+    assert response.url == reverse("assessment:assessor_review_queue")
     assert score.points == 3
     assert score.max_points == 3
     assert score.assessor == assessor
