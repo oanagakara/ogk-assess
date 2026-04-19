@@ -24,6 +24,10 @@ def test_expired_attempt_post_is_rejected_and_auto_submitted(
         last_activity_at=started,
     )
 
+    session = client.session
+    session["learner_attempt_code"] = attempt.code
+    session.save()
+
     url = reverse("assessment:attempt_question", kwargs={"code": attempt.code, "n": 1})
     response = client.post(url, {"answer": "4", "next": "1"})
 
@@ -45,6 +49,10 @@ def test_submitted_attempt_question_page_redirects_to_submitted(
     submitted_attempt,
     markable_question,
 ):
+    session = client.session
+    session["learner_attempt_code"] = submitted_attempt.code
+    session.save()
+
     url = reverse(
         "assessment:attempt_question",
         kwargs={"code": submitted_attempt.code, "n": 1},
