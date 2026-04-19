@@ -5,7 +5,7 @@
 <title>Administrator Guide — Assessment Platform</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #111; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.65; }
+  body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 10.5pt; color: #1c1c1e; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.75; }
 
   .cover { text-align: center; padding: 40px 0 32px; border-bottom: 2px solid #000; margin-bottom: 28px; }
   .cover h1 { font-size: 20pt; margin-bottom: 6px; }
@@ -16,7 +16,7 @@
   .meta-table td { border: 1px solid #ddd; padding: 6px 10px; }
   .meta-table td:first-child { font-weight: bold; background: #f5f5f5; width: 160px; }
 
-  h2 { font-size: 13pt; font-weight: bold; margin-top: 32px; margin-bottom: 10px; color: #111; border-left: 4px solid #333; padding-left: 10px; }
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 32px; margin-bottom: 10px; color: #1e3a5f; border-left: 4px solid #1e3a5f; padding-left: 10px; }
   h3 { font-size: 10.5pt; font-weight: bold; margin-top: 18px; margin-bottom: 6px; color: #333; }
 
   p { margin-bottom: 8px; }
@@ -27,8 +27,8 @@
   .warn { background: #fff8e6; border-left: 3px solid #e6a800; padding: 8px 12px; margin: 12px 0; font-size: 9.5pt; }
   .danger { background: #fff0f0; border-left: 3px solid #cc2222; padding: 8px 12px; margin: 12px 0; font-size: 9.5pt; }
 
-  code { font-family: "Courier New", monospace; font-size: 9pt; background: #f4f4f4; padding: 1px 4px; border-radius: 2px; }
-  pre { font-family: "Courier New", monospace; font-size: 9pt; background: #f4f4f4; border: 1px solid #ddd; padding: 10px 14px; margin: 10px 0; border-radius: 3px; overflow-x: auto; line-height: 1.5; white-space: pre; }
+  code { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 9pt; background: #f0f2f5; padding: 1px 5px; border-radius: 3px; color: #1e3a5f; }
+  pre { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 9pt; background: #f0f2f5; border: 1px solid #e0e4ea; padding: 12px 16px; margin: 10px 0; border-radius: 4px; overflow-x: auto; line-height: 1.6; white-space: pre; color: #1e3a5f; }
 
   table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; }
   th { background: #333; color: #fff; padding: 6px 10px; text-align: left; }
@@ -47,10 +47,14 @@
   .env-row td:first-child { font-family: "Courier New", monospace; font-size: 9pt; }
   .env-row td:nth-child(2) { width: 120px; text-align: center; }
 
+  @media screen {
+    body { max-width: 880px; margin: 0 auto; padding: 40px 48px; }
+  }
   @media print {
-    body { padding: 15mm 20mm; }
-    h2 { page-break-before: auto; }
-    .no-break { page-break-inside: avoid; }
+    body { padding: 20mm 22mm 18mm 22mm; }
+    @page { margin: 0; size: A4 portrait; }
+    .no-print { display: none !important; }
+    h2 { page-break-after: avoid; }
   }
 </style>
 </head>
@@ -422,6 +426,15 @@ python manage.py createsuperuser</pre>
 
 <h3>Custom CSS beyond colour variables</h3>
 <p>If a client needs styling that CSS variables cannot cover, drop a file at <code>static/tenants/&lt;slug&gt;/custom.css</code>. Add a link tag to the relevant base template override for that client. This is an escape hatch — use sparingly.</p>
+
+<h3>Assessor interface preferences</h3>
+<p>Each assessor can personalise their reading experience using the controls at the bottom of the sidebar — no admin action required.</p>
+<table>
+  <tr><th>Control</th><th>Options</th><th>Where saved</th></tr>
+  <tr><td>Theme</td><td>Dark (Business) / Light (Corporate)</td><td>Browser localStorage — persists per device</td></tr>
+  <tr><td>Font</td><td>System · Inter · Lato · DM Sans · Merriweather · Source Serif 4</td><td>Browser localStorage — persists per device</td></tr>
+</table>
+<div class="note"><strong>Per-device only.</strong> Preferences are stored in the browser and do not sync across devices or users. Each assessor sets their own preference independently.</div>
 
 <!-- ─────────────────────────────────────────── -->
 <h2>12. Troubleshooting</h2>
