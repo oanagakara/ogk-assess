@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Procurement Review — NQF Learner Placement Assessment Platform</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #111; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.65; }
+
+  .cover { text-align: center; padding: 40px 0 32px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+  .cover h1 { font-size: 20pt; margin-bottom: 6px; }
+  .cover .subtitle { font-size: 11pt; color: #444; margin-top: 6px; }
+  .cover .tag { font-size: 9.5pt; color: #888; margin-top: 10px; font-style: italic; }
+
+  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 9.5pt; }
+  .meta-table td { border: 1px solid #ddd; padding: 6px 10px; }
+  .meta-table td:first-child { font-weight: bold; background: #f5f5f5; width: 160px; }
+
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 28px; margin-bottom: 10px; color: #111; border-left: 4px solid #333; padding-left: 10px; }
+  h3 { font-size: 11pt; font-weight: bold; margin-top: 18px; margin-bottom: 6px; }
+
+  p { margin-bottom: 10px; }
+  ol { margin-left: 22px; margin-bottom: 12px; }
+  ul { margin-left: 22px; margin-bottom: 12px; }
+  li { margin-bottom: 6px; }
+
+  .pass-box { background: #f0fff4; border-left: 4px solid #2d6a4f; padding: 12px 16px; margin-bottom: 20px; }
+  .pass-box strong { display: block; margin-bottom: 6px; color: #2d6a4f; font-size: 10.5pt; }
+
+  .flag-list { list-style: none; margin-left: 0; }
+  .flag-list li { border-left: 4px solid #c0392b; background: #fdf0ef; padding: 10px 14px; margin-bottom: 10px; }
+  .flag-list li strong { display: block; margin-bottom: 4px; color: #c0392b; }
+
+  .verdict { background: #fff8e1; border: 1px solid #f0c040; padding: 14px 18px; margin-top: 20px; margin-bottom: 28px; }
+  .verdict strong { display: block; font-size: 11pt; margin-bottom: 6px; color: #7d6000; }
+
+  .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8.5pt; color: #888; text-align: center; }
+
+  .page-break { page-break-before: always; margin-top: 0; }
+
+  @media print {
+    body { padding: 0; }
+    @page { margin: 20mm; size: A4 portrait; }
+    .no-print { display: none; }
+    h2 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:right; margin-bottom:16px;">
+  <button onclick="window.print()" style="padding:6px 16px; font-size:10pt; cursor:pointer;">Save as PDF</button>
+</div>
+
+<div class="cover">
+  <div style="font-size:9pt; color:#888; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Independent Procurement Assessment</div>
+  <h1>NQF Learner Placement Assessment Platform</h1>
+  <div class="subtitle">Procurement Head Review</div>
+  <div class="tag">As Head of Procurement, evaluating this product for our organisation</div>
+</div>
+
+<table class="meta-table">
+  <tr><td>Document version</td><td>1.0</td></tr>
+  <tr><td>Date</td><td>April 2026</td></tr>
+  <tr><td>Review type</td><td>Independent procurement evaluation — pre-signature</td></tr>
+  <tr><td>Audience</td><td>Decision-makers, legal, IT management</td></tr>
+</table>
+
+<!-- What Passes -->
+<h2>What Passes</h2>
+
+<div class="pass-box">
+  <strong>Core workflow assessment</strong>
+  The core workflow is sound. Session creation → learner join → timed delivery → marking → results is complete and coherent. The auto-marking with partial marks and working detection is genuinely clever for the price point. The review queue with a badge count is the kind of thing that tells me someone thought about the actual job, not just the feature list. Working sheet upload-to-database sidesteps the hosting limitation cleanly — practical engineering.
+</div>
+
+<!-- Flags -->
+<h2>What I Would Flag Before Signing</h2>
+
+<ol class="flag-list">
+  <li>
+    <strong>1. Single-developer risk</strong>
+    There is no team, no bus factor mitigation, no documented succession. If the developer is unavailable for two weeks, there is no support path. I would require a clause in the contract and ideally an escrow arrangement for the source code.
+  </li>
+  <li>
+    <strong>2. Render free plan in production</strong>
+    The platform cold-starts after inactivity — unacceptable for a timed examination environment. The first learner on a Monday morning could sit staring at a spinner for 30 seconds while the instance warms up. This must be on a paid plan before go-live with a real cohort.
+  </li>
+  <li>
+    <strong>3. No POPIA compliance documentation</strong>
+    The contract mentions POPIA but there is no data processing agreement, no privacy notice for learners, and no documented retention/deletion procedure. A DPA is not optional for South African organisations processing ID numbers and assessment records.
+  </li>
+  <li>
+    <strong>4. No backup strategy documented</strong>
+    PostgreSQL on Render. What is the recovery point objective if the database is corrupted or the provider has an outage? "Managed PostgreSQL" is not a backup strategy — it is a hosting arrangement.
+  </li>
+  <li>
+    <strong>5. No mobile consideration</strong>
+    The specification states "optimised for 1280px+". In a supervised lab this is acceptable. But some campuses use tablets or mixed hardware. Not a blocker, but the constraint must be understood and documented before deployment.
+  </li>
+  <li>
+    <strong>6. Reporting friction</strong>
+    The CSV-only default will last approximately 90 days before someone at head office asks for a management report. That conversation will be easier — and cheaper — if the dashboard add-on pricing is agreed at signing rather than raised as a change request later.
+  </li>
+  <li>
+    <strong>7. No audit log</strong>
+    There is no record of who changed a score, when, or why. For a qualifications-adjacent assessment, this matters. If a learner disputes a mark that was adjusted multiple times post-submission, there is currently no evidence trail to rely on.
+  </li>
+</ol>
+
+<!-- Verdict -->
+<div class="verdict">
+  <strong>Verdict — Conditionally Recommend for Pilot</strong>
+  Strong functional fit, honest pricing, responsive developer. Requires resolution of the following before live use with a real cohort:
+  <ul style="margin-top:8px; margin-left:18px;">
+    <li>Upgrade to paid hosting tier</li>
+    <li>Signed Data Processing Agreement (DPA) compliant with POPIA</li>
+    <li>Written support SLA with escalation contacts and response time commitments</li>
+  </ul>
+  All three are achievable within the onboarding window. This is not a rejection — it is a conditional approval with clearly bounded pre-conditions.
+</div>
+
+<div class="footer">
+  NQF Learner Placement Assessment Platform — Procurement Review v1.0 &nbsp;·&nbsp; April 2026
+</div>
+
+</body>
+</html>

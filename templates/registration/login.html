@@ -5,7 +5,8 @@
 <div class="min-h-screen flex items-center justify-center p-4">
   <div class="card w-full max-w-md bg-base-100 shadow-xl">
     <div class="card-body space-y-4">
-      <h1 class="card-title text-2xl">Assessor login</h1>
+      <h1 class="card-title text-2xl">{{ tenant.name|default:"Assessment" }}</h1>
+      <p class="text-sm opacity-60">Assessor sign in</p>
 
       {% if form.errors %}
         <div class="alert alert-error">
