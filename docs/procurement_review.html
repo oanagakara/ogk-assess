@@ -89,9 +89,9 @@
     <strong>2. Render free plan in production</strong>
     The platform cold-starts after inactivity — unacceptable for a timed examination environment. The first learner on a Monday morning could sit staring at a spinner for 30 seconds while the instance warms up. This must be on a paid plan before go-live with a real cohort.
   </li>
-  <li>
-    <strong>3. No POPIA compliance documentation</strong>
-    The contract mentions POPIA but there is no data processing agreement, no privacy notice for learners, and no documented retention/deletion procedure. A DPA is not optional for South African organisations processing ID numbers and assessment records.
+  <li style="border-left-color:#2d6a4f; background:#f0fff4;">
+    <strong style="color:#2d6a4f;">3. &#10003; Resolved — Data Processing Agreement</strong>
+    A POPIA-compliant DPA has been produced covering responsible party and operator obligations, sub-operator disclosure (Render, GitHub), transborder flow acknowledgement, 72-hour breach notification, data subject rights procedure, audit rights, and retention periods specific to the categories of personal information the Platform actually processes. Schedule C documents the technical and organisational security measures in place. The document requires the parties' signatures before it becomes operative — that is not a deficiency in the document, it is how agreements work. The flag is closed pending execution.
   </li>
   <li>
     <strong>4. No backup strategy documented</strong>
@@ -114,13 +114,13 @@
 <!-- Verdict -->
 <div class="verdict">
   <strong>Verdict — Conditionally Recommend for Pilot</strong>
-  Six flags raised. One closed. The developer responded to a legitimate compliance gap promptly and without argument, which is a data point in their favour. Five remain open. The pre-conditions for live deployment have not changed:
+  Six flags raised. Two closed. The developer is moving through the compliance list without being chased, which is the correct disposition. Four remain open. The pre-conditions for live deployment are now reduced to:
   <ul style="margin-top:8px; margin-left:18px;">
     <li>Upgrade to paid hosting tier (non-negotiable for a timed examination environment)</li>
-    <li>Signed Data Processing Agreement compliant with POPIA</li>
+    <li><strong>Execute</strong> the Data Processing Agreement — the document exists, the signatures do not</li>
     <li>Written support SLA with escalation contacts and response time commitments</li>
   </ul>
-  This remains a conditional approval. The conditions remain.
+  This remains a conditional approval. The conditions remain, though the list is shorter.
 </div>
 
 <div class="footer">
