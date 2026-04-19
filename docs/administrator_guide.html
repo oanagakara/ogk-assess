@@ -87,7 +87,7 @@
     <li>Marking and results</li>
     <li>Template and branding overrides</li>
     <li>Troubleshooting</li>
-    <!-- 12 sections total -->
+    <li>Data subject rights — <code>dpa_sam</code></li>
   </ol>
 </div>
 
@@ -485,6 +485,49 @@ python manage.py createsuperuser</pre>
 <p>If a deployment includes model changes, migrations must be applied manually after the deploy completes:</p>
 <pre>python manage.py migrate</pre>
 <p>Run this from the Render shell for the affected service. Render does not run migrations automatically.</p>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>13. Data subject rights — <code>dpa_sam</code></h2>
+
+<p>The platform includes a management command that fulfils data subject rights requests as required by the Protection of Personal Information Act (POPIA) and documented in clause 6.2 of the Data Processing Agreement. All actions produce JSON output and write an implicit record to the application logs for audit purposes.</p>
+
+<p>Run all commands from the Render shell for the affected service. Each action is described below in the order a request is likely to arrive.</p>
+
+<h3>Enumerate all data subjects</h3>
+<p>Use this first if you need to confirm whether a named individual is in the system before responding to their request.</p>
+<pre>python manage.py dpa_sam list-subjects</pre>
+<p>Output includes each data subject's surname, first names, ID number, and the number of assessment attempts on record.</p>
+
+<h3>Access request — export personal information</h3>
+<p>Produces a full JSON export of all personal information held for the specified data subject: identity fields, all assessment attempts, question responses, scores, and the complete score audit trail. Working sheet file content is noted but withheld from the export; provide it separately on written request.</p>
+<pre>python manage.py dpa_sam access --id-number 8001015009087</pre>
+<p>Where an ID number is not available, search by surname (results may include multiple individuals — verify before disclosing):</p>
+<pre>python manage.py dpa_sam access --name "Dlamini"</pre>
+<p>Pipe the output to a file for delivery:</p>
+<pre>python manage.py dpa_sam access --id-number 8001015009087 &gt; export.json</pre>
+
+<h3>Correction request — update a field</h3>
+<p>Corrects a specific personal information field for a data subject. Correctable fields are: <code>first_names</code>, <code>surname</code>, <code>id_number</code>, <code>dob</code>, <code>gender</code>, <code>demographic</code>. The command logs the previous and corrected value.</p>
+<pre>python manage.py dpa_sam correct --id-number 8001015009087 --field first_names --value "Nomvula"</pre>
+<p>Use <code>--id-number</code> rather than <code>--name</code> for corrections — the command will refuse to correct if more than one data subject matches.</p>
+
+<h3>Restriction request — suspend processing</h3>
+<p>Flags the data subject's record to indicate that processing should be suspended pending resolution of a dispute as to the accuracy of their information (section 25 of POPIA). The flag is visible in the learner record and must be lifted manually once the dispute is resolved.</p>
+<pre>python manage.py dpa_sam restrict --id-number 8001015009087 --reason "Learner disputes ID number on file."</pre>
+<p>To lift a restriction, use the <code>correct</code> action to remove the flag from the <code>first_names</code> field, or update the disputed field to its correct value.</p>
+
+<h3>Deletion request — anonymise identity</h3>
+<p>Anonymises all identity fields for the specified data subject. Assessment response records and score audit logs are retained to satisfy the statutory retention obligation (5 years under SETA/QCTO frameworks) but are no longer linked to an identifiable person. This action is irreversible.</p>
+<p>Before proceeding, verify that the statutory retention period has elapsed or that no exemption applies. The command will refuse to run without the <code>--confirm</code> flag and will display a retention warning.</p>
+<pre>python manage.py dpa_sam delete --id-number 8001015009087 --confirm</pre>
+
+<h3>Full export on contract termination</h3>
+<p>On termination of the service agreement, the Data Processing Agreement (clause 9.3) requires delivery of a complete export of all personal information within 30 calendar days of written request. Use:</p>
+<pre>python manage.py dpa_sam export-all --out /tmp/full_export.json</pre>
+<p>Download the file from the Render shell using the Render dashboard file browser, or copy it to object storage. Confirm delivery to the responsible party in writing. Follow up with a deletion confirmation once the file has been received and acknowledged.</p>
+
+<h3>Response time obligations</h3>
+<p>POPIA does not prescribe a fixed response time for data subject requests but requires that they be handled "within a reasonable time." In practice, treat requests as requiring a response within <strong>30 calendar days</strong>. Log the date the request was received, the action taken, and the date of response. Keep this log separately from the platform — a shared spreadsheet or email thread is sufficient.</p>
 
 </body>
 </html>
