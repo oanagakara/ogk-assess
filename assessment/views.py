@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator 
 
 from django.db.models import Count, Prefetch, Q
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -32,6 +32,20 @@ from .services import claim_seat, claim_session_seat
 ASSESSMENT_DURATION = timedelta(hours=2)   # hard cap: 45 min + 45 min + ~30 min review
 SECTION_DURATION = timedelta(minutes=45)
 REVIEW_SECONDS_PER_QUESTION = 90
+
+# ── Learner session ownership ─────────────────────────────────────────────────
+# H-5: Bind each attempt to the browser session that created it. Prevents one
+# learner from navigating to another learner's attempt by guessing the code.
+_LEARNER_SESSION_KEY = "learner_attempt_code"
+
+
+def _bind_attempt_to_session(request, code: str) -> None:
+    request.session[_LEARNER_SESSION_KEY] = code
+    request.session.modified = True
+
+
+def _owns_attempt(request, code: str) -> bool:
+    return request.session.get(_LEARNER_SESSION_KEY) == code
 
 
 class MarkingTotals(NamedTuple):
@@ -264,6 +278,7 @@ def start(request):
         if attempt is not None:
             ok, msg = claim_seat(attempt)
             if ok:
+                _bind_attempt_to_session(request, attempt.code)
                 return redirect("assessment:attempt_details", code=attempt.code)
             form.add_error("code", msg)
             return render(request, "assessment/start.html", {"form": form})
@@ -922,6 +937,8 @@ def _handle_with_response(request, attempt, question, spec, n, total, expires_at
 
 def attempt_question(request, code: str, n: int):
     attempt = get_object_or_404(Attempt, code=code)
+    if not _owns_attempt(request, code):
+        return HttpResponseForbidden()
 
     if _expire_attempt_if_needed(attempt):
         return redirect("assessment:attempt_submitted", code=code)
@@ -1016,6 +1033,8 @@ def attempt_question(request, code: str, n: int):
 
 def attempt_submit(request, code: str):
     attempt = get_object_or_404(Attempt, code=code)
+    if not _owns_attempt(request, code):
+        return HttpResponseForbidden()
 
     if _expire_attempt_if_needed(attempt):
         return redirect("assessment:attempt_submitted", code=code)
@@ -1040,6 +1059,8 @@ def attempt_submit(request, code: str):
 
 def attempt_details(request, code: str):
     attempt = get_object_or_404(Attempt, code=code)
+    if not _owns_attempt(request, code):
+        return HttpResponseForbidden()
     learner = attempt.learner
 
     if request.method == "POST":
@@ -1071,6 +1092,8 @@ def attempt_details(request, code: str):
 
 def attempt_instructions(request, code: str):
     attempt = get_object_or_404(Attempt, code=code)
+    if not _owns_attempt(request, code):
+        return HttpResponseForbidden()
 
     if not attempt.has_honesty_declaration:
         return redirect("assessment:attempt_details", code=code)
@@ -1114,6 +1137,7 @@ def session_join(request, code: str):
         attempt.accept_honesty_declaration(
             name=honesty_form.cleaned_data["honesty_name"],
         )
+        _bind_attempt_to_session(request, attempt.code)
         return redirect("assessment:attempt_question", code=attempt.code, n=1)
 
     return render(request, "assessment/session_join.html", {
@@ -1382,6 +1406,8 @@ def assessor_review_queue(request):
 def attempt_review_info(request, code: str):
     """Offer the learner the choice to review or submit after finishing both sections."""
     attempt = get_object_or_404(Attempt, code=code)
+    if not _owns_attempt(request, code):
+        return HttpResponseForbidden()
 
     if attempt.status == Attempt.SUBMITTED:
         return redirect("assessment:attempt_submitted", code=code)
@@ -1411,6 +1437,8 @@ def attempt_review_info(request, code: str):
 def attempt_review_question(request, code: str, n: int):
     """Review phase: 90 seconds per question, auto-advances."""
     attempt = get_object_or_404(Attempt, code=code)
+    if not _owns_attempt(request, code):
+        return HttpResponseForbidden()
 
     if attempt.status == Attempt.SUBMITTED:
         return redirect("assessment:attempt_submitted", code=code)
@@ -1481,12 +1509,22 @@ def attempt_review_question(request, code: str, n: int):
 def attempt_review_submit(request, code: str):
     """Final auto-submit when the last review slot expires (GET redirect target)."""
     attempt = get_object_or_404(Attempt, code=code)
+    if not _owns_attempt(request, code):
+        return HttpResponseForbidden()
     if attempt.status != Attempt.SUBMITTED:
         _finalize_attempt(attempt)
     return redirect("assessment:attempt_submitted", code=code)
 
 
 # ── Working sheet ──────────────────────────────────────────────────────────────
+
+def _valid_file_magic(header: bytes) -> bool:
+    return (
+        header[:3] == b'\xff\xd8\xff'               # JPEG
+        or header[:8] == b'\x89PNG\r\n\x1a\n'       # PNG
+        or (header[:4] == b'RIFF' and header[8:12] == b'WEBP')  # WebP
+        or header[:5] == b'%PDF-'                   # PDF
+    )
 
 @login_required
 @user_passes_test(is_assessor)
@@ -1505,6 +1543,12 @@ def assessor_working_sheet_upload(request, code: str):
 
     allowed_types = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
     if uploaded_file.content_type not in allowed_types:
+        return redirect(f"{reverse('assessment:assessor_mark_attempt', kwargs={'code': code})}?ws_error=2")
+
+    # M-5: Validate magic bytes — reject files that lie about their content-type.
+    header = uploaded_file.read(12)
+    uploaded_file.seek(0)
+    if not _valid_file_magic(header):
         return redirect(f"{reverse('assessment:assessor_mark_attempt', kwargs={'code': code})}?ws_error=2")
 
     encoded = base64.b64encode(uploaded_file.read()).decode("utf-8")
@@ -1534,7 +1578,7 @@ def assessor_working_sheet_image(request, code: str):
     sheet = get_object_or_404(WorkingSheet, attempt=attempt)
     data = base64.b64decode(sheet.data)
     response = HttpResponse(data, content_type=sheet.content_type)
-    safe_name = sheet.original_filename or f"working_sheet_{code}"
+    safe_name = re.sub(r'["\r\n\\]', '', sheet.original_filename or f"working_sheet_{code}")
     response["Content-Disposition"] = f'inline; filename="{safe_name}"'
     return response
 

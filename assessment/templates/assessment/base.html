@@ -12,7 +12,9 @@
             })();
         </script>
         <link rel="stylesheet" href="{% static 'css/output.css' %}">
-        <title>{% block title %}Assessment{% endblock %}</title>
+        {% if tenant.favicon_url %}<link rel="icon" href="{{ tenant.favicon_url }}">{% endif %}
+        {% if brand_css_vars %}<style>:root { {{ brand_css_vars }} }</style>{% endif %}
+        <title>{% block title %}Assessment{% endblock %}{% if tenant %} — {{ tenant.name }}{% endif %}</title>
     </head>
     <body class="min-h-screen bg-base-200 text-base-content">
 

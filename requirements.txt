@@ -1,4 +1,5 @@
-Django==6.0.2
+Django==6.0.4
+anthropic==0.96.0
 asgiref==3.11.1
 sqlparse==0.5.4
 gunicorn==23.0.0

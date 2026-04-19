@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Administrator Guide — Assessment Platform</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #111; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.65; }
+
+  .cover { text-align: center; padding: 40px 0 32px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+  .cover h1 { font-size: 20pt; margin-bottom: 6px; }
+  .cover .subtitle { font-size: 11pt; color: #444; margin-top: 6px; }
+  .cover .tag { font-size: 9pt; color: #888; margin-top: 10px; font-style: italic; }
+
+  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 9.5pt; }
+  .meta-table td { border: 1px solid #ddd; padding: 6px 10px; }
+  .meta-table td:first-child { font-weight: bold; background: #f5f5f5; width: 160px; }
+
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 32px; margin-bottom: 10px; color: #111; border-left: 4px solid #333; padding-left: 10px; }
+  h3 { font-size: 10.5pt; font-weight: bold; margin-top: 18px; margin-bottom: 6px; color: #333; }
+
+  p { margin-bottom: 8px; }
+  ul, ol { margin: 0 0 10px 20px; }
+  li { margin-bottom: 4px; }
+
+  .note { background: #f0f4ff; border-left: 3px solid #4466cc; padding: 8px 12px; margin: 12px 0; font-size: 9.5pt; }
+  .warn { background: #fff8e6; border-left: 3px solid #e6a800; padding: 8px 12px; margin: 12px 0; font-size: 9.5pt; }
+  .danger { background: #fff0f0; border-left: 3px solid #cc2222; padding: 8px 12px; margin: 12px 0; font-size: 9.5pt; }
+
+  code { font-family: "Courier New", monospace; font-size: 9pt; background: #f4f4f4; padding: 1px 4px; border-radius: 2px; }
+  pre { font-family: "Courier New", monospace; font-size: 9pt; background: #f4f4f4; border: 1px solid #ddd; padding: 10px 14px; margin: 10px 0; border-radius: 3px; overflow-x: auto; line-height: 1.5; white-space: pre; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; }
+  th { background: #333; color: #fff; padding: 6px 10px; text-align: left; }
+  td { border: 1px solid #ddd; padding: 6px 10px; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  .step { counter-increment: step; display: flex; gap: 14px; margin-bottom: 14px; }
+  .step-num { flex-shrink: 0; width: 26px; height: 26px; background: #333; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9pt; font-weight: bold; margin-top: 2px; }
+  .step-body { flex: 1; }
+
+  .toc { background: #f9f9f9; border: 1px solid #ddd; padding: 14px 18px; margin-bottom: 28px; font-size: 9.5pt; }
+  .toc h3 { margin-bottom: 8px; font-size: 10pt; }
+  .toc ol { margin-left: 18px; }
+  .toc li { margin-bottom: 3px; }
+
+  .env-row td:first-child { font-family: "Courier New", monospace; font-size: 9pt; }
+  .env-row td:nth-child(2) { width: 120px; text-align: center; }
+
+  @media print {
+    body { padding: 15mm 20mm; }
+    h2 { page-break-before: auto; }
+    .no-break { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Administrator Guide</h1>
+  <div class="subtitle">Assessment Platform — Operations &amp; Tenant Management</div>
+  <div class="tag">Internal document · Not for distribution to learners or assessors</div>
+</div>
+
+<table class="meta-table">
+  <tr><td>Audience</td><td>Platform owner / system administrator</td></tr>
+  <tr><td>Covers</td><td>Tenant setup, user management, session operations, troubleshooting</td></tr>
+  <tr><td>Revised</td><td>April 2026</td></tr>
+</table>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li>Platform overview</li>
+    <li>Accessing the admin interface</li>
+    <li>Onboarding a new client (tenant)</li>
+    <li>Tenant record field reference</li>
+    <li>Environment variables reference</li>
+    <li>Managing users and assessors</li>
+    <li>Assessment templates and questions</li>
+    <li>Running a session</li>
+    <li>Marking and results</li>
+    <li>Template and branding overrides</li>
+    <li>Troubleshooting</li>
+  </ol>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>1. Platform overview</h2>
+
+<p>The assessment platform is a single-application Django system deployed on Render. Each client organisation gets its own deployment — one Render service per tenant. There is no shared database between clients.</p>
+
+<p>The deployment model means:</p>
+<ul>
+  <li>Client A's learner data never mixes with Client B's.</li>
+  <li>Each deployment is configured by a single environment variable (<code>TENANT_SLUG</code>) that determines which branding record to load.</li>
+  <li>Updating branding (colours, logo, name) for a client requires only a database change — no redeploy.</li>
+  <li>Structural template changes require a file change and redeploy.</li>
+</ul>
+
+<div class="note"><strong>Architecture note:</strong> The platform reads the active Tenant record at startup and caches it in memory. The cache clears automatically whenever the Tenant record is saved in the admin.</div>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>2. Accessing the admin interface</h2>
+
+<p>The Django admin is available at <code>/admin/</code> on each deployment. Only superuser accounts can log in here. Assessors use <code>/accounts/login/</code> instead.</p>
+
+<h3>Creating a superuser (first-time setup)</h3>
+<p>Run this in the Render shell (or locally with the venv active):</p>
+<pre>python manage.py createsuperuser</pre>
+<p>Enter a username, email (optional), and strong password when prompted.</p>
+
+<div class="warn"><strong>Keep superuser credentials separate from assessor credentials.</strong> Superusers can modify any record including marks and scores.</div>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>3. Onboarding a new client (tenant)</h2>
+
+<p>Full onboarding for a new client takes approximately 20 minutes once you have their branding assets.</p>
+
+<div class="step"><div class="step-num">1</div><div class="step-body">
+  <strong>Gather branding assets from the client</strong><br>
+  You need: logo (SVG preferred), logo on dark background (SVG), favicon (.ico), hex colour codes for primary/accent, organisation legal name, support email, footer text.
+</div></div>
+
+<div class="step"><div class="step-num">2</div><div class="step-body">
+  <strong>Decide a slug</strong><br>
+  Lowercase, hyphens only. Example: <code>acme-training</code>. This becomes the directory name for their assets and the <code>TENANT_SLUG</code> env var. Once set in production, do not change it — it would break file paths.
+</div></div>
+
+<div class="step"><div class="step-num">3</div><div class="step-body">
+  <strong>Add static assets to the repository</strong><br>
+  Create the directory <code>static/tenants/&lt;slug&gt;/</code> and add:
+  <pre>static/tenants/acme-training/
+  logo.svg          ← header logo (colour version)
+  logo-white.svg    ← header logo (white/reversed version)
+  favicon.ico       ← browser tab icon</pre>
+  Commit and push. The files will be served via WhiteNoise after the next deploy.
+</div></div>
+
+<div class="step"><div class="step-num">4</div><div class="step-body">
+  <strong>Create the Tenant record in admin</strong><br>
+  Go to <code>/admin/</code> → <em>Tenants</em> → <em>Add tenant</em>. Fill in all fields (see Section 4). Set <strong>Is active</strong> to checked. Save.
+</div></div>
+
+<div class="step"><div class="step-num">5</div><div class="step-body">
+  <strong>Create a new Render service</strong><br>
+  Fork or copy the existing Render service for the client. Set these environment variables (see Section 5):
+  <pre>TENANT_SLUG=acme-training
+DJANGO_SECRET_KEY=&lt;generate a fresh key&gt;
+DATABASE_URL=&lt;new PostgreSQL connection string&gt;
+DEBUG=False</pre>
+</div></div>
+
+<div class="step"><div class="step-num">6</div><div class="step-body">
+  <strong>Run migrations on the new deployment</strong><br>
+  In the Render shell for the new service:
+  <pre>python manage.py migrate
+python manage.py createsuperuser</pre>
+  Then recreate the Tenant record in the new deployment's database (step 4 above — each deployment has its own database).
+</div></div>
+
+<div class="step"><div class="step-num">7</div><div class="step-body">
+  <strong>Verify</strong><br>
+  Visit the new deployment URL. Confirm:
+  <ul>
+    <li>Client logo appears in the sidebar and login page.</li>
+    <li>Browser tab shows the client's favicon.</li>
+    <li>Page title shows the client name.</li>
+    <li>Login page heading shows the client name.</li>
+  </ul>
+</div></div>
+
+<div class="note"><strong>Default fallback:</strong> If <code>TENANT_SLUG</code> is not set, the system falls back to <code>default</code>. The default tenant should exist in every database as a safety net.</div>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>4. Tenant record field reference</h2>
+
+<h3>Identity</h3>
+<table>
+  <tr><th>Field</th><th>Example</th><th>Notes</th></tr>
+  <tr><td>Name</td><td>Acme Training Solutions</td><td>Displayed in sidebar, page titles, login heading, and logo alt text. <strong>Required.</strong></td></tr>
+  <tr><td>Slug</td><td><code>acme-training</code></td><td>Auto-populated from Name. Must match <code>TENANT_SLUG</code> env var exactly. Lowercase, hyphens only. Do not change after go-live.</td></tr>
+  <tr><td>Legal name</td><td>Acme Training Solutions (Pty) Ltd</td><td>Used in footer and formal documents. Optional.</td></tr>
+  <tr><td>Tagline</td><td>Empowering Learners Across South Africa</td><td>Displayed below logo in header if present. Optional.</td></tr>
+  <tr><td>Is active</td><td>✓</td><td>Must be checked. If unchecked the system falls back to any other active tenant.</td></tr>
+</table>
+
+<h3>Branding assets</h3>
+<table>
+  <tr><th>Field</th><th>Example value</th><th>Notes</th></tr>
+  <tr><td>Logo URL</td><td><code>/static/tenants/acme-training/logo.svg</code></td><td>Colour logo for light backgrounds. File must exist at this path.</td></tr>
+  <tr><td>Logo white URL</td><td><code>/static/tenants/acme-training/logo-white.svg</code></td><td>Reversed logo for dark sidebar/headers.</td></tr>
+  <tr><td>Logo alt</td><td>Acme Training Solutions</td><td>Screen reader label. Leave blank to fall back to Name.</td></tr>
+  <tr><td>Favicon URL</td><td><code>/static/tenants/acme-training/favicon.ico</code></td><td>Browser tab icon. Injected into <code>&lt;head&gt;</code> on every page.</td></tr>
+  <tr><td>Banner URL</td><td><code>/static/tenants/acme-training/banner.jpg</code></td><td>Optional hero image. Only used if a template references it.</td></tr>
+</table>
+
+<h3>Colours</h3>
+<p>All hex values are injected as CSS custom properties (<code>--brand-primary</code>, etc.) into every page's <code>&lt;head&gt;</code>. Component CSS references these vars — no per-client stylesheet is needed for colour changes.</p>
+<table>
+  <tr><th>Field</th><th>CSS variable</th><th>Default</th><th>Usage</th></tr>
+  <tr><td>Color primary</td><td><code>--brand-primary</code></td><td><code>#1a1a2e</code></td><td>Main action colour — buttons, active nav items</td></tr>
+  <tr><td>Color secondary</td><td><code>--brand-secondary</code></td><td><code>#16213e</code></td><td>Supporting colour — section headers</td></tr>
+  <tr><td>Color accent</td><td><code>--brand-accent</code></td><td><code>#0f3460</code></td><td>Links, highlights, badges</td></tr>
+  <tr><td>Color text</td><td><code>--brand-text</code></td><td><code>#111111</code></td><td>Body text</td></tr>
+  <tr><td>Color bg</td><td><code>--brand-bg</code></td><td><code>#ffffff</code></td><td>Page background</td></tr>
+</table>
+
+<div class="warn"><strong>Colour contrast:</strong> Confirm any custom colours meet WCAG 2.1 AA: body text requires 4.5:1 ratio against background, large text requires 3:1. Use <a href="https://webaim.org/resources/contrastchecker">webaim.org/resources/contrastchecker</a> to verify before go-live.</div>
+
+<h3>Typography</h3>
+<table>
+  <tr><th>Field</th><th>Example</th><th>Notes</th></tr>
+  <tr><td>Font family primary</td><td><code>Georgia, serif</code></td><td>Injected as <code>--brand-font</code>. Must be a valid CSS font stack — web-safe fonts only unless you add a Google Fonts import to the base template.</td></tr>
+  <tr><td>Font family secondary</td><td><code>Arial, sans-serif</code></td><td>Available as <code>--brand-font-secondary</code>. Optional.</td></tr>
+</table>
+
+<h3>Contact</h3>
+<table>
+  <tr><th>Field</th><th>Notes</th></tr>
+  <tr><td>Support email</td><td>Shown in footer. Linked as a <code>mailto:</code> address.</td></tr>
+  <tr><td>Website URL</td><td>Available in templates. Not currently linked by default.</td></tr>
+  <tr><td>Footer line</td><td>Copyright and attribution text in the footer. Example: <em>© 2026 Acme Training Solutions (Pty) Ltd · All rights reserved</em></td></tr>
+</table>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>5. Environment variables reference</h2>
+
+<table>
+  <tr><th>Variable</th><th>Required</th><th>Notes</th></tr>
+  <tr class="env-row"><td>TENANT_SLUG</td><td>Production: yes</td><td>Must match the slug of an active Tenant record in the database. If unset, falls back to <code>default</code>.</td></tr>
+  <tr class="env-row"><td>DJANGO_SECRET_KEY</td><td>Yes</td><td>Random string, 50+ characters. Generate with: <code>python -c "import secrets; print(secrets.token_urlsafe(50))"</code>. Never reuse between deployments.</td></tr>
+  <tr class="env-row"><td>DATABASE_URL</td><td>Production: yes</td><td>PostgreSQL connection string provided by Render. If unset, Django falls back to a local SQLite file (development only).</td></tr>
+  <tr class="env-row"><td>DEBUG</td><td>No</td><td>Set to <code>False</code> in production. Defaults to <code>True</code> if unset (never leave this in production).</td></tr>
+</table>
+
+<div class="danger"><strong>Never set DEBUG=True in a production deployment.</strong> It exposes stack traces, internal settings, and database queries to any visitor who triggers an error.</div>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>6. Managing users and assessors</h2>
+
+<h3>User types</h3>
+<table>
+  <tr><th>Type</th><th>Access</th><th>How to create</th></tr>
+  <tr><td>Superuser</td><td>Django admin + full assessor interface</td><td><code>python manage.py createsuperuser</code></td></tr>
+  <tr><td>Staff assessor</td><td>Full assessor interface including Questions view</td><td>Admin → Users → Is staff = ✓</td></tr>
+  <tr><td>Assessor</td><td>Assessor interface (no Questions)</td><td>Admin → Users → assign to <em>assessor</em> group</td></tr>
+</table>
+
+<h3>Creating an assessor account</h3>
+<ol>
+  <li>Go to <code>/admin/</code> → <em>Users</em> → <em>Add user</em>.</li>
+  <li>Set a username and initial password. The assessor can change their password later.</li>
+  <li>On the next screen, scroll to <em>Groups</em> and add the user to the <strong>assessor</strong> group. Or tick <em>Staff status</em> for full access.</li>
+  <li>Save.</li>
+</ol>
+
+<div class="note">There is no self-registration. All assessor accounts must be created by an administrator.</div>
+
+<h3>Resetting a password</h3>
+<p>Go to <code>/admin/</code> → <em>Users</em> → select the user → <em>Password</em> section → <em>this form</em> link → set new password → Save.</p>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>7. Assessment templates and questions</h2>
+
+<p>Assessment templates define the structure of an exam. Each template contains sections, and each section contains questions. Templates are shared across all sessions.</p>
+
+<h3>Question types</h3>
+<table>
+  <tr><th>Kind</th><th>Code</th><th>Description</th></tr>
+  <tr><td>Text</td><td><code>text</code></td><td>Free-text response. Auto-marked if an answer key is set.</td></tr>
+  <tr><td>Fill in the blanks</td><td><code>fill_blanks</code></td><td>Learner fills gaps in a sentence. Auto-marked.</td></tr>
+  <tr><td>Reorder</td><td><code>reorder</code></td><td>Drag-to-reorder items. Auto-marked.</td></tr>
+  <tr><td>Matching</td><td><code>match</code></td><td>Match pairs. Auto-marked.</td></tr>
+  <tr><td>Multiple choice</td><td><code>mcq</code></td><td>Single correct answer. Auto-marked.</td></tr>
+  <tr><td>Long division</td><td><code>long_division</code></td><td>Numeric working. Auto-marked.</td></tr>
+</table>
+
+<p>Questions marked <code>is_active = False</code> are hidden from learners during the exam. Staff assessors can toggle question active state from the Questions view in the assessor interface.</p>
+
+<h3>Answer keys</h3>
+<p>Answer keys are stored as JSON in the <code>answer_key_json</code> field. These drive auto-marking. Refer to the fixture files in <code>assessment/fixtures/</code> for format examples per question type.</p>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>8. Running a session</h2>
+
+<h3>Creating a session</h3>
+<ol>
+  <li>Log in as an assessor or staff user.</li>
+  <li>Go to <em>Sessions</em> → <em>New Session</em>.</li>
+  <li>Select the assessment template, set the seat limit, and create the session.</li>
+  <li>The system generates an 8-character session code (e.g. <code>AB3X7KP2</code>).</li>
+</ol>
+
+<h3>Learner entry flow</h3>
+<ol>
+  <li>Learner navigates to <code>/session/&lt;code&gt;/join/</code> on their machine.</li>
+  <li>They enter their ID number. If they are a registered learner, their details pre-fill; otherwise they register on the spot.</li>
+  <li>They proceed through the honesty declaration, instructions, and then the exam.</li>
+</ol>
+
+<h3>Session expiry</h3>
+<p>Sessions expire after 2 hours from creation. Learners already in an active attempt can still submit after the session expires — the timer on their screen governs their individual time. New learners cannot join an expired session.</p>
+
+<h3>Session monitor</h3>
+<p>From <em>Sessions</em> → click a session code → <em>Monitor</em>. The monitor page shows all active attempts in real time (auto-refreshes every 30 seconds). Use this during exam delivery to watch for learners who stall or go inactive.</p>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>9. Marking and results</h2>
+
+<h3>Auto-marking</h3>
+<p>When a learner submits, all question types except <code>LIT-D-WRITE</code> (long-form writing) are auto-marked immediately. Auto-marked scores appear in the <em>Marked</em> tab.</p>
+
+<h3>Review queue</h3>
+<p>The <em>Review Queue</em> in the assessor sidebar shows only attempts that contain <code>LIT-D-WRITE</code> responses awaiting human review. Assessors score these manually using the rubric panel, then mark the response as reviewed.</p>
+
+<h3>Exporting results</h3>
+<p>From <em>Results at a Glance</em>, click <em>Export CSV</em>. The export includes learner demographics, scores per question, and totals.</p>
+
+<div class="note">The CSV export is restricted to staff users. Standard assessors see the results table but do not see the export button.</div>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>10. Template and branding overrides</h2>
+
+<p>Most branding changes (colours, name, logo, footer) require only a Tenant record update in admin — no code change or redeploy. The cache clears automatically on save.</p>
+
+<p>For structural layout changes (e.g. adding a custom header element, different footer HTML), use the template override system:</p>
+
+<ol>
+  <li>Create a directory at <code>templates/tenants/&lt;slug&gt;/</code> in the repository.</li>
+  <li>Copy only the template you need to change into that directory, preserving its path relative to the <code>templates/</code> root.<br>
+    Example — to override the login page for client <code>acme-training</code>:<br>
+    <code>templates/tenants/acme-training/registration/login.html</code>
+  </li>
+  <li>Edit that copy. It can still use <code>{{ tenant.* }}</code> variables and extend other templates normally.</li>
+  <li>Commit, push, and redeploy.</li>
+</ol>
+
+<p>Django resolves templates in this order for the active tenant:</p>
+<ol>
+  <li><code>templates/tenants/&lt;active-slug&gt;/</code> — client-specific override</li>
+  <li><code>templates/tenants/default/</code> — platform default override</li>
+  <li><code>templates/</code> — global templates</li>
+  <li>App templates (<code>assessment/templates/</code>)</li>
+</ol>
+
+<h3>Custom CSS beyond colour variables</h3>
+<p>If a client needs styling that CSS variables cannot cover, drop a file at <code>static/tenants/&lt;slug&gt;/custom.css</code>. Add a link tag to the relevant base template override for that client. This is an escape hatch — use sparingly.</p>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>11. Troubleshooting</h2>
+
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+  <tr>
+    <td>Sidebar shows "Assessment" instead of client name</td>
+    <td>No active Tenant record in the database, or <code>TENANT_SLUG</code> does not match any slug</td>
+    <td>Create or correct the Tenant record. Verify <code>TENANT_SLUG</code> env var matches exactly (case-sensitive).</td>
+  </tr>
+  <tr>
+    <td>Logo not appearing</td>
+    <td>File not deployed, or <code>logo_url</code> path in Tenant record is wrong</td>
+    <td>Confirm file exists at <code>static/tenants/&lt;slug&gt;/logo.svg</code>. Run <code>python manage.py collectstatic</code> if needed. Check the path in the Tenant record starts with <code>/static/</code>.</td>
+  </tr>
+  <tr>
+    <td>Branding change in admin not reflected on site</td>
+    <td>Tenant cache not cleared (should happen automatically on save)</td>
+    <td>Save the Tenant record again. If still stale, restart the Render service to force a cold start.</td>
+  </tr>
+  <tr>
+    <td>Learner cannot join session — "Session expired"</td>
+    <td>Session is older than 2 hours</td>
+    <td>Create a new session. Learners already mid-attempt are unaffected.</td>
+  </tr>
+  <tr>
+    <td>Auto-mark produced unexpected result</td>
+    <td>Answer key JSON malformed or outdated</td>
+    <td>Review <code>answer_key_json</code> for the question in admin. Refer to the Marking Rubric document for correct format.</td>
+  </tr>
+  <tr>
+    <td>500 error in production</td>
+    <td><code>DEBUG=True</code> is off (correct), so no detail is shown</td>
+    <td>Check Render logs for the traceback. Common causes: missing migration (<code>python manage.py migrate</code>), missing <code>DJANGO_SECRET_KEY</code>, database unreachable.</td>
+  </tr>
+  <tr>
+    <td>Working sheet upload fails</td>
+    <td>File too large or unsupported type</td>
+    <td>Only PDF and image files are accepted. Check the file size — very large scans may exceed the request limit.</td>
+  </tr>
+</table>
+
+<h3>Checking the Render logs</h3>
+<p>In the Render dashboard → select the service → <em>Logs</em> tab. Filter by <em>Error</em> level first. Django logs unhandled exceptions with a full traceback here even when <code>DEBUG=False</code>.</p>
+
+<h3>Applying a database migration after a code update</h3>
+<p>If a deployment includes model changes, migrations must be applied manually after the deploy completes:</p>
+<pre>python manage.py migrate</pre>
+<p>Run this from the Render shell for the affected service. Render does not run migrations automatically.</p>
+
+</body>
+</html>

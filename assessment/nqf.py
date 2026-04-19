@@ -4,7 +4,7 @@ NQF (National Qualifications Framework) placement computation.
 Derives the learner's AET placement level (L1–L4 or Post-L4) for literacy
 and numeracy from scored assessment responses.
 
-Configuration source: Media Works Memo v1.0.5 (literacy) & Workbook v1.0.6 p.v (numeracy).
+Configuration source: NQF placement specification v1.0.5 (literacy) & v1.0.6 (numeracy).
 """
 from __future__ import annotations
 
