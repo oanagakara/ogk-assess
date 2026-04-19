@@ -35,6 +35,15 @@ dist/
 assessment/migrations/__pycache__/
 #temporary exports
 tmp/
+
+# Docs — only assessor_training_manual.html is public
+docs/marking_rubric.html
+docs/security_audit_2026-04-18.html
+docs/product_specification.html
+docs/service_agreement.html
+docs/data_processing_agreement.html
+docs/procurement_review.html
+docs/administrator_guide.html
 current_questions_export.json
 
 # Claude skills
