@@ -850,6 +850,8 @@ def assessor_new_attempt(request):
 
 
 def _load_passage(question, spec) -> str:
+    if spec.get("passage"):
+        return spec["passage"]
     source = spec.get("passage_source")
     if not source and question.code in _PASSAGE_CODES:
         source = "LIT-B-READ"
