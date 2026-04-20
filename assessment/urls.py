@@ -34,4 +34,5 @@ urlpatterns = [
     path("assessor/attempts/<str:code>/working-sheet/image/", views.assessor_working_sheet_image, name="assessor_working_sheet_image"),
     path("assessor/attempts/<str:code>/working-sheet/print/", views.assessor_working_sheet_print, name="assessor_working_sheet_print"),
     path("error-report/", views.error_report, name="error_report"),
+    path("assessor/error-preview/<int:code>/", views.error_preview, name="error_preview"),
 ]
