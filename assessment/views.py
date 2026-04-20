@@ -1800,14 +1800,11 @@ def _slack_notify(request, error_type, error_msg):
         return
     try:
         payload = json.dumps({
-            "text": (
-                f":rotating_light: *Platform Error*\n"
-                f"*Type:* `{error_type}`\n"
-                f"*Message:* {error_msg}\n"
-                f"*URL:* {request.build_absolute_uri()}\n"
-                f"*Method:* {request.method}\n"
-                f"*User:* {request.user if request.user.is_authenticated else 'anonymous'}"
-            )
+            "error_type": error_type,
+            "error_msg": error_msg,
+            "url": request.build_absolute_uri(),
+            "method": request.method,
+            "user": str(request.user) if request.user.is_authenticated else "anonymous",
         }).encode("utf-8")
         req = urllib.request.Request(
             webhook_url, data=payload,
@@ -1854,12 +1851,11 @@ def _slack_notify_manual(data):
         return
     try:
         payload = json.dumps({
-            "text": (
-                f":envelope: *Learner Error Report*\n"
-                f"*Type:* `{data.get('error_type', 'Unknown')}`\n"
-                f"*Message:* {data.get('error_msg', '')}\n"
-                f"*URL:* {data.get('url', '')}"
-            )
+            "error_type": f"[Learner Report] {data.get('error_type', 'Unknown')}",
+            "error_msg": data.get("error_msg", ""),
+            "url": data.get("url", ""),
+            "method": "—",
+            "user": "learner (manual report)",
         }).encode("utf-8")
         req = urllib.request.Request(
             webhook_url, data=payload,
