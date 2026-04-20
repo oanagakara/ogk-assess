@@ -1890,3 +1890,19 @@ def handler404(request, exception=None):
         "error_type": "Page Not Found",
         "error_msg": str(request.path),
     }, status=404)
+
+
+@login_required
+@user_passes_test(is_staff)
+def error_preview(request, code: int):
+    templates = {
+        400: ("400.html", "Bad Request", "The request could not be understood by the server."),
+        403: ("403.html", "Access Denied", "You do not have permission to access this resource."),
+        404: ("404.html", "Page Not Found", "/attempt/XXXXXXXX/q/99/"),
+        500: ("500.html", "DatabaseError", "no such table: assessment_example"),
+    }
+    template, error_type, error_msg = templates.get(code, ("404.html", "Not Found", ""))
+    return render(request, template, {
+        "error_type": error_type,
+        "error_msg": error_msg,
+    }, status=code)
