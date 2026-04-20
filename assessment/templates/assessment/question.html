@@ -160,47 +160,42 @@
 
                         <div class="form-control">
                             {% if question.kind == "match" %}
-                                <label class="label">
-                                    <span class="label-text font-medium">Match the words</span>
-                                </label>
-
                                 {{ form.response_json }}
 
-                                <div class="space-y-6">
-                                    <div class="card bg-base-200 shadow">
-                                        <div class="card-body">
-                                            <h3 class="font-semibold">Words</h3>
-                                            <div id="bank" class="flex flex-wrap gap-2 min-h-[56px]">
+                                <div class="grid grid-cols-[minmax(120px,max-content)_1fr] gap-4 items-start">
+
+                                    <div class="card bg-base-200 shadow sticky top-4">
+                                        <div class="card-body p-4">
+                                            <h3 class="font-semibold text-sm mb-2">Words</h3>
+                                            <div id="bank" class="flex flex-col gap-2">
                                                 {% for w in spec.bank %}
                                                     <div
-                                                        class="badge badge-lg cursor-move select-none"
+                                                        class="badge badge-lg cursor-move select-none whitespace-nowrap"
                                                         draggable="true"
                                                         data-word="{{ w|escape }}"
                                                     >{{ w }}</div>
                                                 {% endfor %}
                                             </div>
-                                            <p class="text-xs opacity-70 mt-2">Drag a word onto a definition.</p>
+                                            <p class="text-xs opacity-50 mt-3">Drag to a box.</p>
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <h3 class="font-semibold mb-3">Definitions</h3>
-                                        <div class="grid grid-cols-2 gap-4">
-                                            {% for t in spec.targets %}
-                                                <div class="card bg-base-200 shadow">
-                                                    <div class="card-body">
-                                                        <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
-                                                        <div
-                                                            class="mt-3 p-3 rounded-lg bg-base-100 border border-base-300 min-h-[52px]"
-                                                            data-target="{{ t.id }}"
-                                                        >
-                                                            <span class="opacity-50 text-sm">Drop here</span>
-                                                        </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        {% for t in spec.targets %}
+                                            <div class="card bg-base-200 shadow">
+                                                <div class="card-body p-4">
+                                                    <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
+                                                    <div
+                                                        class="mt-3 p-2 rounded-lg bg-base-100 border border-base-300 min-h-[48px]"
+                                                        data-target="{{ t.id }}"
+                                                    >
+                                                        <span class="opacity-50 text-sm">Drop here</span>
                                                     </div>
                                                 </div>
-                                            {% endfor %}
-                                        </div>
+                                            </div>
+                                        {% endfor %}
                                     </div>
+
                                 </div>
 
                                 <script>
@@ -375,47 +370,42 @@
 
                         <div class="form-control">
                             {% if question.kind == "match" %}
-                                <label class="label">
-                                    <span class="label-text font-medium">Match the words</span>
-                                </label>
-
                                 {{ form.response_json }}
 
-                                <div class="space-y-6">
-                                    <div class="card bg-base-200 shadow">
-                                        <div class="card-body">
-                                            <h3 class="font-semibold">Words</h3>
-                                            <div id="bank" class="flex flex-wrap gap-2 min-h-[56px]">
+                                <div class="grid grid-cols-[minmax(120px,max-content)_1fr] gap-4 items-start">
+
+                                    <div class="card bg-base-200 shadow sticky top-4">
+                                        <div class="card-body p-4">
+                                            <h3 class="font-semibold text-sm mb-2">Words</h3>
+                                            <div id="bank" class="flex flex-col gap-2">
                                                 {% for w in spec.bank %}
                                                     <div
-                                                        class="badge badge-lg cursor-move select-none"
+                                                        class="badge badge-lg cursor-move select-none whitespace-nowrap"
                                                         draggable="true"
                                                         data-word="{{ w|escape }}"
                                                     >{{ w }}</div>
                                                 {% endfor %}
                                             </div>
-                                            <p class="text-xs opacity-70 mt-2">Drag a word onto a definition.</p>
+                                            <p class="text-xs opacity-50 mt-3">Drag to a box.</p>
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <h3 class="font-semibold mb-3">Definitions</h3>
-                                        <div class="grid grid-cols-2 gap-4">
-                                            {% for t in spec.targets %}
-                                                <div class="card bg-base-200 shadow">
-                                                    <div class="card-body">
-                                                        <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
-                                                        <div
-                                                            class="mt-3 p-3 rounded-lg bg-base-100 border border-base-300 min-h-[52px]"
-                                                            data-target="{{ t.id }}"
-                                                        >
-                                                            <span class="opacity-50 text-sm">Drop here</span>
-                                                        </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        {% for t in spec.targets %}
+                                            <div class="card bg-base-200 shadow">
+                                                <div class="card-body p-4">
+                                                    <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
+                                                    <div
+                                                        class="mt-3 p-2 rounded-lg bg-base-100 border border-base-300 min-h-[48px]"
+                                                        data-target="{{ t.id }}"
+                                                    >
+                                                        <span class="opacity-50 text-sm">Drop here</span>
                                                     </div>
                                                 </div>
-                                            {% endfor %}
-                                        </div>
+                                            </div>
+                                        {% endfor %}
                                     </div>
+
                                 </div>
 
                                 <script>
