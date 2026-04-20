@@ -1,7 +1,10 @@
 from datetime import date, timedelta
 import csv
 import json
+import os
 import re
+import sys
+import urllib.request
 import uuid
 from typing import NamedTuple
 
@@ -1787,3 +1790,81 @@ def assessor_score_audit_log(request, code: str):
         "attempt": attempt,
         "entries": entries,
     })
+
+
+# ── Error handling ────────────────────────────────────────────────────────────
+
+def _slack_notify(request, error_type, error_msg):
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
+    if not webhook_url:
+        return
+    try:
+        payload = json.dumps({
+            "text": (
+                f":rotating_light: *Platform Error*\n"
+                f"*Type:* `{error_type}`\n"
+                f"*Message:* {error_msg}\n"
+                f"*URL:* {request.build_absolute_uri()}\n"
+                f"*Method:* {request.method}\n"
+                f"*User:* {request.user if request.user.is_authenticated else 'anonymous'}"
+            )
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            webhook_url, data=payload,
+            headers={"Content-Type": "application/json"}
+        )
+        urllib.request.urlopen(req, timeout=3)
+    except Exception:
+        pass
+
+
+def handler500(request):
+    exc_type, exc_value, _ = sys.exc_info()
+    error_type = exc_type.__name__ if exc_type else "Error"
+    error_msg = str(exc_value) if exc_value else ""
+    _slack_notify(request, error_type, error_msg)
+    try:
+        return render(request, "500.html", {
+            "error_type": error_type,
+            "error_msg": error_msg,
+        }, status=500)
+    except Exception:
+        return HttpResponse(
+            f"<h1>System error</h1><p>{error_type}: {error_msg}</p>"
+            "<p>Please contact the administrator.</p>",
+            status=500,
+        )
+
+
+def error_report(request):
+    if request.method != "POST":
+        return HttpResponse(status=405)
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        data = {}
+    _slack_notify_manual(data)
+    from django.http import JsonResponse
+    return JsonResponse({"ok": True})
+
+
+def _slack_notify_manual(data):
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
+    if not webhook_url:
+        return
+    try:
+        payload = json.dumps({
+            "text": (
+                f":envelope: *Learner Error Report*\n"
+                f"*Type:* `{data.get('error_type', 'Unknown')}`\n"
+                f"*Message:* {data.get('error_msg', '')}\n"
+                f"*URL:* {data.get('url', '')}"
+            )
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            webhook_url, data=payload,
+            headers={"Content-Type": "application/json"}
+        )
+        urllib.request.urlopen(req, timeout=3)
+    except Exception:
+        pass
