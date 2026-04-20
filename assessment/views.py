@@ -1868,3 +1868,25 @@ def _slack_notify_manual(data):
         urllib.request.urlopen(req, timeout=3)
     except Exception:
         pass
+
+
+def handler400(request, exception=None):
+    return render(request, "400.html", {
+        "error_type": "Bad Request",
+        "error_msg": str(exception) if exception else "The request could not be understood.",
+    }, status=400)
+
+
+def handler403(request, exception=None):
+    _slack_notify(request, "PermissionDenied", str(exception) if exception else "Access denied.")
+    return render(request, "403.html", {
+        "error_type": "Access Denied",
+        "error_msg": str(exception) if exception else "You do not have permission to access this page.",
+    }, status=403)
+
+
+def handler404(request, exception=None):
+    return render(request, "404.html", {
+        "error_type": "Page Not Found",
+        "error_msg": str(request.path),
+    }, status=404)

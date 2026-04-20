@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'assessment.security.LoginRateLimitMiddleware',
     'assessment.security.SecurityHeadersMiddleware',
+    'assessment.middleware.ErrorHandlerMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

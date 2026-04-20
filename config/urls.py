@@ -20,6 +20,9 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from assessment import views as assessment_views
 
+handler400 = assessment_views.handler400
+handler403 = assessment_views.handler403
+handler404 = assessment_views.handler404
 handler500 = assessment_views.handler500
 
 _ADMIN_PATH = os.environ.get("ADMIN_URL_PREFIX", "_platform-admin") + "/"
