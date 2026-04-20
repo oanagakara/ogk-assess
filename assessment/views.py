@@ -1871,24 +1871,29 @@ def _slack_notify_manual(data):
 
 
 def handler400(request, exception=None):
+    msg = str(exception) if exception else "The request could not be understood."
+    _slack_notify(request, "BadRequest", msg)
     return render(request, "400.html", {
         "error_type": "Bad Request",
-        "error_msg": str(exception) if exception else "The request could not be understood.",
+        "error_msg": msg,
     }, status=400)
 
 
 def handler403(request, exception=None):
-    _slack_notify(request, "PermissionDenied", str(exception) if exception else "Access denied.")
+    msg = str(exception) if exception else "Access denied."
+    _slack_notify(request, "PermissionDenied", msg)
     return render(request, "403.html", {
         "error_type": "Access Denied",
-        "error_msg": str(exception) if exception else "You do not have permission to access this page.",
+        "error_msg": msg,
     }, status=403)
 
 
 def handler404(request, exception=None):
+    msg = str(request.path)
+    _slack_notify(request, "NotFound", msg)
     return render(request, "404.html", {
         "error_type": "Page Not Found",
-        "error_msg": str(request.path),
+        "error_msg": msg,
     }, status=404)
 
 
