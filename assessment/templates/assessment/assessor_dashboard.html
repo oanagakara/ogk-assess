@@ -65,7 +65,7 @@
                                             <option value="">All</option>
                                             <option value="in_progress" {% if q_status == "in_progress" %}selected{% endif %}>In progress</option>
                                             <option value="submitted"   {% if q_status == "submitted"   %}selected{% endif %}>Submitted</option>
-                                            <option value="abandoned"   {% if q_status == "abandoned"   %}selected{% endif %}>Abandoned</option>
+                                            <option value="incomplete"  {% if q_status == "incomplete"  %}selected{% endif %}>Incomplete</option>
                                         </select>
                                     </th>
                                     <th class="font-normal py-1">
@@ -80,7 +80,7 @@
                                 {% for attempt in recent_page %}
                                     <tr>
                                         <td class="font-mono whitespace-nowrap">
-                                            <a class="link link-hover" href="{% url 'assessment:attempt_question' attempt.code 1 %}">{{ attempt.code }}</a>
+                                            <a class="link link-hover" href="{% url 'assessment:assessor_results' %}?q_code={{ attempt.code }}">{{ attempt.code }}</a>
                                         </td>
                                         <td class="whitespace-nowrap">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</td>
                                         <td>
