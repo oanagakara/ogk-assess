@@ -26,7 +26,10 @@ ACTIVE_TENANT_SLUG = os.environ.get("TENANT_SLUG", "default")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 # H-1: Drive from env var — comma-separated hostnames in production.
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "*").split(",") if h.strip()]
+_allowed_hosts_raw = os.environ.get("ALLOWED_HOSTS", "")
+if not _allowed_hosts_raw and not DEBUG:
+    raise ImproperlyConfigured("ALLOWED_HOSTS must be set in production.")
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_raw.split(",") if h.strip()] or ["localhost", "127.0.0.1"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -80,7 +83,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ── Database ──────────────────────────────────────────────────────────────────
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
-    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)}
 else:
     DATABASES = {
         "default": {
@@ -135,6 +138,36 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10 MB
 # ── Security headers ──────────────────────────────────────────────────────────
 SECURE_CONTENT_TYPE_NOSNIFF = True       # L-1: explicit (SecurityMiddleware default)
 SECURE_REFERRER_POLICY = "same-origin"   # M-8: prevent attempt codes leaking via Referer
+
+# ── Email (error notifications — activate once KAIgaba Google Workspace is live)
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get("NOTIFY_EMAIL_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("NOTIFY_EMAIL_PASSWORD", "")
+NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", "")
+
+# ── Cookie security (explicit — do not rely on Django defaults) ────────────────
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "django.security": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+        "django.request":  {"handlers": ["console"], "level": "ERROR",   "propagate": False},
+        "assessment":      {"handlers": ["console"], "level": "WARNING", "propagate": False},
+    },
+}
 
 # ── HTTPS / production hardening ──────────────────────────────────────────────
 # M-1: Render terminates TLS at the edge — inform Django via the forwarded-proto header.

@@ -11,7 +11,7 @@
         {% if active_tab == 'in_progress' %}In Progress
         {% elif active_tab == 'submitted' %}Submitted — Awaiting Marking
         {% elif active_tab == 'marked' %}Marked
-        {% elif active_tab == 'abandoned' %}Abandoned
+        {% elif active_tab == 'incomplete' %}Incomplete
         {% endif %}
       </h1>
       <p class="text-sm opacity-60">{{ page_obj.paginator.count }} attempt{{ page_obj.paginator.count|pluralize }}</p>

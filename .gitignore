@@ -22,6 +22,11 @@ media/
 # OS
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
+
+# Archives
+*.tar.gz
+*.zip
 
 # IDE
 .vscode/
@@ -30,6 +35,7 @@ Thumbs.db
 # node / tailwind
 node_modules/
 dist/
+staticfiles/
 
 #Migrations cache only
 assessment/migrations/__pycache__/
@@ -41,6 +47,9 @@ docs/marking_rubric.html
 docs/security_audit_2026-04-18.html
 docs/product_specification.html
 docs/service_agreement.html
+docs/service_agreement_founding_client.html
+docs/costing_model.html
+docs/security_audit_2026-04-21.html
 docs/data_processing_agreement.html
 docs/procurement_review.html
 docs/administrator_guide.html

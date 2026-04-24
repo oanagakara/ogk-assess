@@ -46,7 +46,7 @@ def assessor_nav_counts(request):
     in_progress  = Attempt.objects.filter(status=Attempt.IN_PROGRESS).count()
     submitted    = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(~Exists(has_score)).count()
     marked       = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_score)).count()
-    abandoned    = Attempt.objects.filter(status=Attempt.ABANDONED).count()
+    incomplete   = Attempt.objects.filter(status=Attempt.INCOMPLETE).filter(~Exists(has_score)).count()
     needs_review = (
         Attempt.objects
         .filter(status=Attempt.SUBMITTED)
@@ -59,8 +59,8 @@ def assessor_nav_counts(request):
             "in_progress":  in_progress,
             "submitted":    submitted,
             "marked":       marked,
-            "abandoned":    abandoned,
+            "incomplete":   incomplete,
             "needs_review": needs_review,
-            "total":        in_progress + submitted + marked + abandoned,
+            "total":        in_progress + submitted + marked + incomplete,
         }
     }

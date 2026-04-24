@@ -19,6 +19,8 @@ class ErrorHandlerMiddleware:
         if isinstance(exception, (Http404, PermissionDenied, SuspiciousOperation)):
             return None  # Django handles these via handler404/403/400
 
-        from assessment.views import handler500, _slack_notify
-        _slack_notify(request, type(exception).__name__, str(exception))
+        from assessment.views import handler500, _notify
+        _notify(type(exception).__name__, str(exception),
+                url=request.build_absolute_uri(), method=request.method,
+                user=str(request.user) if request.user.is_authenticated else "anonymous")
         return handler500(request)
