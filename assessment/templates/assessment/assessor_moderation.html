@@ -1,0 +1,75 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Moderation{% endblock %}
+
+{% block assessor_content %}
+<div class="h-full flex flex-col gap-4">
+
+  <div class="flex items-center justify-between shrink-0">
+    <div>
+      <h1 class="text-xl font-semibold">Moderation</h1>
+      <p class="text-sm opacity-60">{{ attempts|length }} finalised attempt{{ attempts|length|pluralize }}</p>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col">
+    <div class="overflow-auto flex-1">
+      <table class="table table-zebra table-sm w-full">
+        <thead class="sticky top-0 bg-base-100 z-10">
+          <tr>
+            <th>Code</th>
+            <th>Learner</th>
+            <th>Template</th>
+            <th>Mode</th>
+            <th>Finalised by</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for attempt in attempts %}
+            <tr>
+              <td class="font-mono text-xs">
+                <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}"
+                   class="link link-primary">{{ attempt.code }}</a>
+              </td>
+              <td class="whitespace-nowrap">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</td>
+              <td class="opacity-70 whitespace-nowrap">
+                {{ attempt.template.name }}{% if attempt.template.version %} {{ attempt.template.version }}{% endif %}
+              </td>
+              <td>
+                {% if attempt.template.moderation_mode == 'full' %}
+                  <span class="badge badge-sm badge-success">Full</span>
+                {% else %}
+                  <span class="badge badge-sm badge-ghost">Audit</span>
+                {% endif %}
+              </td>
+              <td class="whitespace-nowrap opacity-70">
+                {{ attempt.finalised_by.get_full_name|default:attempt.finalised_by.username|default:"—" }}
+              </td>
+              <td class="whitespace-nowrap text-xs opacity-70">
+                {{ attempt.finalised_at|date:"d M Y" }}
+              </td>
+              <td class="text-right">
+                {% if attempt.template.moderation_mode == 'full' %}
+                  <form method="post" action="{% url 'assessment:assessor_unlock_attempt' attempt.code %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-xs btn-outline">Unlock</button>
+                  </form>
+                {% else %}
+                  <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}"
+                     class="btn btn-xs btn-ghost">View</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-10 opacity-50">No finalised attempts yet.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
