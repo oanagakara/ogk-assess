@@ -55,8 +55,9 @@ docs/procurement_review.html
 docs/administrator_guide.html
 current_questions_export.json
 
-# Claude skills
+# Claude skills and memory
 .skills/
+memory/
 staticfiles/
 
 # Local dev/demo scripts

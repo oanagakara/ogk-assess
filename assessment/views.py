@@ -134,8 +134,7 @@ def _expire_overdue_attempts():
         started_at__isnull=False,
         started_at__lte=cutoff,
     ).update(
-        status=Attempt.SUBMITTED,
-        submitted_at=now,
+        status=Attempt.INCOMPLETE,
         last_activity_at=now,
     )
 
@@ -356,13 +355,22 @@ def assessor_dashboard(request):
         except ValueError:
             pass
 
-    params = request.GET.copy()
-    params.pop("page", None)
-    filter_qs = params.urlencode()
+    try:
+        per_page = int(request.GET.get("per_page", 25))
+    except (ValueError, TypeError):
+        per_page = 25
+    if per_page not in (10, 25, 50, 100):
+        per_page = 25
 
-    paginator = Paginator(recent_qs, 10)
-    page_number = request.GET.get("page")
-    recent_page = paginator.get_page(page_number)
+    # filter_qs carries only search params (not page/per_page) so
+    # "Clear filters" only appears when a real filter is active.
+    search_params = request.GET.copy()
+    search_params.pop("page", None)
+    search_params.pop("per_page", None)
+    filter_qs = search_params.urlencode()
+
+    paginator = Paginator(recent_qs, per_page)
+    recent_page = paginator.get_page(request.GET.get("page"))
 
     return render(
         request,
@@ -373,6 +381,7 @@ def assessor_dashboard(request):
             "active_now": active_now,
             "recent_page": recent_page,
             "filter_qs": filter_qs,
+            "per_page": per_page,
             "q_code": q_code,
             "q_learner": q_learner,
             "q_status": q_status,
@@ -387,7 +396,12 @@ def assessor_attempts(request):
     _expire_overdue_attempts()
 
     from django.db.models import Exists, OuterRef
-    has_score = Score.objects.filter(response__attempt_id=OuterRef("pk"))
+    has_unscored_markable = Response.objects.filter(
+        attempt_id=OuterRef("pk"),
+        score__isnull=True,
+        question__is_active=True,
+        question__max_marks__gt=0,
+    )
 
     base_qs = (
         Attempt.objects.select_related("learner", "template")
@@ -405,8 +419,8 @@ def assessor_attempts(request):
 
     tab_qs = {
         "in_progress": base_qs.filter(status=Attempt.IN_PROGRESS),
-        "submitted":   base_qs.filter(status=Attempt.SUBMITTED).filter(~Exists(has_score)),
-        "marked":      base_qs.filter(status=Attempt.SUBMITTED).filter(Exists(has_score)),
+        "submitted":   base_qs.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)),
+        "marked":      base_qs.filter(status=Attempt.SUBMITTED).filter(~Exists(has_unscored_markable)),
         "incomplete":  base_qs.filter(status=Attempt.INCOMPLETE),
     }
     current_qs = tab_qs.get(active_tab, tab_qs["in_progress"])
@@ -1198,7 +1212,17 @@ def assessor_results(request):
     if q_date:
         attempts = attempts.filter(submitted_at__date=q_date)
 
-    sections = Section.objects.filter(template__attempt__in=attempts).distinct()
+    try:
+        per_page = int(request.GET.get("per_page", 25))
+    except (ValueError, TypeError):
+        per_page = 25
+    if per_page not in (10, 25, 50, 100):
+        per_page = 25
+
+    paginator = Paginator(attempts, per_page)
+    page_obj  = paginator.get_page(request.GET.get("page"))
+
+    sections = Section.objects.filter(template__attempt__in=page_obj.object_list).distinct()
     all_questions = (
         Question.objects
         .filter(section__in=sections)
@@ -1206,10 +1230,16 @@ def assessor_results(request):
     )
     q_meta = build_question_metadata(all_questions)
 
-    rows = [compute_nqf_placement(attempt, q_meta) for attempt in attempts]
+    rows = [compute_nqf_placement(attempt, q_meta) for attempt in page_obj.object_list]
+
+    params = request.GET.copy()
+    params.pop("page", None)
 
     return render(request, "assessment/assessor_results.html", {
         "rows":       rows,
+        "page_obj":   page_obj,
+        "filter_qs":  params.urlencode(),
+        "per_page":   per_page,
         "lit_groups": NQF_DISPLAY_GROUPS["literacy"],
         "num_groups": NQF_DISPLAY_GROUPS["numeracy"],
         "q_code":     q_code,
