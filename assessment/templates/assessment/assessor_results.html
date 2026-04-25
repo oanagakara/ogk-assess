@@ -8,7 +8,7 @@
   <div class="flex items-center justify-between shrink-0">
     <div>
       <h1 class="text-xl font-semibold">Results at a Glance</h1>
-      <p class="text-sm opacity-60">{{ rows|length }} result{{ rows|length|pluralize }}</p>
+      <p class="text-sm opacity-60">{{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }}</p>
     </div>
     <a href="{% url 'assessment:assessor_results_export' %}" class="btn btn-sm btn-outline gap-2">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
@@ -22,8 +22,8 @@
     </a>
   </div>
 
-  {# ── Search ── #}
-  <form method="get" class="flex flex-wrap gap-2 shrink-0">
+  {# ── Search + per-page ── #}
+  <form method="get" class="flex flex-wrap items-center gap-2 shrink-0">
     <input type="text" name="q_code" value="{{ q_code }}"
            placeholder="Code…"
            class="input input-sm input-bordered w-36">
@@ -34,8 +34,18 @@
            class="input input-sm input-bordered w-40">
     <button type="submit" class="btn btn-sm btn-primary">Search</button>
     {% if q_code or q_learner or q_date %}
-      <a href="{% url 'assessment:assessor_results' %}" class="btn btn-sm btn-ghost">Clear</a>
+      <a href="{% url 'assessment:assessor_results' %}{% if per_page != 25 %}?per_page={{ per_page }}{% endif %}" class="btn btn-sm btn-ghost">Clear</a>
     {% endif %}
+    <span class="ml-auto flex items-center gap-2">
+      <label class="text-sm opacity-60">Show</label>
+      <select name="per_page" class="select select-sm select-bordered" onchange="this.form.submit()">
+        <option value="10"  {% if per_page == 10  %}selected{% endif %}>10</option>
+        <option value="25"  {% if per_page == 25  %}selected{% endif %}>25</option>
+        <option value="50"  {% if per_page == 50  %}selected{% endif %}>50</option>
+        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+      </select>
+      <label class="text-sm opacity-60">per page</label>
+    </span>
   </form>
 
   {# ── Table ── #}
@@ -148,6 +158,37 @@
         </tbody>
       </table>
     </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="flex items-center justify-between px-4 py-3 border-t border-base-200">
+        <span class="text-sm opacity-60">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <div class="join">
+          {% if page_obj.has_previous %}
+            <a href="?{{ filter_qs }}&page={{ page_obj.previous_page_number }}" class="join-item btn btn-sm">«</a>
+          {% else %}
+            <button class="join-item btn btn-sm btn-disabled" disabled>«</button>
+          {% endif %}
+
+          {% for p in page_obj.paginator.page_range %}
+            {% if p == page_obj.number %}
+              <button class="join-item btn btn-sm btn-active">{{ p }}</button>
+            {% elif p == 1 or p == page_obj.paginator.num_pages or p >= page_obj.number|add:"-2" and p <= page_obj.number|add:"2" %}
+              <a href="?{{ filter_qs }}&page={{ p }}" class="join-item btn btn-sm">{{ p }}</a>
+            {% elif p == page_obj.number|add:"-3" or p == page_obj.number|add:"3" %}
+              <button class="join-item btn btn-sm btn-disabled" disabled>…</button>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <a href="?{{ filter_qs }}&page={{ page_obj.next_page_number }}" class="join-item btn btn-sm">»</a>
+          {% else %}
+            <button class="join-item btn btn-sm btn-disabled" disabled>»</button>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
   </div>
 
 </div>

@@ -1,4 +1,4 @@
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef
 
 from .models import Attempt, Response, Score
 from .tenant import get_active_tenant
@@ -31,7 +31,6 @@ def assessor_nav_counts(request):
     if not (request.user.is_staff or request.user.groups.filter(name="assessor").exists()):
         return {}
 
-    has_score = Score.objects.filter(response__attempt_id=OuterRef("pk"))
     has_review_score = Score.objects.filter(
         response__attempt_id=OuterRef("pk"),
         rubric_json__needs_review=True,
@@ -44,9 +43,9 @@ def assessor_nav_counts(request):
     )
 
     in_progress  = Attempt.objects.filter(status=Attempt.IN_PROGRESS).count()
-    submitted    = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(~Exists(has_score)).count()
-    marked       = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_score)).count()
-    incomplete   = Attempt.objects.filter(status=Attempt.INCOMPLETE).filter(~Exists(has_score)).count()
+    submitted    = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)).count()
+    marked       = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(~Exists(has_unscored_markable)).count()
+    incomplete   = Attempt.objects.filter(status=Attempt.INCOMPLETE).count()
     needs_review = (
         Attempt.objects
         .filter(status=Attempt.SUBMITTED)
