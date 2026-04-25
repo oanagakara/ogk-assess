@@ -1,26 +1,27 @@
 #!/usr/bin/env bash
 set -o errexit
 
-pip install -r requirements.txt
-python manage.py collectstatic --no-input
-python manage.py migrate
-python manage.py shell -c "
+pip install uv
+uv sync --frozen
+uv run python manage.py collectstatic --no-input
+uv run python manage.py migrate
+uv run python manage.py shell -c "
 from assessment.models import Question, AssessmentTemplate
 from django.core.management import call_command
 if not Question.objects.exists():
     call_command('loaddata', 'questions')
     print('questions fixture loaded.')
 else:
-    print('Questions already exist — skipping questions fixture.')
+    print('Questions already exist, skipping questions fixture.')
 if not AssessmentTemplate.objects.filter(pk=5).exists():
     call_command('loaddata', 'lit_nqf_general')
     print('lit_nqf_general fixture loaded.')
 else:
-    print('Template pk=5 already exists — skipping lit_nqf_general fixture.')
+    print('Template pk=5 already exists, skipping lit_nqf_general fixture.')
 "
 
 # Create assessor group with full permissions on all assessment models (if it doesn't exist)
-python manage.py shell -c "
+uv run python manage.py shell -c "
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from assessment.models import AssessmentTemplate, Attempt, Learner, Question, Response, Score, Section, ExamSession
@@ -35,11 +36,11 @@ if created:
     group.permissions.set(perms)
     print(f'assessor group created with {len(perms)} permissions.')
 else:
-    print('assessor group already exists — skipping.')
+    print('assessor group already exists, skipping.')
 "
 
 # Create or update superuser from env vars
-python manage.py shell -c "
+uv run python manage.py shell -c "
 from django.contrib.auth import get_user_model
 User = get_user_model()
 import os
@@ -55,5 +56,5 @@ if username and password:
     user.save()
     print(f'Superuser {username} {\"created\" if created else \"updated\"}.')
 else:
-    print('DJANGO_SUPERUSER_USERNAME or DJANGO_SUPERUSER_PASSWORD not set — skipping.')
+    print('DJANGO_SUPERUSER_USERNAME or DJANGO_SUPERUSER_PASSWORD not set, skipping.')
 "
