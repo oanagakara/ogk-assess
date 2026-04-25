@@ -1,0 +1,16 @@
+[project]
+name = "assessment"
+version = "0.1.0"
+description = "NQF Learner Placement Assessment Platform"
+requires-python = ">=3.13"
+dependencies = [
+    "anthropic==0.96.0",
+    "asgiref==3.11.1",
+    "dj-database-url==2.3.0",
+    "django==6.0.4",
+    "gunicorn==23.0.0",
+    "psycopg2-binary==2.9.10",
+    "python-dotenv==1.1.0",
+    "sqlparse==0.5.4",
+    "whitenoise==6.9.0",
+]
