@@ -37,7 +37,7 @@
         {# Occupied seat #}
         <div class="card shadow
              {% if slot.status == 'submitted' %}bg-success text-success-content
-             {% elif slot.status == 'abandoned' %}bg-error text-error-content
+             {% elif slot.status == 'incomplete' %}bg-error text-error-content
              {% else %}bg-warning text-warning-content{% endif %}">
           <a href="{{ slot.mark_url }}" class="card-body p-4 space-y-2 block hover:opacity-90 transition-opacity">
 
@@ -49,15 +49,15 @@
             <div class="text-xs opacity-80">
               {% if slot.status == "submitted" %}
                 Submitted
-              {% elif slot.status == "abandoned" %}
-                Abandoned
+              {% elif slot.status == "incomplete" %}
+                Incomplete
               {% else %}
                 Q{{ slot.current_question }}/{{ slot.total_questions }}
               {% endif %}
             </div>
 
             {# Progress bar #}
-            {% if slot.status != "abandoned" %}
+            {% if slot.status != "incomplete" %}
               <div class="w-full bg-black bg-opacity-20 rounded-full h-1.5">
                 <div class="bg-white bg-opacity-80 h-1.5 rounded-full"
                      style="width: {{ slot.pct }}%"></div>

@@ -58,8 +58,10 @@
     body { padding: 20mm 22mm 18mm 22mm; }
     @page { margin: 0; size: A4 portrait; }
     .no-print { display: none !important; }
-    h2 { page-break-after: avoid; }
+    h2 { page-break-before: always; page-break-after: avoid; }
     h3 { page-break-after: avoid; }
+    p, li { orphans: 3; widows: 3; }
+    .cover h2 { page-break-before: avoid; }
   }
 </style>
 </head>
@@ -78,7 +80,7 @@
 </div>
 
 <table class="meta-table">
-  <tr><td>Version</td><td>1.0</td></tr>
+  <tr><td>Version</td><td>1.1</td></tr>
   <tr><td>Audience</td><td>Assessors and Train-the-Trainer leads</td></tr>
   <tr><td>Support contact</td><td>[YOUR SUPPORT EMAIL]</td></tr>
   <tr><td>Platform URL</td><td>[YOUR PLATFORM URL]/accounts/login/</td></tr>
@@ -189,7 +191,7 @@
   <tr><th>Seat colour</th><th>Meaning</th></tr>
   <tr><td>Orange</td><td>Learner is in progress</td></tr>
   <tr><td>Green</td><td>Learner has submitted</td></tr>
-  <tr><td>Red</td><td>Attempt was abandoned</td></tr>
+  <tr><td>Red</td><td>Attempt is incomplete (learner did not submit)</td></tr>
   <tr><td>White (dashed)</td><td>Seat is empty / not yet joined</td></tr>
 </table>
 
@@ -201,8 +203,8 @@
   You will receive a notification each time a learner submits, and a final notification when all seats have submitted.
 </div>
 
-<h3>3.3 Learner Abandons or Cannot Continue</h3>
-<p>If a learner's computer crashes or they leave without submitting, their attempt will appear <strong>abandoned</strong> (red) after the session expires. This is expected. Do not attempt to restart it — create a new session if the learner needs to re-sit.</p>
+<h3>3.3 Learner Cannot Continue</h3>
+<p>If a learner's computer crashes or they leave without submitting, their attempt will appear <strong>Incomplete</strong> (red) after the session expires. This is expected. Incomplete attempts can still be marked — navigate to <strong>Attempts → Incomplete</strong> to find them. If the learner needs to re-sit, create a new session.</p>
 
 <!-- ── Section 4 ── -->
 <h2 id="s4" class="page-break">4. After the Session — Marking</h2>
@@ -294,15 +296,27 @@ Enter a number in the "Points out of X" field. Use the assessor note field for w
 <h2 id="s5" class="page-break">5. Results and Reporting</h2>
 
 <h3>5.1 Viewing Results</h3>
-<p>Navigate to <strong>Results</strong> in the left navigation. Results are shown per attempt with:</p>
+<p>Navigate to <strong>Results</strong> in the left navigation. All marked attempts appear here, sorted by most recent first. Incomplete attempts that have been marked are included and shown with an <strong>Incomplete</strong> badge so you can distinguish them from fully submitted attempts.</p>
+<p>Each row shows:</p>
 <ul>
-  <li>Total marks awarded</li>
-  <li>Total marks available</li>
-  <li>Percentage score</li>
+  <li>Attempt code (click to open the full marking view)</li>
+  <li>Date submitted</li>
+  <li>Learner name and ID number</li>
+  <li>Per-group literacy and numeracy scores</li>
+  <li>NQF level achieved for literacy and numeracy</li>
   <li>NQF placement recommendation</li>
 </ul>
 
-<h3>5.2 Exporting Data</h3>
+<h3>5.2 Searching and Filtering</h3>
+<p>Use the search bar at the top of the Results page to filter by:</p>
+<ul>
+  <li><strong>Code</strong> — partial match on attempt code</li>
+  <li><strong>Learner name</strong> — searches first name and surname</li>
+  <li><strong>Date</strong> — filter to a specific date</li>
+</ul>
+<p>Click <strong>Clear</strong> to remove all filters.</p>
+
+<h3>5.3 Exporting Data</h3>
 <p>Click <strong>Export CSV</strong> on the Results page to download a spreadsheet of all attempt scores. This file can be opened in Excel or Google Sheets.</p>
 
 <!-- ── Section 6 ── -->
@@ -360,7 +374,7 @@ Enter a number in the "Points out of X" field. Use the assessor note field for w
 
 <h3>Display preferences</h3>
 <p>At the bottom of the sidebar, below the dark/light mode toggle, you will find a font selector. Choose the typeface that is most comfortable for extended reading sessions. Your selection is saved automatically and will persist when you return.</p>
-<p>Available fonts: System (default), Inter, Lato, DM Sans, Merriweather, Source Serif 4.</p>
+<p>Available fonts: System (default), Comic Sans, Times New Roman, Arial, Century Gothic.</p>
 
 <h3>Key Facts</h3>
 <table class="spec">

@@ -114,11 +114,11 @@
             {% if nav_counts.marked %}<span class="badge badge-xs badge-success">{{ nav_counts.marked }}</span>{% endif %}
           </a>
 
-          <a href="{% url 'assessment:assessor_attempts' %}?tab=abandoned"
+          <a href="{% url 'assessment:assessor_attempts' %}?tab=incomplete"
              class="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
-               {% if url_name == 'assessor_attempts' and tab == 'abandoned' %}bg-primary text-primary-content{% else %}text-base-content opacity-60 hover:opacity-100 hover:bg-base-200{% endif %}">
-            Abandoned
-            {% if nav_counts.abandoned %}<span class="badge badge-xs badge-error">{{ nav_counts.abandoned }}</span>{% endif %}
+               {% if url_name == 'assessor_attempts' and tab == 'incomplete' %}bg-primary text-primary-content{% else %}text-base-content opacity-60 hover:opacity-100 hover:bg-base-200{% endif %}">
+            Incomplete
+            {% if nav_counts.incomplete %}<span class="badge badge-xs badge-error">{{ nav_counts.incomplete }}</span>{% endif %}
           </a>
 
           <a href="{% url 'assessment:assessor_results' %}"
@@ -224,11 +224,10 @@
         </svg>
         <select id="font-picker" class="select select-xs bg-transparent border-none text-xs w-full focus:outline-none">
           <option value="">System</option>
-          <option value="inter">Inter</option>
-          <option value="lato">Lato</option>
-          <option value="dm-sans">DM Sans</option>
-          <option value="merriweather">Merriweather</option>
-          <option value="source-serif">Source Serif 4</option>
+          <option value="comic-sans">Comic Sans</option>
+          <option value="times">Times New Roman</option>
+          <option value="arial">Arial</option>
+          <option value="century-gothic">Century Gothic</option>
         </select>
       </div>
 
@@ -304,11 +303,10 @@
 
     // Font picker
     var fontMap = {
-      "inter":        "'Inter', sans-serif",
-      "lato":         "'Lato', sans-serif",
-      "dm-sans":      "'DM Sans', sans-serif",
-      "merriweather": "'Merriweather', serif",
-      "source-serif": "'Source Serif 4', serif"
+      "comic-sans":    "'Comic Sans MS', cursive",
+      "times":         "'Times New Roman', serif",
+      "arial":         "Arial, sans-serif",
+      "century-gothic":"'Century Gothic', 'Apple Gothic', sans-serif"
     };
     var fontPicker = document.getElementById("font-picker");
     if (fontPicker) {

@@ -16,6 +16,7 @@ Including another URLconf
 """
 import os
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import path, include
 from django.views.generic import RedirectView
 from assessment import views as assessment_views
@@ -28,6 +29,7 @@ handler500 = assessment_views.handler500
 _ADMIN_PATH = os.environ.get("ADMIN_URL_PREFIX", "_platform-admin") + "/"
 
 urlpatterns = [
+    path("health/", lambda request: HttpResponse("ok"), name="health"),
     path(_ADMIN_PATH, admin.site.urls),
     path("accounts", RedirectView.as_view(url="/accounts/login/", permanent=False)),
     path("accounts/logout", RedirectView.as_view(url="accounts/login/", permanent=False)),

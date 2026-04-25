@@ -50,7 +50,7 @@ def claim_session_seat(session: ExamSession, learner) -> tuple[bool, str, "Attem
     session = ExamSession.objects.select_for_update().get(pk=session.pk)
 
     occupied = session.attempts.filter(
-        status__in=[Attempt.IN_PROGRESS, Attempt.SUBMITTED, Attempt.ABANDONED]
+        status__in=[Attempt.IN_PROGRESS, Attempt.SUBMITTED, Attempt.INCOMPLETE]
     ).count()
 
     if occupied >= session.seat_limit:
