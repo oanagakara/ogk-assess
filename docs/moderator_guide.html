@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Moderator and Auditor Guide: NQF Learner Placement Assessment Platform</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 10.5pt; color: #1c1c1e; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.75; }
+
+  .cover { text-align: center; padding: 40px 0 32px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+  .cover h1 { font-size: 20pt; margin-bottom: 6px; }
+  .cover .subtitle { font-size: 12pt; color: #444; margin-top: 6px; }
+  .cover .tag { font-size: 9.5pt; color: #666; margin-top: 12px; }
+
+  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 9.5pt; }
+  .meta-table td { border: 1px solid #ddd; padding: 6px 10px; }
+  .meta-table td:first-child { font-weight: bold; background: #f5f5f5; width: 160px; }
+
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 28px; margin-bottom: 10px; color: #1e3a5f; border-left: 4px solid #1e3a5f; padding-left: 10px; }
+  h3 { font-size: 11pt; font-weight: bold; margin-top: 18px; margin-bottom: 6px; }
+  h4 { font-size: 10.5pt; font-weight: bold; margin-top: 12px; margin-bottom: 4px; color: #333; }
+
+  p { margin-bottom: 8px; }
+  ol { margin-left: 22px; margin-bottom: 10px; }
+  ul { margin-left: 22px; margin-bottom: 10px; }
+  li { margin-bottom: 4px; }
+
+  table.spec { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 9.5pt; }
+  table.spec th { background: #333; color: #fff; padding: 6px 10px; text-align: left; font-weight: bold; }
+  table.spec td { border: 1px solid #ccc; padding: 6px 10px; vertical-align: top; }
+  table.spec tr:nth-child(even) td { background: #f9f9f9; }
+
+  .callout { background: #f0f4ff; border-left: 3px solid #336; padding: 8px 14px; font-size: 9.5pt; margin: 10px 0 14px; }
+  .callout strong { display: block; margin-bottom: 3px; }
+  .callout-warn { background: #fff8e1; border-left: 3px solid #b8860b; padding: 8px 14px; font-size: 9.5pt; margin: 10px 0 14px; }
+  .callout-warn strong { display: block; margin-bottom: 3px; }
+
+  .toc { background: #f5f5f5; border: 1px solid #ddd; padding: 14px 20px; margin-bottom: 28px; font-size: 10pt; }
+  .toc h3 { margin-top: 0; margin-bottom: 10px; font-size: 10.5pt; }
+  .toc ol { margin-left: 18px; }
+  .toc li { margin-bottom: 5px; }
+  .toc a { color: #333; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  .role-badge { display: inline-block; font-size: 8pt; font-weight: bold; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .badge-moderator { background: #d1fae5; color: #065f46; }
+  .badge-auditor   { background: #e0e7ff; color: #3730a3; }
+  .badge-assessor  { background: #fef9c3; color: #854d0e; }
+
+  code { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 9pt; background: #f0f2f5; padding: 1px 5px; border-radius: 3px; color: #1e3a5f; }
+
+  .page-break { page-break-before: always; margin-top: 0; }
+  .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8.5pt; color: #888; text-align: center; }
+
+  @media screen {
+    body { max-width: 880px; margin: 0 auto; padding: 40px 48px; }
+  }
+  @media print {
+    body { padding: 20mm 22mm 18mm 22mm; }
+    @page { margin: 0; size: A4 portrait; }
+    .no-print { display: none !important; }
+    h2 { page-break-before: always; page-break-after: avoid; }
+    h3 { page-break-after: avoid; }
+    p, li { orphans: 3; widows: 3; }
+    .cover h2 { page-break-before: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:right; margin-bottom:16px;">
+  <button onclick="window.print()" style="padding:6px 16px; font-size:10pt; cursor:pointer;">Save as PDF</button>
+</div>
+
+<!-- Cover -->
+<div class="cover">
+  <div style="font-size:9pt; color:#888; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Moderator and Auditor Guide</div>
+  <h1>NQF Learner Placement Assessment Platform</h1>
+  <div class="subtitle">For moderators reviewing finalised assessments and auditors with read-only access</div>
+  <div class="tag">Restricted: not for distribution to learners or general assessors</div>
+</div>
+
+<table class="meta-table">
+  <tr><td>Version</td><td>1.0</td></tr>
+  <tr><td>Audience</td><td>Moderators and auditors</td></tr>
+  <tr><td>Support contact</td><td>[YOUR SUPPORT EMAIL]</td></tr>
+  <tr><td>Platform URL</td><td>[YOUR PLATFORM URL]/accounts/login/</td></tr>
+</table>
+
+<!-- Table of Contents -->
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#s1">Role Overview</a></li>
+    <li><a href="#s2">Logging In</a></li>
+    <li><a href="#s3">The Moderation Page</a></li>
+    <li><a href="#s4">Reviewing a Finalised Attempt (Audit Mode)</a></li>
+    <li><a href="#s5">Unlocking and Re-Marking (Full Mode)</a></li>
+    <li><a href="#s6">Auditor Access</a></li>
+    <li><a href="#s7">Common Situations</a></li>
+    <li><a href="#s8">Quick Reference</a></li>
+  </ol>
+</div>
+
+<!-- Section 1 -->
+<h2 id="s1">1. Role Overview</h2>
+
+<p>The platform has four user roles. This guide covers the two oversight roles: <strong>moderator</strong> and <strong>auditor</strong>.</p>
+
+<table class="spec">
+  <tr><th>Role</th><th>Can view results?</th><th>Can view marks?</th><th>Can unlock and re-mark?</th></tr>
+  <tr>
+    <td><span class="role-badge badge-assessor">Assessor</span></td>
+    <td>Yes</td>
+    <td>Yes (own work)</td>
+    <td>No (once finalised)</td>
+  </tr>
+  <tr>
+    <td><span class="role-badge badge-moderator">Moderator</span></td>
+    <td>Yes</td>
+    <td>Yes (all attempts)</td>
+    <td>Yes, on Full-mode templates</td>
+  </tr>
+  <tr>
+    <td><span class="role-badge badge-auditor">Auditor</span></td>
+    <td>Yes</td>
+    <td>Yes (read-only)</td>
+    <td>No</td>
+  </tr>
+</table>
+
+<h3>What is finalisation?</h3>
+<p>When an assessor finishes marking an attempt, they click <strong>Finalise</strong> on the Summary screen. This locks the attempt: the assessor can no longer change any mark. The attempt then appears in the moderator's <strong>Moderation</strong> queue.</p>
+
+<h3>Moderation modes</h3>
+<p>Each assessment template has a <strong>Moderation mode</strong>, set by the platform administrator:</p>
+
+<table class="spec">
+  <tr><th>Mode</th><th>What the moderator can do</th></tr>
+  <tr>
+    <td><strong>Audit only</strong></td>
+    <td>Read all marks and responses. View the assessor's notes. Cannot unlock or change anything.</td>
+  </tr>
+  <tr>
+    <td><strong>Full</strong></td>
+    <td>Read all marks and responses, then click <strong>Unlock</strong> to clear the lock and re-mark any question. Re-finalise when done.</td>
+  </tr>
+</table>
+
+<p>If you are unsure which mode applies to the template you are moderating, check the <strong>Mode</strong> column on the Moderation page.</p>
+
+<!-- Section 2 -->
+<h2 id="s2">2. Logging In</h2>
+
+<p>Navigate to your platform URL in any modern desktop browser (Chrome, Edge, or Firefox recommended).</p>
+<p>Enter your <strong>username</strong> and <strong>password</strong>, then click <strong>Sign in</strong>.</p>
+<p>As a moderator you will see a <strong>Moderation</strong> link in the left navigation sidebar. Auditors see the same sidebar but without the Moderation link.</p>
+
+<div class="callout-warn">
+  <strong>Important</strong>
+  Do not share your login credentials. Moderator accounts carry elevated trust; they can change finalised marks on Full-mode templates. Contact your platform administrator if you need to reset your password.
+</div>
+
+<!-- Section 3 -->
+<h2 id="s3">3. The Moderation Page</h2>
+
+<p>Click <strong>Moderation</strong> in the left navigation to open the moderation queue. This page lists every finalised attempt, sorted with the most recently finalised at the top.</p>
+
+<p>Each row shows:</p>
+<ul>
+  <li>Attempt code (click to open the full marking view)</li>
+  <li>Learner name</li>
+  <li>Assessment template and version</li>
+  <li>Mode badge: <strong>Full</strong> (green) or <strong>Audit</strong> (grey)</li>
+  <li>The assessor who finalised the attempt and the date</li>
+  <li>Action button: <strong>Unlock</strong> (Full mode) or <strong>View</strong> (Audit mode)</li>
+</ul>
+
+<div class="callout">
+  <strong>Badge count</strong>
+  The number next to <strong>Moderation</strong> in the sidebar shows the total count of finalised attempts currently in the queue. The count does not decrease when you view an attempt; it decreases only if an attempt is unlocked (and therefore no longer finalised).
+</div>
+
+<!-- Section 4 -->
+<h2 id="s4" class="page-break">4. Reviewing a Finalised Attempt (Audit Mode)</h2>
+
+<p>In <em>Audit only</em> mode your role is to read and verify the assessor's work. You cannot change any mark.</p>
+
+<h3>4.1 Opening the attempt</h3>
+<p>Click the attempt code link, or click <strong>View</strong> in the action column. The marking view opens with a yellow locked banner at the top:</p>
+<blockquote style="margin: 8px 0 12px 0; padding: 8px 14px; border-left: 3px solid #b8860b; font-size: 9.5pt; color: #5a4000; background: #fff8e1;">
+  This attempt was finalised by [assessor name] on [date] and is <strong>locked</strong>.
+</blockquote>
+<p>All input fields and save buttons are disabled. You can read the question, the learner's response, the marks awarded, and the assessor's notes, but you cannot submit any changes.</p>
+
+<h3>4.2 Navigating questions</h3>
+<p>Use the sidebar on the left to navigate between questions. Questions that required manual marking are listed in the main sidebar; auto-marked questions appear in the collapsed <strong>Audit log</strong> section (staff users only).</p>
+
+<h3>4.3 Viewing the summary</h3>
+<p>Click <strong>Summary</strong> at the bottom of the sidebar to see a table of every question with awarded marks, maximum marks, and status. From the summary you can click <strong>Edit</strong> on any row to navigate to that question.</p>
+
+<div class="callout">
+  <strong>Working sheets</strong>
+  If a working sheet was uploaded during marking, you can view it using the <strong>View</strong> button in the working sheet card at the top of the screen. This opens a modal viewer without leaving the marking view.
+</div>
+
+<!-- Section 5 -->
+<h2 id="s5" class="page-break">5. Unlocking and Re-Marking (Full Mode)</h2>
+
+<p>In <em>Full</em> mode you can unlock a finalised attempt, correct any mark, and re-finalise.</p>
+
+<h3>5.1 Unlock the attempt</h3>
+<p>Open the attempt from the Moderation page (click the code or click <strong>Unlock</strong>). The locked banner appears. Click the <strong>Unlock for re-marking</strong> button on the right side of the banner.</p>
+<p>The lock is cleared immediately. The marking view reloads with all inputs enabled. The attempt is removed from the finalised state and the assessor's name is cleared from the lock record.</p>
+
+<div class="callout-warn">
+  <strong>Notify the original assessor</strong>
+  The platform does not automatically notify the assessor when you unlock their work. It is good practice to inform the assessor by other means (email or in person) before or after you make changes, so they are aware of the revision.
+</div>
+
+<h3>5.2 Review and re-mark</h3>
+<p>With the attempt unlocked, the marking view works exactly like it does for an assessor:</p>
+<ul>
+  <li>Use the sidebar to navigate to the question you want to change.</li>
+  <li>Enter the corrected mark (and update the assessor note if helpful).</li>
+  <li>Click <strong>Save</strong> or <strong>Save &amp; Continue</strong>.</li>
+</ul>
+
+<div class="callout">
+  <strong>Auto-marked questions</strong>
+  You can override an auto-mark by navigating to that question via the sidebar and entering a manual mark. The score audit log records both the original auto-mark and your manual override.
+</div>
+
+<h3>5.3 Re-finalise</h3>
+<p>When all corrections are complete, navigate to the <strong>Summary</strong> screen and click <strong>Finalise</strong> again. The attempt returns to the finalised state under your name and the current date.</p>
+<p>The attempt reappears in the Moderation queue, now showing your name as the finaliser.</p>
+
+<h3>5.4 Score audit log</h3>
+<p>Every mark change is recorded in the score audit log. Staff users can view this log from the marking view (the <strong>Audit log</strong> link in the top-right area of the screen). The log shows: who made each change, when, the mode (auto or manual), and the points before and after.</p>
+
+<!-- Section 6 -->
+<h2 id="s6" class="page-break">6. Auditor Access</h2>
+
+<p>Auditors have read-only access to the assessor interface. The Moderation page is not available to auditors.</p>
+
+<p>As an auditor you can:</p>
+<ul>
+  <li>View the <strong>Attempts</strong> list across all tabs (In Progress, Submitted, Marked, Incomplete)</li>
+  <li>Open any attempt in the marking view (read-only; inputs are disabled)</li>
+  <li>View working sheets</li>
+  <li>Browse the <strong>Results at a Glance</strong> page and export the CSV</li>
+</ul>
+
+<p>As an auditor you cannot:</p>
+<ul>
+  <li>Create sessions or attempts</li>
+  <li>Mark or save any score</li>
+  <li>Finalise or unlock any attempt</li>
+  <li>Access the Dashboard</li>
+</ul>
+
+<div class="callout">
+  <strong>If you need to change a mark</strong>
+  Contact your moderator (if the attempt has been finalised) or the assessor (if the attempt is still in the marking stage). Auditors do not have write access at any stage of the workflow.
+</div>
+
+<!-- Section 7 -->
+<h2 id="s7">7. Common Situations</h2>
+
+<table class="spec">
+  <tr><th>Situation</th><th>What to do</th></tr>
+  <tr>
+    <td>You cannot see the Moderation page</td>
+    <td>Your account does not have the moderator role. Contact your platform administrator to have the <em>moderator</em> group added to your account.</td>
+  </tr>
+  <tr>
+    <td>The Unlock button is not visible on a finalised attempt</td>
+    <td>The template uses Audit-only mode. Moderators cannot unlock audit-only attempts. If an unlock is genuinely required, contact your platform administrator to change the template's moderation mode.</td>
+  </tr>
+  <tr>
+    <td>You unlocked an attempt but want to leave it unlocked for the assessor to correct</td>
+    <td>You can leave an attempt in the unlocked state. The assessor can then mark it and finalise it again. The attempt will not appear in the Moderation queue until it is finalised.</td>
+  </tr>
+  <tr>
+    <td>A mark looks wrong but you are not sure</td>
+    <td>Open the working sheet (View button in the top strip) and the learner's response alongside the marking guidance note. If you are still uncertain, consult a colleague before making a change. All changes are logged and attributed to you.</td>
+  </tr>
+  <tr>
+    <td>The Moderation queue count does not decrease after you view an attempt</td>
+    <td>Viewing does not remove an attempt from the queue. It remains finalised and visible until it is unlocked (which clears the finalised state) or the platform administrator removes it.</td>
+  </tr>
+  <tr>
+    <td>You need to see the original auto-mark for a question you overrode</td>
+    <td>Staff users can access the score audit log from the marking view (top-right link). If you are not staff, ask your platform administrator to retrieve the audit log entry.</td>
+  </tr>
+  <tr>
+    <td>You accidentally unlocked the wrong attempt</td>
+    <td>Navigate to the attempt's Summary screen and click Finalise immediately. This re-locks the attempt without changing any marks. Note the incident for your records.</td>
+  </tr>
+</table>
+
+<!-- Section 8 -->
+<h2 id="s8" class="page-break">8. Quick Reference</h2>
+
+<h3>Navigation</h3>
+<table class="spec">
+  <tr><th>Page</th><th>Moderator</th><th>Auditor</th></tr>
+  <tr><td>Moderation queue</td><td>Moderation in left nav</td><td>Not available</td></tr>
+  <tr><td>All attempts</td><td>Attempts in left nav</td><td>Attempts in left nav</td></tr>
+  <tr><td>Mark/review view</td><td>Click attempt code</td><td>Click attempt code (read-only)</td></tr>
+  <tr><td>Results at a Glance</td><td>Attempts → Results at a Glance</td><td>Attempts → Results at a Glance</td></tr>
+  <tr><td>Export CSV</td><td>Results page → Export CSV</td><td>Results page → Export CSV</td></tr>
+</table>
+
+<h3>Moderator workflow summary</h3>
+<table class="spec">
+  <tr><th>Step</th><th>Action</th></tr>
+  <tr><td>1</td><td>Open the <strong>Moderation</strong> page from the sidebar</td></tr>
+  <tr><td>2</td><td>Click an attempt code to review it in read-only mode first</td></tr>
+  <tr><td>3 (Full mode only)</td><td>If changes are needed, click <strong>Unlock for re-marking</strong> in the yellow banner</td></tr>
+  <tr><td>4 (Full mode only)</td><td>Use the sidebar to navigate to the question, enter the corrected mark, save</td></tr>
+  <tr><td>5 (Full mode only)</td><td>Go to Summary and click <strong>Finalise</strong> to re-lock the attempt</td></tr>
+</table>
+
+<h3>Key facts</h3>
+<table class="spec">
+  <tr><th>Item</th><th>Value</th></tr>
+  <tr><td>Can moderators mark new (non-finalised) attempts?</td><td>Only if they also hold the <em>assessor</em> group</td></tr>
+  <tr><td>Does unlocking notify the assessor?</td><td>No. Notify them manually.</td></tr>
+  <tr><td>Is unlock available on Audit-only templates?</td><td>No. Read-only only.</td></tr>
+  <tr><td>Are mark changes logged?</td><td>Yes. Every change is recorded in the score audit log with your username and timestamp.</td></tr>
+  <tr><td>Support email</td><td><a href="mailto:your@email.com">[YOUR SUPPORT EMAIL]</a></td></tr>
+  <tr><td>Platform URL</td><td>[YOUR PLATFORM URL]/accounts/login/</td></tr>
+</table>
+
+<div class="footer">
+  End of guide, Version 1.0 &nbsp;·&nbsp; For updates to this document contact <a href="mailto:your@email.com">[YOUR SUPPORT EMAIL]</a>
+</div>
+
+</body>
+</html>

@@ -28,8 +28,10 @@ def _css_vars(tenant):
 def assessor_nav_counts(request):
     if not request.user.is_authenticated:
         return {}
-    if not (request.user.is_staff or request.user.groups.filter(name="assessor").exists()):
+    user_groups = set(request.user.groups.values_list("name", flat=True)) if not request.user.is_staff else set()
+    if not (request.user.is_staff or user_groups & {"assessor", "moderator", "auditor"}):
         return {}
+    user_is_moderator = request.user.is_staff or "moderator" in user_groups
 
     has_review_score = Score.objects.filter(
         response__attempt_id=OuterRef("pk"),
@@ -44,7 +46,7 @@ def assessor_nav_counts(request):
 
     in_progress  = Attempt.objects.filter(status=Attempt.IN_PROGRESS).count()
     submitted    = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)).count()
-    marked       = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(~Exists(has_unscored_markable)).count()
+    marked       = Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)).count()
     incomplete   = Attempt.objects.filter(status=Attempt.INCOMPLETE).count()
     needs_review = (
         Attempt.objects
@@ -52,14 +54,17 @@ def assessor_nav_counts(request):
         .filter(Exists(has_review_score) | Exists(has_unscored_markable))
         .count()
     )
+    finalised = Attempt.objects.filter(finalised_at__isnull=False).count()
 
     return {
+        "user_is_moderator": user_is_moderator,
         "nav_counts": {
             "in_progress":  in_progress,
             "submitted":    submitted,
             "marked":       marked,
             "incomplete":   incomplete,
             "needs_review": needs_review,
+            "finalised":    finalised,
             "total":        in_progress + submitted + marked + incomplete,
         }
     }

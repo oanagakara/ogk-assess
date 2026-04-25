@@ -5,6 +5,8 @@
   <td class="whitespace-nowrap opacity-70">{{ a.last_activity_at|default:a.started_at }}</td>
   <td class="text-right font-mono">{{ a.response_count }}</td>
   <td class="text-right">
-    <a class="btn btn-sm btn-outline" href="{% url 'assessment:assessor_mark_attempt' a.code %}">Mark</a>
+    {% if active_tab != 'in_progress' %}
+      <a class="btn btn-sm btn-outline" href="{% url 'assessment:assessor_mark_attempt' a.code %}">Mark</a>
+    {% endif %}
   </td>
 </tr>
