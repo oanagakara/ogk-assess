@@ -50,8 +50,20 @@ class Tenant(models.Model):
 
 
 class AssessmentTemplate(models.Model):
+    MODERATION_AUDIT = "audit"
+    MODERATION_FULL  = "full"
+    MODERATION_CHOICES = [
+        (MODERATION_AUDIT, "Audit only — moderator reads, cannot re-mark"),
+        (MODERATION_FULL,  "Full — moderator can unlock and re-mark"),
+    ]
+
     name = models.CharField(max_length=200)
     version = models.CharField(max_length=50, blank=True, default="")
+    moderation_mode = models.CharField(
+        max_length=10,
+        choices=MODERATION_CHOICES,
+        default=MODERATION_AUDIT,
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -235,6 +247,14 @@ class Attempt(models.Model):
     honesty_accepted_at = models.DateTimeField(blank=True, null=True)
     section_timings_json = models.JSONField(default=dict, blank=True)
     review_started_at = models.DateTimeField(null=True, blank=True)
+    finalised_at = models.DateTimeField(null=True, blank=True)
+    finalised_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="finalised_attempts",
+    )
 
     def __str__(self) -> str:
         return f"{self.code} - {self.learner} - {self.status}"
