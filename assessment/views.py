@@ -1,12 +1,14 @@
 from datetime import date, timedelta
 import csv
 import json
+import logging
 import os
 import re
 import sys
-import urllib.request
 import uuid
 from typing import NamedTuple
+
+logger = logging.getLogger(__name__)
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator 
@@ -132,8 +134,7 @@ def _expire_overdue_attempts():
         started_at__isnull=False,
         started_at__lte=cutoff,
     ).update(
-        status=Attempt.SUBMITTED,
-        submitted_at=now,
+        status=Attempt.INCOMPLETE,
         last_activity_at=now,
     )
 
@@ -354,13 +355,22 @@ def assessor_dashboard(request):
         except ValueError:
             pass
 
-    params = request.GET.copy()
-    params.pop("page", None)
-    filter_qs = params.urlencode()
+    try:
+        per_page = int(request.GET.get("per_page", 25))
+    except (ValueError, TypeError):
+        per_page = 25
+    if per_page not in (10, 25, 50, 100):
+        per_page = 25
 
-    paginator = Paginator(recent_qs, 10)
-    page_number = request.GET.get("page")
-    recent_page = paginator.get_page(page_number)
+    # filter_qs carries only search params (not page/per_page) so
+    # "Clear filters" only appears when a real filter is active.
+    search_params = request.GET.copy()
+    search_params.pop("page", None)
+    search_params.pop("per_page", None)
+    filter_qs = search_params.urlencode()
+
+    paginator = Paginator(recent_qs, per_page)
+    recent_page = paginator.get_page(request.GET.get("page"))
 
     return render(
         request,
@@ -371,6 +381,7 @@ def assessor_dashboard(request):
             "active_now": active_now,
             "recent_page": recent_page,
             "filter_qs": filter_qs,
+            "per_page": per_page,
             "q_code": q_code,
             "q_learner": q_learner,
             "q_status": q_status,
@@ -385,7 +396,12 @@ def assessor_attempts(request):
     _expire_overdue_attempts()
 
     from django.db.models import Exists, OuterRef
-    has_score = Score.objects.filter(response__attempt_id=OuterRef("pk"))
+    has_unscored_markable = Response.objects.filter(
+        attempt_id=OuterRef("pk"),
+        score__isnull=True,
+        question__is_active=True,
+        question__max_marks__gt=0,
+    )
 
     base_qs = (
         Attempt.objects.select_related("learner", "template")
@@ -403,9 +419,9 @@ def assessor_attempts(request):
 
     tab_qs = {
         "in_progress": base_qs.filter(status=Attempt.IN_PROGRESS),
-        "submitted":   base_qs.filter(status=Attempt.SUBMITTED).filter(~Exists(has_score)),
-        "marked":      base_qs.filter(status=Attempt.SUBMITTED).filter(Exists(has_score)),
-        "abandoned":   base_qs.filter(status=Attempt.ABANDONED),
+        "submitted":   base_qs.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)),
+        "marked":      base_qs.filter(status=Attempt.SUBMITTED).filter(~Exists(has_unscored_markable)),
+        "incomplete":  base_qs.filter(status=Attempt.INCOMPLETE),
     }
     current_qs = tab_qs.get(active_tab, tab_qs["in_progress"])
 
@@ -1171,15 +1187,42 @@ def assessor_sessions(request):
 @login_required
 @user_passes_test(is_assessor)
 def assessor_results(request):
+    q_code    = (request.GET.get("q_code")    or "").strip()
+    q_learner = (request.GET.get("q_learner") or "").strip()
+    q_date    = (request.GET.get("q_date")    or "").strip()
+
     attempts = (
         Attempt.objects
-        .filter(status=Attempt.SUBMITTED, response__score__isnull=False)
+        .filter(
+            status__in=[Attempt.SUBMITTED, Attempt.INCOMPLETE],
+            response__score__isnull=False,
+        )
         .select_related("learner", "template")
         .distinct()
-        .order_by("learner__surname", "learner__first_names")
+        .order_by("-submitted_at")
     )
 
-    sections = Section.objects.filter(template__attempt__in=attempts).distinct()
+    if q_code:
+        attempts = attempts.filter(code__icontains=q_code)
+    if q_learner:
+        attempts = attempts.filter(
+            Q(learner__first_names__icontains=q_learner)
+            | Q(learner__surname__icontains=q_learner)
+        )
+    if q_date:
+        attempts = attempts.filter(submitted_at__date=q_date)
+
+    try:
+        per_page = int(request.GET.get("per_page", 25))
+    except (ValueError, TypeError):
+        per_page = 25
+    if per_page not in (10, 25, 50, 100):
+        per_page = 25
+
+    paginator = Paginator(attempts, per_page)
+    page_obj  = paginator.get_page(request.GET.get("page"))
+
+    sections = Section.objects.filter(template__attempt__in=page_obj.object_list).distinct()
     all_questions = (
         Question.objects
         .filter(section__in=sections)
@@ -1187,12 +1230,21 @@ def assessor_results(request):
     )
     q_meta = build_question_metadata(all_questions)
 
-    rows = [compute_nqf_placement(attempt, q_meta) for attempt in attempts]
+    rows = [compute_nqf_placement(attempt, q_meta) for attempt in page_obj.object_list]
+
+    params = request.GET.copy()
+    params.pop("page", None)
 
     return render(request, "assessment/assessor_results.html", {
         "rows":       rows,
+        "page_obj":   page_obj,
+        "filter_qs":  params.urlencode(),
+        "per_page":   per_page,
         "lit_groups": NQF_DISPLAY_GROUPS["literacy"],
         "num_groups": NQF_DISPLAY_GROUPS["numeracy"],
+        "q_code":     q_code,
+        "q_learner":  q_learner,
+        "q_date":     q_date,
     })
 
 
@@ -1201,7 +1253,10 @@ def assessor_results(request):
 def assessor_results_export(request):
     attempts = (
         Attempt.objects
-        .filter(status=Attempt.SUBMITTED, response__score__isnull=False)
+        .filter(
+            status__in=[Attempt.SUBMITTED, Attempt.INCOMPLETE],
+            response__score__isnull=False,
+        )
         .select_related("learner", "template")
         .distinct()
         .order_by("learner__surname", "learner__first_names")
@@ -1794,32 +1849,28 @@ def assessor_score_audit_log(request, code: str):
 
 # ── Error handling ────────────────────────────────────────────────────────────
 
-def _slack_notify(request, error_type, error_msg):
-    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
-    if not webhook_url:
-        return
-    try:
-        payload = json.dumps({
-            "error_type": error_type,
-            "error_msg": error_msg,
-            "url": request.build_absolute_uri(),
-            "method": request.method,
-            "user": str(request.user) if request.user.is_authenticated else "anonymous",
-        }).encode("utf-8")
-        req = urllib.request.Request(
-            webhook_url, data=payload,
-            headers={"Content-Type": "application/json"}
-        )
-        urllib.request.urlopen(req, timeout=3)
-    except Exception:
-        pass
+def _notify(error_type, error_msg, url="", method="", user=""):
+    """
+    Central error notification. Currently logs to Render's log stream.
+    Wire up email here once KAIgaba Google Workspace is set up.
+    """
+    logger.warning(
+        "PLATFORM ERROR | %s | %s | %s %s | user:%s",
+        error_type, error_msg, method, url, user,
+    )
 
 
 def handler500(request):
+    from django.utils.html import escape
     exc_type, exc_value, _ = sys.exc_info()
     error_type = exc_type.__name__ if exc_type else "Error"
     error_msg = str(exc_value) if exc_value else ""
-    _slack_notify(request, error_type, error_msg)
+    _notify(
+        error_type, error_msg,
+        url=request.build_absolute_uri(),
+        method=request.method,
+        user=str(request.user) if request.user.is_authenticated else "anonymous",
+    )
     try:
         return render(request, "500.html", {
             "error_type": error_type,
@@ -1827,48 +1878,38 @@ def handler500(request):
         }, status=500)
     except Exception:
         return HttpResponse(
-            f"<h1>System error</h1><p>{error_type}: {error_msg}</p>"
+            f"<h1>System error</h1><p>{escape(error_type)}: {escape(error_msg)}</p>"
             "<p>Please contact the administrator.</p>",
             status=500,
         )
 
 
 def error_report(request):
+    import hmac
+    from django.http import JsonResponse
     if request.method != "POST":
         return HttpResponse(status=405)
+    expected = os.environ.get("ERROR_REPORT_SECRET", "")
+    provided = request.headers.get("X-Error-Token", "")
+    if not expected or not hmac.compare_digest(expected, provided):
+        return HttpResponse(status=403)
     try:
         data = json.loads(request.body)
     except Exception:
         data = {}
-    _slack_notify_manual(data)
-    from django.http import JsonResponse
+    _notify(
+        f"[Learner Report] {data.get('error_type', 'Unknown')}",
+        data.get("error_msg", ""),
+        url=data.get("url", ""),
+        method="—",
+        user="learner (manual report)",
+    )
     return JsonResponse({"ok": True})
-
-
-def _slack_notify_manual(data):
-    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
-    if not webhook_url:
-        return
-    try:
-        payload = json.dumps({
-            "error_type": f"[Learner Report] {data.get('error_type', 'Unknown')}",
-            "error_msg": data.get("error_msg", ""),
-            "url": data.get("url", ""),
-            "method": "—",
-            "user": "learner (manual report)",
-        }).encode("utf-8")
-        req = urllib.request.Request(
-            webhook_url, data=payload,
-            headers={"Content-Type": "application/json"}
-        )
-        urllib.request.urlopen(req, timeout=3)
-    except Exception:
-        pass
 
 
 def handler400(request, exception=None):
     msg = str(exception) if exception else "The request could not be understood."
-    _slack_notify(request, "BadRequest", msg)
+    _notify("BadRequest", msg, url=request.build_absolute_uri(), method=request.method)
     return render(request, "400.html", {
         "error_type": "Bad Request",
         "error_msg": msg,
@@ -1877,7 +1918,7 @@ def handler400(request, exception=None):
 
 def handler403(request, exception=None):
     msg = str(exception) if exception else "Access denied."
-    _slack_notify(request, "PermissionDenied", msg)
+    _notify("PermissionDenied", msg, url=request.build_absolute_uri(), method=request.method)
     return render(request, "403.html", {
         "error_type": "Access Denied",
         "error_msg": msg,
@@ -1885,11 +1926,10 @@ def handler403(request, exception=None):
 
 
 def handler404(request, exception=None):
-    msg = str(request.path)
-    _slack_notify(request, "NotFound", msg)
+    _notify("NotFound", request.path, url=request.build_absolute_uri(), method=request.method)
     return render(request, "404.html", {
         "error_type": "Page Not Found",
-        "error_msg": msg,
+        "error_msg": request.path,
     }, status=404)
 
 

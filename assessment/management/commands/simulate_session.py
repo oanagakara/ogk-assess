@@ -163,7 +163,7 @@ class Command(BaseCommand):
                     submitted_at = None
             else:  # poor
                 if random.random() < 0.34:
-                    status = Attempt.ABANDONED
+                    status = Attempt.INCOMPLETE
                     current_q = random.randint(1, max(1, int(total_q * 0.25)))
                     submitted_at = None
                 else:

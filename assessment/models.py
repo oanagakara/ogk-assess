@@ -208,12 +208,12 @@ class ExamSession(models.Model):
 class Attempt(models.Model):
     IN_PROGRESS = "in_progress"
     SUBMITTED = "submitted"
-    ABANDONED = "abandoned"
+    INCOMPLETE = "incomplete"
 
     STATUS_CHOICES = [
         (IN_PROGRESS, "In Progress"),
         (SUBMITTED, "Submitted"),
-        (ABANDONED, "Abandoned"),
+        (INCOMPLETE, "Incomplete"),
     ]
 
     template = models.ForeignKey("AssessmentTemplate", on_delete=models.CASCADE)
@@ -268,7 +268,7 @@ class Attempt(models.Model):
             self.started_at = when
             update_fields.append("started_at")
 
-        if self.status not in {self.SUBMITTED, self.ABANDONED} and self.status != self.IN_PROGRESS:
+        if self.status not in {self.SUBMITTED, self.INCOMPLETE} and self.status != self.IN_PROGRESS:
             self.status = self.IN_PROGRESS
             update_fields.append("status")
 

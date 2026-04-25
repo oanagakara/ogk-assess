@@ -10,11 +10,10 @@
                 var t = localStorage.getItem("theme") || "business";
                 document.documentElement.setAttribute("data-theme", t);
                 var fontMap = {
-                    "inter":        "'Inter', sans-serif",
-                    "lato":         "'Lato', sans-serif",
-                    "merriweather": "'Merriweather', serif",
-                    "dm-sans":      "'DM Sans', sans-serif",
-                    "source-serif": "'Source Serif 4', serif"
+                    "comic-sans":    "'Comic Sans MS', cursive",
+                    "times":         "'Times New Roman', serif",
+                    "arial":         "Arial, sans-serif",
+                    "century-gothic":"'Century Gothic', 'Apple Gothic', sans-serif"
                 };
                 var f = fontMap[localStorage.getItem("font")];
                 if (f) document.documentElement.style.setProperty("--font-body", f);
@@ -22,7 +21,7 @@
         </script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lato:wght@400;700&family=Merriweather:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+        {# No Google Fonts needed — all font choices are system fonts #}
         <style>body { font-family: var(--font-body, system-ui, sans-serif); }</style>
         <link rel="stylesheet" href="{% static 'css/output.css' %}">
         {% if tenant.favicon_url %}<link rel="icon" href="{{ tenant.favicon_url }}">{% endif %}
@@ -42,11 +41,10 @@
                     </svg>
                     <select id="font-picker" class="select select-xs bg-transparent border-none text-xs focus:outline-none">
                         <option value="">System</option>
-                        <option value="inter">Inter</option>
-                        <option value="lato">Lato</option>
-                        <option value="dm-sans">DM Sans</option>
-                        <option value="merriweather">Merriweather</option>
-                        <option value="source-serif">Source Serif 4</option>
+                        <option value="comic-sans">Comic Sans</option>
+                        <option value="times">Times New Roman</option>
+                        <option value="arial">Arial</option>
+                        <option value="century-gothic">Century Gothic</option>
                     </select>
                 </div>
                 <label class="flex cursor-pointer items-center gap-2">
@@ -80,11 +78,10 @@
                     });
                 }
                 var fontMap = {
-                    "inter":        "'Inter', sans-serif",
-                    "lato":         "'Lato', sans-serif",
-                    "dm-sans":      "'DM Sans', sans-serif",
-                    "merriweather": "'Merriweather', serif",
-                    "source-serif": "'Source Serif 4', serif"
+                    "comic-sans":    "'Comic Sans MS', cursive",
+                    "times":         "'Times New Roman', serif",
+                    "arial":         "Arial, sans-serif",
+                    "century-gothic":"'Century Gothic', 'Apple Gothic', sans-serif"
                 };
                 var picker = document.getElementById("font-picker");
                 if (picker) {
