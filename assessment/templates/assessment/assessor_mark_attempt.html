@@ -4,6 +4,21 @@
 {% block assessor_content %}
 <div class="h-full flex flex-col gap-3">
 
+  {% if is_finalised %}
+    <div class="alert alert-warning shrink-0 py-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86C20.24 19 21 18.1 21 17a2 2 0 0 0-.29-1.03L13.71 4.97A2 2 0 0 0 12 4c-.76 0-1.47.41-1.71 1.03L3.29 15.97A2 2 0 0 0 3 17c0 1.1.76 2 2.07 2Z"/>
+      </svg>
+      <span>This attempt was finalised by <strong>{{ attempt.finalised_by.get_full_name|default:attempt.finalised_by.username }}</strong> on {{ attempt.finalised_at|date:"d M Y" }} and is <strong>locked</strong>.{% if can_mark %} You are viewing as moderator.{% endif %}</span>
+      {% if can_unlock %}
+        <form method="post" action="{% url 'assessment:assessor_unlock_attempt' attempt.code %}" class="ml-auto shrink-0">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-xs btn-outline">Unlock for re-marking</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+
   {# ── Stats strip ── #}
   <div class="flex items-stretch gap-3 shrink-0">
 
@@ -247,14 +262,28 @@
                 <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}"
                    class="btn btn-sm btn-warning">Continue marking</a>
               {% endif %}
-              <a href="{% url 'assessment:assessor_review_queue' %}" class="btn btn-sm btn-primary">Done → Review Queue</a>
+              {% if is_finalised %}
+                <span class="btn btn-sm btn-disabled">Finalised</span>
+                <a href="{% url 'assessment:assessor_attempts' %}?tab=marked" class="btn btn-sm btn-ghost">← Back to Marked</a>
+              {% else %}
+                <a href="{% url 'assessment:assessor_review_queue' %}" class="btn btn-sm btn-ghost">Review Queue</a>
+                <form method="post" action="{% url 'assessment:assessor_mark_attempt' attempt.code %}">
+                  {% csrf_token %}
+                  <button type="submit" name="action" value="finalise"
+                          class="btn btn-sm btn-primary"
+                          {% if pending_count > 0 %}title="There are still pending questions"{% endif %}>
+                    Finalise
+                  </button>
+                </form>
+              {% endif %}
             </div>
           </div>
         </div>
 
       {% elif row %}
         {# ── Marking form ── #}
-        <form method="post" action="?qid={{ row.question.pk }}" class="flex-1 min-h-0 flex flex-col gap-3">
+        <form method="post" action="?qid={{ row.question.pk }}" class="flex-1 min-h-0 flex flex-col gap-3"
+              {% if not can_mark %}onsubmit="return false;"{% endif %}>
           {% csrf_token %}
 
           {# Question header #}
@@ -340,11 +369,13 @@
                                  type="number" step="0.5" min="0"
                                  max="{{ criterion.max_points|floatformat:'-2' }}"
                                  name="rubric__{{ row.question.pk }}__{{ criterion.key }}"
-                                 value="{{ criterion.value }}"/>
+                                 value="{{ criterion.value }}"
+                                 {% if not can_mark %}disabled{% endif %}/>
                           <textarea class="textarea textarea-bordered w-full text-sm"
                                     name="rubric_feedback__{{ row.question.pk }}__{{ criterion.key }}"
                                     rows="2"
-                                    placeholder="Optional criterion note">{{ criterion.feedback }}</textarea>
+                                    placeholder="Optional criterion note"
+                                    {% if not can_mark %}disabled{% endif %}>{{ criterion.feedback }}</textarea>
                         </div>
                       {% endfor %}
                     </div>
@@ -354,7 +385,8 @@
                     <textarea class="textarea textarea-bordered w-full text-sm"
                               name="notes__{{ row.question.pk }}"
                               rows="3"
-                              placeholder="Optional overall note">{{ row.notes }}</textarea>
+                              placeholder="Optional overall note"
+                              {% if not can_mark %}disabled{% endif %}>{{ row.notes }}</textarea>
                   </div>
                 {% else %}
                   <div>
@@ -364,13 +396,15 @@
                            type="number" step="0.5" min="0"
                            max="{{ row.max_points|floatformat:'-2' }}"
                            name="manual__{{ row.question.pk }}"
-                           value="{{ row.manual_value }}"/>
+                           value="{{ row.manual_value }}"
+                           {% if not can_mark %}disabled{% endif %}/>
                     <div class="mt-4">
                       <div class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Assessor note</div>
                       <textarea class="textarea textarea-bordered w-full text-sm"
                                 name="notes__{{ row.question.pk }}"
                                 rows="4"
-                                placeholder="Optional overall note">{{ row.notes }}</textarea>
+                                placeholder="Optional overall note"
+                                {% if not can_mark %}disabled{% endif %}>{{ row.notes }}</textarea>
                     </div>
                   </div>
                 {% endif %}
@@ -385,11 +419,15 @@
             <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}?summary=1"
                class="btn btn-sm btn-ghost">Summary</a>
             <div class="flex gap-2">
-              <button class="btn btn-sm" type="submit" name="action" value="save">Save</button>
-              {% if pending_count == 1 %}
-                <button class="btn btn-sm btn-primary" type="submit" name="action" value="summary">Save & Review Summary</button>
+              {% if can_mark %}
+                <button class="btn btn-sm" type="submit" name="action" value="save">Save</button>
+                {% if pending_count == 1 %}
+                  <button class="btn btn-sm btn-primary" type="submit" name="action" value="summary">Save & Review Summary</button>
+                {% else %}
+                  <button class="btn btn-sm btn-primary" type="submit" name="action" value="next">Save & Continue →</button>
+                {% endif %}
               {% else %}
-                <button class="btn btn-sm btn-primary" type="submit" name="action" value="next">Save & Continue →</button>
+                <span class="btn btn-sm btn-disabled">Read-only</span>
               {% endif %}
             </div>
           </div>

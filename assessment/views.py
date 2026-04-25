@@ -307,6 +307,19 @@ def is_staff(user):
     return user.is_authenticated and user.is_staff
 
 
+def is_moderator(user):
+    return user.is_authenticated and (
+        user.is_staff or user.groups.filter(name="moderator").exists()
+    )
+
+
+def is_auditor(user):
+    return user.is_authenticated and (
+        user.is_staff
+        or user.groups.filter(name__in=["assessor", "auditor", "moderator"]).exists()
+    )
+
+
 @login_required
 @user_passes_test(is_assessor)
 def assessor_dashboard(request):
@@ -391,7 +404,7 @@ def assessor_dashboard(request):
 
 
 @login_required
-@user_passes_test(is_assessor)
+@user_passes_test(is_auditor)
 def assessor_attempts(request):
     _expire_overdue_attempts()
 
@@ -609,7 +622,7 @@ def _compute_marking_totals(markable_questions, responses_by_qid) -> MarkingTota
 
 
 @login_required
-@user_passes_test(is_assessor)
+@user_passes_test(is_auditor)
 def assessor_mark_attempt(request, code: str):
     _expire_overdue_attempts()
 
@@ -678,6 +691,19 @@ def assessor_mark_attempt(request, code: str):
         questions_by_pk.get(requested_qid)
         or (pending_questions[0] if pending_questions else None)
     )
+
+    finalised = bool(attempt.finalised_at)
+    can_mark = (not finalised and is_assessor(request.user)) or is_moderator(request.user)
+
+    if request.method == "POST":
+        if not can_mark:
+            return HttpResponseForbidden("This attempt has been finalised.")
+        action = request.POST.get("action", "save")
+        if action == "finalise":
+            attempt.finalised_at = timezone.now()
+            attempt.finalised_by = request.user
+            attempt.save(update_fields=["finalised_at", "finalised_by"])
+            return redirect(reverse("assessment:assessor_attempts") + "?tab=marked")
 
     if request.method == "POST" and current_question:
         _save_question_score(request, attempt, current_question)
@@ -755,8 +781,39 @@ def assessor_mark_attempt(request, code: str):
             "sidebar_questions": sidebar_questions,
             "sidebar_spot": sidebar_spot,
             "working_sheet": _get_working_sheet(attempt),
+            "is_finalised": finalised,
+            "can_mark": can_mark,
+            "can_unlock": finalised and is_moderator(request.user) and attempt.template.moderation_mode == AssessmentTemplate.MODERATION_FULL,
         },
     )
+
+
+@login_required
+@user_passes_test(is_moderator)
+def assessor_unlock_attempt(request, code: str):
+    if request.method != "POST":
+        return HttpResponseForbidden()
+    attempt = get_object_or_404(Attempt, code=code)
+    if attempt.template.moderation_mode != AssessmentTemplate.MODERATION_FULL:
+        return HttpResponseForbidden("This template is audit-only and cannot be unlocked.")
+    attempt.finalised_at = None
+    attempt.finalised_by = None
+    attempt.save(update_fields=["finalised_at", "finalised_by"])
+    return redirect(reverse("assessment:assessor_mark_attempt", kwargs={"code": code}))
+
+
+@login_required
+@user_passes_test(is_moderator)
+def assessor_moderation(request):
+    attempts = (
+        Attempt.objects
+        .filter(finalised_at__isnull=False)
+        .select_related("learner", "template", "finalised_by")
+        .order_by("-finalised_at")
+    )
+    return render(request, "assessment/assessor_moderation.html", {
+        "attempts": attempts,
+    })
 
 
 def _get_working_sheet(attempt):
@@ -767,7 +824,7 @@ def _get_working_sheet(attempt):
 
 
 @login_required
-@user_passes_test(is_assessor)
+@user_passes_test(is_auditor)
 def assessor_auto_marked_attempt(request, code: str):
     """Read-only view of all scored questions not requiring assessor input."""
     attempt = get_object_or_404(
@@ -1185,7 +1242,7 @@ def assessor_sessions(request):
 
 
 @login_required
-@user_passes_test(is_assessor)
+@user_passes_test(is_auditor)
 def assessor_results(request):
     q_code    = (request.GET.get("q_code")    or "").strip()
     q_learner = (request.GET.get("q_learner") or "").strip()
@@ -1249,7 +1306,7 @@ def assessor_results(request):
 
 
 @login_required
-@user_passes_test(is_assessor)
+@user_passes_test(is_auditor)
 def assessor_results_export(request):
     attempts = (
         Attempt.objects
@@ -1628,7 +1685,7 @@ def assessor_working_sheet_upload(request, code: str):
 
 
 @login_required
-@user_passes_test(is_assessor)
+@user_passes_test(is_auditor)
 def assessor_working_sheet_image(request, code: str):
     """Serve the stored working sheet image/PDF."""
     import base64
@@ -1644,7 +1701,7 @@ def assessor_working_sheet_image(request, code: str):
 
 
 @login_required
-@user_passes_test(is_assessor)
+@user_passes_test(is_auditor)
 def assessor_working_sheet_print(request, code: str):
     """Printable working sheet for a specific attempt."""
     attempt = get_object_or_404(

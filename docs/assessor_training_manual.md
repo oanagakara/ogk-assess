@@ -1,9 +1,9 @@
 # NQF Learner Placement Assessment Platform
 ## Assessor Training Manual
 
-**Version:** 1.0  
+**Version:** 1.2  
 **Audience:** Assessors and Train-the-Trainer leads  
-**Support contact:** [YOUR NAME] — [your@email.com] — [+27 XX XXX XXXX]  
+**Support contact:** [YOUR NAME], [your@email.com], [+27 XX XXX XXXX]  
 **Platform URL:** [https://your-platform-url.com]
 
 ---
@@ -20,7 +20,7 @@
 1. [Logging In](#1-logging-in)
 2. [Before the Session](#2-before-the-session)
 3. [Running the Session](#3-running-the-session)
-4. [After the Session — Marking](#4-after-the-session--marking)
+4. [After the Session: Marking and Finalisation](#4-after-the-session-marking-and-finalisation)
 5. [Results and Reporting](#5-results-and-reporting)
 6. [Common Situations](#6-common-situations)
 7. [Quick Reference](#7-quick-reference)
@@ -64,7 +64,7 @@ Learners write their calculation working by hand on a **working sheet** during t
 1. Open the **Session monitor** (Sessions → click your session → Monitor).
 2. As each learner joins, their seat card appears.
 3. Click **Print working sheet** on their seat card.
-4. The sheet opens in a new browser tab — print it immediately and hand it to the learner.
+4. The sheet opens in a new browser tab. Print it immediately and hand it to the learner.
 
 > **What's on the sheet:** The learner's name, their attempt code, and ruled working space for each numeracy question that requires shown working (NUM-B-2, NUM-B-3, NUM-C-1, NUM-C-3, NUM-D-2).
 
@@ -74,7 +74,7 @@ Learners write their calculation working by hand on a **working sheet** during t
 
 ### 2.3 Share the Join URL and Session Code
 
-Give learners the **platform URL** and the **session code**. They do not need a username or password — the session code is their entry point.
+Give learners the **platform URL** and the **session code**. They do not need a username or password; the session code is their entry point.
 
 The join flow takes approximately 2 minutes:
 1. Enter session code
@@ -118,13 +118,13 @@ Each card shows the learner's name, current question, a progress bar, and time e
 
 ---
 
-### 3.3 Learner Abandons or Cannot Continue
+### 3.3 Learner Cannot Continue
 
-If a learner's computer crashes or they leave without submitting, their attempt will appear **abandoned** (red) after the session expires. This is expected. Do not attempt to restart it — create a new session if the learner needs to re-sit.
+If a learner's computer crashes or they leave without submitting, their attempt will appear **Incomplete** (red) after the session expires. This is expected. Incomplete attempts can still be marked. If the learner needs to re-sit, create a new session.
 
 ---
 
-## 4. After the Session — Marking
+## 4. After the Session: Marking and Finalisation
 
 ### 4.1 The Review Queue
 
@@ -147,7 +147,7 @@ Before marking numeracy questions, upload the learner's handwritten working shee
 
 Click **View →** at any time during marking to open the working sheet in a new tab alongside the digital responses.
 
-> **Accepted file types:** JPEG, PNG, WEBP, PDF. A clear phone photograph is sufficient — no scanner required.
+> **Accepted file types:** JPEG, PNG, WEBP, PDF. A clear phone photograph is sufficient; no scanner required.
 
 > **If the sheet was lost:** Score the working questions based on the digital answer only. Note "Working sheet not available" in the assessor note field.
 
@@ -201,9 +201,17 @@ After all questions are scored, the **Summary** screen shows a table of every qu
 - Maximum marks
 - Status: Done / Pending / Unscored
 
-Use the **Edit** links to return to any question and correct a score. When satisfied, click **Done → Review Queue** to finalise the attempt.
+Use the **Edit** links to return to any question and correct a score.
 
-> **Important:** Clicking Done → Review Queue is final for this session. You can re-open any attempt from the Attempts list if you need to revise a mark later.
+#### Finalising an attempt
+
+When you are satisfied with all marks, click **Finalise** (the green button at the bottom right of the Summary screen). Finalising locks the attempt: scores cannot be changed by an assessor after this point.
+
+After finalising you are returned to the **Marked** tab in Attempts. The attempt moves out of the pending count and is available for moderator review.
+
+> **Finalise is the point of no return for assessors.** After you click Finalise, you cannot change any mark. If you need to correct a score on a finalised attempt, contact your moderator or platform administrator.
+
+> **Still have pending questions?** You can click Finalise even if some questions are still Pending. Verify you have no pending questions before clicking Finalise.
 
 ---
 
@@ -239,12 +247,13 @@ Click **Export CSV** on the Results page to download a spreadsheet of all attemp
 
 | Situation | What to do |
 |---|---|
-| Learner cannot join — "invalid code" | Verify the session code is correct and the session has not expired (2-hour window from creation) |
-| Learner's screen froze mid-attempt | Ask them to refresh the browser — progress is saved per question |
+| Learner cannot join: "invalid code" | Verify the session code is correct and the session has not expired (2-hour window from creation) |
+| Learner's screen froze mid-attempt | Ask them to refresh the browser. Progress is saved per question. |
 | Learner accidentally submitted early | The attempt is submitted and cannot be recalled. Note it and escalate to your line manager |
 | Timer ran out before learner finished a section | This is expected behaviour. Unanswered questions receive zero marks automatically |
 | Review Queue badge shows 0 but you have unmarked attempts | All auto-markable questions are done. Check the Attempts list for attempts without full scores |
-| You scored a question incorrectly | Go to Attempts → find the attempt → click Mark → use the sidebar to navigate to the question → save the correct mark |
+| You scored a question incorrectly (not yet finalised) | Go to Attempts → find the attempt → click Mark → use the sidebar to navigate to the question → save the correct mark, then Finalise |
+| You need to correct a mark after finalising | Contact your moderator or platform administrator. Only a moderator can unlock a finalised attempt. |
 | Working sheet was not collected | Score the digital response only; note the absence in the assessor note |
 | Learner disputes a score | Retrieve the attempt from the Attempts list and review the response and your assessor note |
 
@@ -278,7 +287,7 @@ Click **Export CSV** on the Results page to download a spreadsheet of all attemp
 
 ---
 
-### Trainer checklist — before going live with a new assessor
+### Trainer checklist: before going live with a new assessor
 
 - [ ] New assessor account created and password set
 - [ ] Assessor has logged in and can see the Dashboard
@@ -291,5 +300,5 @@ Click **Export CSV** on the Results page to download a spreadsheet of all attemp
 
 ---
 
-*End of manual — Version 1.0*
+*End of manual, Version 1.2*
 *For updates to this document contact [your@email.com]*
