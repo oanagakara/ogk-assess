@@ -12,7 +12,9 @@
                 <form method="post" class="space-y-4">
                     {% csrf_token %}
                     <div class="form-control">
-                        {{ form.code.label_tag }}
+                        <label class="label" for="id_code">
+                            <span class="label-text font-medium">Assessment code</span>
+                        </label>
                         {{ form.code }}
                         {% if form.code.errors %}
                             <div class="text-error text-sm mt-1">{{ form.code.errors|striptags }}</div>
