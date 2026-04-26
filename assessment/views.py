@@ -1532,9 +1532,10 @@ def attempt_review_info(request, code: str):
     if not attempt.has_honesty_declaration:
         return redirect("assessment:attempt_details", code=code)
 
-    total_questions = Question.objects.filter(
-        section__template=attempt.template, is_active=True
-    ).count()
+    total_questions = sum(
+        1 for q in Question.objects.filter(section__template=attempt.template, is_active=True)
+        if not _is_layout_only_question(q)
+    )
     review_seconds = total_questions * REVIEW_SECONDS_PER_QUESTION
 
     if request.method == "POST":
@@ -1568,7 +1569,8 @@ def attempt_review_question(request, code: str, n: int):
         .select_related("section")
         .order_by("section__order", "order", "code")
     )
-    total = qs.count()
+    questions = [q for q in qs if not _is_layout_only_question(q)]
+    total = len(questions)
     if total == 0:
         _finalize_attempt(attempt)
         return redirect("assessment:attempt_submitted", code=code)
@@ -1582,7 +1584,7 @@ def attempt_review_question(request, code: str, n: int):
         return redirect("assessment:attempt_review_question", code=code, n=correct_n)
 
     n = max(1, min(n, total))
-    question = qs[n - 1]
+    question = questions[n - 1]
     spec = _question_spec(question)
 
     if spec.get("kind_hint") == "mcq_or_choice" and not spec.get("choices"):
@@ -1601,7 +1603,7 @@ def attempt_review_question(request, code: str, n: int):
 
     learner_response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
     renderer = get_renderer(question, spec, learner_response)
-    renderer.get_form(request)
+    form = renderer.get_form(request)
 
     slot_expires = _review_question_expires_at(attempt, n)
     if n < total:
@@ -1611,7 +1613,8 @@ def attempt_review_question(request, code: str, n: int):
     else:
         timeout_url = reverse("assessment:attempt_review_submit", kwargs={"code": code})
 
-    context = _base_context(attempt, question, spec, n, total, expires_at=slot_expires)
+    passage = _load_passage(question, spec) if spec.get("layout") == "passage_split" else ""
+    context = _base_context(attempt, question, spec, n, total, expires_at=slot_expires, form=form, passage=passage)
     context.update(renderer.get_context())
     context.update({
         "is_review": True,

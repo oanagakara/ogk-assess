@@ -10,7 +10,11 @@ SELECT = "select select-bordered w-full"
 
 
 class StartForm(forms.Form):
-    code = forms.CharField(max_length=32, label="Assessment code")
+    code = forms.CharField(
+        max_length=32,
+        label="Assessment code",
+        widget=forms.TextInput(attrs={"class": "input input-bordered w-full", "autocomplete": "off"}),
+    )
 
 
 class LearnerForm(forms.ModelForm):
@@ -81,7 +85,10 @@ class LearnerForm(forms.ModelForm):
 
 
 class HonestyForm(forms.Form):
-    honesty_name = forms.CharField(max_length=200, label="Type your full name please?")
+    popia_accept = forms.BooleanField(
+        label="I have read and understood the personal information notice above."
+    )
+    honesty_name = forms.CharField(max_length=200, label="Type your full name to sign")
     accept = forms.BooleanField(
         label="I declare and commit that I will submit my own work during this assessment."
     )

@@ -2,24 +2,26 @@
 {% block title %}Submit{% endblock %}
 
 {% block content %}
-<div class="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 pb-6">
-    <div class="w-full max-w-5xl">
+<div class="min-h-[calc(100vh-6rem)] flex items-start justify-center px-4 pt-8 pb-6">
+    <div class="w-full" style="max-width:1047px;">
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body p-6 md:p-8 space-y-6">
-              <div>
-                <h1 class="card-title text-2xl">Submit assessment</h1>
-                <p class="text-sm opacity-70">Code: {{ attempt.code }}</p>
-              </div>
-              <div class="badge badge-outline">{{ attempt.status }}</div>
+                <div>
+                    <h1 class="card-title text-2xl">Submit assessment</h1>
+                    <p class="text-sm opacity-70">Code: {{ attempt.code }}</p>
+                </div>
+
+                <div class="divider my-0"></div>
+
+                <p>You have saved answers for <strong>{{ answered }}</strong> questions.</p>
+                <p class="opacity-70 text-sm">After you submit, you will not be able to change your answers.</p>
+
+                <form method="post" class="flex items-center justify-between pt-2">
+                    {% csrf_token %}
+                    <a class="btn" href="javascript:history.back()">Back</a>
+                    <button class="btn btn-primary" type="submit">Submit now</button>
+                </form>
             </div>
-            <div class="divider my-0"></div>
-            <p>You have saved answers for <strong>{{ answered }}</strong> questions.</p>
-            <p class="opacity-70 text-sm">After you submit, you won’t be able to change your answers.</p>
-            <form method="post" class="flex items-center justify-between pt-2">
-              {% csrf_token %}
-              <a class="btn" href="javascript:history.back()">Back</a>
-              <button class="btn btn-primary" type="submit">Submit now</button>
-            </form>
         </div>
     </div>
 </div>
