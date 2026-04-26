@@ -245,6 +245,7 @@ class Attempt(models.Model):
     last_activity_at = models.DateTimeField(blank=True, null=True)
     honesty_name = models.CharField(max_length=200, blank=True, default="")
     honesty_accepted_at = models.DateTimeField(blank=True, null=True)
+    popia_accepted_at = models.DateTimeField(blank=True, null=True)
     section_timings_json = models.JSONField(default=dict, blank=True)
     review_started_at = models.DateTimeField(null=True, blank=True)
     finalised_at = models.DateTimeField(null=True, blank=True)
@@ -305,8 +306,9 @@ class Attempt(models.Model):
 
         self.honesty_name = cleaned
         self.honesty_accepted_at = when
+        self.popia_accepted_at = when
         self.last_activity_at = when
-        self.save(update_fields=["honesty_name", "honesty_accepted_at", "last_activity_at"])
+        self.save(update_fields=["honesty_name", "honesty_accepted_at", "popia_accepted_at", "last_activity_at"])
 
     def section_started_at(self, section_pk: int):
         ts = (self.section_timings_json or {}).get(str(section_pk))
