@@ -1,4 +1,5 @@
 import json
+import random
 from .forms import TextResponseForm, MatchResponseForm
 
 
@@ -88,6 +89,26 @@ class MatchRenderer(BaseRenderer):
             raw = request.POST.get("response_json", "")
         self.response.response_json = raw
         self.response.save(update_fields=["response_json"])
+
+    def get_context(self):
+        if isinstance(self.spec.get("bank"), list):
+            random.shuffle(self.spec["bank"])
+        targets = self.spec.get("targets", [])
+        if isinstance(targets, list):
+            random.shuffle(targets)
+
+        matched = {}
+        if self.response.response_json:
+            try:
+                matched = json.loads(self.response.response_json)
+            except (json.JSONDecodeError, ValueError):
+                matched = {}
+
+        pairs = [
+            {"text": t.get("text", ""), "word": matched.get(str(t.get("id", "")))}
+            for t in targets
+        ]
+        return {"match_pairs": pairs}
 
 
 @register_renderer("long_division")

@@ -3,7 +3,7 @@
 {% block title %}Question {{ n }}{% endblock %}
 
 {% block content %}
-<div class="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 pb-6">
+<div class="min-h-[calc(100vh-6rem)] flex items-start justify-center px-4 pt-8 pb-6">
     {% if section_expires_at %}
         <div id="section-timer-data"
              data-expires-at="{{ section_expires_at|date:'c' }}"
@@ -13,7 +13,7 @@
     {% endif %}
 
     {% if layout == "passage_only" %}
-        <div class="w-full max-w-5xl">
+        <div class="w-full" style="max-width:1047px;">
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-6 md:p-8 space-y-6">
                     <div class="flex items-start justify-between gap-4">
@@ -25,7 +25,7 @@
                             <div class="badge badge-outline font-mono">{{ attempt.code }}</div>
                             {% if section_expires_at %}
                                 <div id="countdown"
-                                     class="badge badge-outline"
+                                     class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
                                     00:45:00
                                 </div>
@@ -56,7 +56,7 @@
         </div>
 
     {% elif layout == "info_only" %}
-        <div class="w-full max-w-5xl">
+        <div class="w-full" style="max-width:1047px;">
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-6 md:p-8 space-y-6">
                     <div class="flex items-start justify-between gap-4">
@@ -68,7 +68,7 @@
                             <div class="badge badge-outline font-mono">{{ attempt.code }}</div>
                             {% if section_expires_at %}
                                 <div id="countdown"
-                                     class="badge badge-outline"
+                                     class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
                                     00:45:00
                                 </div>
@@ -101,7 +101,7 @@
         </div>
 
     {% elif layout == "passage_split" %}
-        <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <div class="w-full" style="max-width:1400px; display:grid; grid-template-columns:2fr 3fr; gap:1.5rem;">
             <div class="card bg-base-100 shadow-xl lg:sticky lg:top-4">
                 <div class="card-body p-6 md:p-8 space-y-4">
                     <div class="flex items-start justify-between gap-4">
@@ -113,7 +113,7 @@
                             <div class="badge badge-outline font-mono">{{ attempt.code }}</div>
                             {% if section_expires_at %}
                                 <div id="countdown"
-                                     class="badge badge-outline"
+                                     class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
                                     00:45:00
                                 </div>
@@ -140,7 +140,7 @@
                             <div class="badge badge-outline font-mono">{{ attempt.code }}</div>
                             {% if section_expires_at %}
                                 <div id="countdown"
-                                     class="badge badge-outline"
+                                     class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
                                     00:45:00
                                 </div>
@@ -222,9 +222,9 @@
                                             const word = state[id];
                                             if (word) {
                                                 t.innerHTML = `
-                                                    <div class="flex items-center justify-between gap-2">
-                                                        <div class="badge badge-primary badge-lg cursor-move select-none" draggable="true" data-word="${word}">${word}</div>
-                                                        <button type="button" class="btn btn-ghost btn-xs" data-clear="${id}">Clear</button>
+                                                    <div class="flex items-center justify-between gap-2 overflow-hidden">
+                                                        <div class="badge badge-primary badge-lg cursor-move select-none" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:calc(100% - 4rem);" draggable="true" data-word="${word}">${word}</div>
+                                                        <button type="button" class="btn btn-ghost btn-xs shrink-0" data-clear="${id}">Clear</button>
                                                     </div>`;
                                             }
                                         });
@@ -338,7 +338,7 @@
         </div>
 
     {% else %}
-        <div class="w-full max-w-5xl">
+        <div class="w-full" style="max-width:1047px;">
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-6 md:p-8 space-y-6">
                     <div class="flex items-start justify-between gap-4">
@@ -350,7 +350,7 @@
                             <div class="badge badge-outline font-mono">{{ attempt.code }}</div>
                             {% if section_expires_at %}
                                 <div id="countdown"
-                                     class="badge badge-outline"
+                                     class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
                                     00:45:00
                                 </div>
@@ -432,9 +432,9 @@
                                             const word = state[id];
                                             if (word) {
                                                 t.innerHTML = `
-                                                    <div class="flex items-center justify-between gap-2">
-                                                        <div class="badge badge-primary badge-lg cursor-move select-none" draggable="true" data-word="${word}">${word}</div>
-                                                        <button type="button" class="btn btn-ghost btn-xs" data-clear="${id}">Clear</button>
+                                                    <div class="flex items-center justify-between gap-2 overflow-hidden">
+                                                        <div class="badge badge-primary badge-lg cursor-move select-none" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:calc(100% - 4rem);" draggable="true" data-word="${word}">${word}</div>
+                                                        <button type="button" class="btn btn-ghost btn-xs shrink-0" data-clear="${id}">Clear</button>
                                                     </div>`;
                                             }
                                         });
@@ -666,10 +666,10 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const countdown = document.getElementById("countdown");
-            if (!countdown) return;
+            const clocks = document.querySelectorAll(".section-clock");
+            if (!clocks.length) return;
 
-            const expiresAt = new Date(countdown.dataset.expiresAt).getTime();
+            const expiresAt = new Date(clocks[0].dataset.expiresAt).getTime();
             const timerData = document.getElementById("section-timer-data");
             const timeoutUrl = timerData ? timerData.dataset.timeoutUrl : null;
 
@@ -678,14 +678,13 @@
                 const totalSeconds = Math.floor(diff / 1000);
                 const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
                 const seconds = String(totalSeconds % 60).padStart(2, "0");
-                countdown.textContent = `${minutes}:${seconds}`;
+                clocks.forEach(el => { el.textContent = `${minutes}:${seconds}`; });
 
                 if (totalSeconds <= 60) {
-                    countdown.classList.remove("badge-outline");
-                    countdown.classList.add("badge-warning");
+                    clocks.forEach(el => { el.classList.remove("badge-outline"); el.classList.add("badge-warning"); });
                 }
                 if (totalSeconds <= 10) {
-                    countdown.classList.replace("badge-warning", "badge-error");
+                    clocks.forEach(el => { el.classList.replace("badge-warning", "badge-error"); });
                 }
                 if (diff <= 0 && timeoutUrl) {
                     window.location.href = timeoutUrl;

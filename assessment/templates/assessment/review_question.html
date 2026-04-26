@@ -3,19 +3,56 @@
 {% block title %}Review — Question {{ n }}{% endblock %}
 
 {% block content %}
-<div class="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 pb-6">
+<div class="min-h-[calc(100vh-6rem)] flex items-start justify-center px-4 pt-8 pb-6">
 
-  {# Auto-advance target when slot timer expires #}
   <div id="review-timer-data"
        data-expires-at="{{ slot_expires_at|date:'c' }}"
        data-timeout-url="{{ review_timeout_url }}"
        class="hidden"></div>
 
-  <div class="w-full max-w-5xl">
+  {% if layout == "passage_split" %}
+  {# ── Two-column layout: passage left, question right ── #}
+  <div class="w-full" style="max-width:1400px; display:grid; grid-template-columns:2fr 3fr; gap:1.5rem;">
+
+    <div class="card bg-base-100 shadow-xl" style="align-self:start; position:sticky; top:1rem;">
+      <div class="card-body p-6 md:p-8 space-y-4">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-semibold">Reading text</h2>
+            <p class="text-sm opacity-70">{{ question.section.title }}</p>
+          </div>
+          <div class="badge badge-outline font-mono">{{ attempt.code }}</div>
+        </div>
+        <div class="divider mb-0"></div>
+        <div class="prose max-w-none space-y-4">{{ passage|flow_paragraphs }}</div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body p-6 md:p-8 space-y-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="badge badge-warning badge-sm">Review mode</span>
+            </div>
+            <h1 class="card-title text-2xl">Question {{ n }} of {{ total }}</h1>
+            <p class="text-sm opacity-70">{{ question.section.title }}</p>
+          </div>
+          <div id="review-countdown" class="badge badge-warning font-mono text-base px-3 py-3">01:30</div>
+        </div>
+        <div class="divider my-0"></div>
+        {% include "assessment/_review_answer_form.html" %}
+      </div>
+    </div>
+
+  </div>
+
+  {% else %}
+  {# ── Single-card layout ── #}
+  <div class="w-full" style="max-width:1047px;">
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body p-6 md:p-8 space-y-6">
 
-        {# ── Header ── #}
         <div class="flex items-start justify-between gap-4">
           <div>
             <div class="flex items-center gap-2 mb-1">
@@ -26,64 +63,18 @@
           </div>
           <div class="flex items-center gap-2">
             <div class="badge badge-outline">{{ attempt.code }}</div>
-            <div id="review-countdown"
-                 class="badge badge-warning font-mono text-base px-3 py-3">
-              01:30
-            </div>
+            <div id="review-countdown" class="badge badge-warning font-mono text-base px-3 py-3">01:30</div>
           </div>
         </div>
 
         <div class="divider my-0"></div>
 
-        {# ── Question + answer form ── #}
-        <form method="post" class="space-y-6" id="review-form">
-          {% csrf_token %}
-
-          <div class="space-y-2">
-            <h2 class="text-xl font-semibold">{{ question.code }}</h2>
-            <div class="whitespace-pre-wrap">{{ question.prompt }}</div>
-          </div>
-
-          <div class="form-control">
-            {% if spec.kind_hint == "mcq_or_choice" and spec.choices %}
-              <div class="space-y-3">
-                {% for choice in spec.choices %}
-                  <label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-200 px-4 py-3">
-                    <input type="radio" name="answer" value="{{ choice }}"
-                           class="radio radio-primary"
-                           {% if current_answer == choice %}checked{% endif %}>
-                    <span class="label-text text-base">{{ choice }}</span>
-                  </label>
-                {% endfor %}
-              </div>
-            {% else %}
-              <label class="label">
-                <span class="label-text font-medium">Your answer</span>
-              </label>
-              {{ form.answer }}
-            {% endif %}
-          </div>
-
-          <div class="flex items-center justify-between">
-            <div>
-              {% if has_prev %}
-                <a href="{% url 'assessment:attempt_review_question' attempt.code n|add:'-1' %}"
-                   class="btn">← Previous</a>
-              {% endif %}
-            </div>
-            <div class="flex gap-2">
-              {% if has_next %}
-                <button type="submit" class="btn btn-primary">Save & Next →</button>
-              {% else %}
-                <button type="submit" class="btn btn-primary">Save & Submit</button>
-              {% endif %}
-            </div>
-          </div>
-        </form>
+        {% include "assessment/_review_answer_form.html" %}
 
       </div>
     </div>
   </div>
+  {% endif %}
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -91,12 +82,16 @@
       const countdown = document.getElementById("review-countdown");
       if (!timerData || !countdown) return;
 
-      const expiresAt = new Date(timerData.dataset.expiresAt).getTime();
+      const serverExpiresAt = new Date(timerData.dataset.expiresAt).getTime();
       const timeoutUrl = timerData.dataset.timeoutUrl;
+      const pageLoadedAt = Date.now();
+      const SLOT_MS = 90 * 1000;
 
       function tick() {
-        const diff = Math.max(0, expiresAt - Date.now());
-        const totalSeconds = Math.floor(diff / 1000);
+        const serverDiff = Math.max(0, serverExpiresAt - Date.now());
+        const displayDiff = Math.max(0, SLOT_MS - (Date.now() - pageLoadedAt));
+
+        const totalSeconds = Math.floor(displayDiff / 1000);
         const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
         const seconds = String(totalSeconds % 60).padStart(2, "0");
         countdown.textContent = `${minutes}:${seconds}`;
@@ -104,7 +99,7 @@
         if (totalSeconds <= 10) {
           countdown.classList.replace("badge-warning", "badge-error");
         }
-        if (diff <= 0 && timeoutUrl) {
+        if ((displayDiff <= 0 || serverDiff <= 0) && timeoutUrl) {
           window.location.href = timeoutUrl;
         }
       }
