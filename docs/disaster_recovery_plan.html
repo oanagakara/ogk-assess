@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Disaster Recovery Plan — NQF Learner Placement Assessment Platform</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 10.5pt; color: #1c1c1e; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.75; }
+
+  .cover { text-align: center; padding: 40px 0 32px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+  .cover h1 { font-size: 20pt; margin-bottom: 6px; }
+  .cover .subtitle { font-size: 11pt; color: #444; margin-top: 6px; }
+  .cover .tag { font-size: 9.5pt; color: #888; margin-top: 10px; font-style: italic; }
+
+  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 9.5pt; }
+  .meta-table td { border: 1px solid #ddd; padding: 6px 10px; }
+  .meta-table td:first-child { font-weight: bold; background: #f5f5f5; width: 160px; }
+
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 28px; margin-bottom: 10px; color: #1e3a5f; border-left: 4px solid #1e3a5f; padding-left: 10px; }
+  h3 { font-size: 11pt; font-weight: bold; margin-top: 18px; margin-bottom: 6px; }
+
+  p { margin-bottom: 10px; }
+  ol { margin-left: 22px; margin-bottom: 12px; }
+  ul { margin-left: 22px; margin-bottom: 12px; }
+  li { margin-bottom: 6px; }
+
+  table.data { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10pt; }
+  table.data th, table.data td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; vertical-align: top; }
+  table.data th { background: #f5f5f5; font-weight: bold; }
+
+  .commit-box { background: #f0fff4; border-left: 4px solid #2d6a4f; padding: 12px 16px; margin-bottom: 14px; }
+  .commit-box strong { display: block; margin-bottom: 6px; color: #2d6a4f; font-size: 10.5pt; }
+
+  .warn-box { background: #fff8e1; border-left: 4px solid #f0c040; padding: 12px 16px; margin-bottom: 14px; }
+  .warn-box strong { display: block; margin-bottom: 6px; color: #7d6000; }
+
+  .response { background: #f4f4f7; border-left: 4px solid #444; padding: 12px 16px 12px 18px; margin-bottom: 12px; font-size: 10pt; }
+  .response strong { display: block; margin-bottom: 6px; color: #1e3a5f; font-size: 10pt; }
+
+  .signoff { margin-top: 24px; padding: 14px 18px; border: 1px solid #ddd; background: #fafafa; font-size: 9.5pt; }
+  .signoff td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .signoff td:first-child { font-weight: bold; width: 180px; }
+
+  .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8.5pt; color: #888; text-align: center; }
+
+  @media screen {
+    body { max-width: 880px; margin: 0 auto; padding: 40px 48px; }
+  }
+  @media print {
+    body { padding: 20mm 22mm 18mm 22mm; }
+    @page { margin: 0; size: A4 portrait; }
+    .no-print { display: none !important; }
+    h2 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:right; margin-bottom:16px;">
+  <button onclick="window.print()" style="padding:6px 16px; font-size:10pt; cursor:pointer;">Save as PDF</button>
+</div>
+
+<div class="cover">
+  <div style="font-size:9pt; color:#888; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Disaster Recovery Plan</div>
+  <h1>NQF Learner Placement Assessment Platform</h1>
+  <div class="subtitle">Backup, Recovery, and Incident Response</div>
+  <div class="tag">Version 1.0 — addresses procurement review flag #3</div>
+</div>
+
+<table class="meta-table">
+  <tr><td>Document version</td><td>1.0</td></tr>
+  <tr><td>Date</td><td>April 2026</td></tr>
+  <tr><td>Audience</td><td>Procurement, IT management, legal counsel</td></tr>
+  <tr><td>Reviewed by</td><td>Platform operator (responsible party under POPIA)</td></tr>
+  <tr><td>Storage</td><td>Printed copy in physical safe; encrypted USB; this digital copy</td></tr>
+</table>
+
+<!-- 1. Scope -->
+<h2>1. Scope</h2>
+
+<p><strong>In scope:</strong> recovery procedures and backup commitments for:</p>
+<ul>
+  <li>The PostgreSQL database (learner records, attempts, sessions, audit logs)</li>
+  <li>Application source code and deployment configuration</li>
+  <li>Customer-uploaded files (working sheet scans, when present)</li>
+  <li>The custom domain and TLS certificates</li>
+</ul>
+
+<p><strong>Out of scope:</strong></p>
+<ul>
+  <li>Render's underlying infrastructure (responsibility of Render Inc.)</li>
+  <li>Third-party services (Anthropic, GitHub, the domain registrar) — covered by their own SLAs</li>
+  <li>End-user devices used to take assessments (covered by the supervising institution)</li>
+  <li>Multi-client architecture and capacity decisions (covered separately; not a DR concern)</li>
+</ul>
+
+<!-- 2. Current state -->
+<h2>2. Current state — Render free tier</h2>
+
+<p>The platform currently runs on Render's free tier. This is appropriate for development
+and demonstration but not for production cohort deployment. The known limitations:</p>
+
+<ul>
+  <li><strong>No automated backups.</strong> Render does not provide backup services for free PostgreSQL.</li>
+  <li><strong>Database expiry.</strong> Free PostgreSQL expires 30 days after creation. A 14-day grace period follows; total = 44 days before deletion.</li>
+  <li><strong>Cold starts.</strong> Free web services spin down after 15 minutes of inactivity. First request after spin-down takes ~30 seconds.</li>
+</ul>
+
+<table class="data">
+  <thead><tr><th>Metric</th><th>Free tier reality</th></tr></thead>
+  <tbody>
+    <tr><td>RPO (data loss tolerance)</td><td>Undefined — last manual <code>pg_dump</code> only</td></tr>
+    <tr><td>RTO (recovery time)</td><td>2–8 hours from a recent dump; longer if no recent dump exists</td></tr>
+    <tr><td>Backup automation</td><td>None</td></tr>
+    <tr><td>Suitable for</td><td>Development, demos, internal testing</td></tr>
+    <tr><td>Suitable for production cohorts?</td><td><strong>No</strong></td></tr>
+  </tbody>
+</table>
+
+<p>Manual <code>pg_dump</code> is taken before any schema migration or destructive operation
+and stored encrypted in a non-cloud-synced location. This is a stopgap, not a strategy.</p>
+
+<!-- 3. Target state -->
+<h2>3. Target state — Render paid tier</h2>
+
+<p>Upgrade to Render paid tier is a condition of any production cohort deployment. The
+upgrade procedure is documented in <code>scripts/render_upgrade.sh</code> and the global
+<code>disaster-recovery</code> skill.</p>
+
+<p>Render paid PostgreSQL provides:</p>
+<ul>
+  <li><strong>Daily automated snapshots</strong> with retention by tier</li>
+  <li><strong>Point-in-time recovery (PITR)</strong> on all paid tiers — restoration to any point in the retention window</li>
+  <li><strong>On-demand logical exports</strong> via dashboard</li>
+  <li><strong>Always-on web service</strong> — no cold starts</li>
+  <li><strong>Automatic Let's Encrypt SSL</strong> on custom domains, including wildcards</li>
+</ul>
+
+<table class="data">
+  <thead><tr><th>Metric</th><th>Paid tier commitment</th></tr></thead>
+  <tbody>
+    <tr><td>RPO (data loss tolerance)</td><td><strong>1 hour</strong> (PITR-backed; capability is finer-grained)</td></tr>
+    <tr><td>RTO (recovery time)</td><td><strong>4 hours</strong> (snapshot restore + smoke test + notification)</td></tr>
+    <tr><td>Backup automation</td><td>Daily snapshots + PITR + monthly off-Render encrypted dump</td></tr>
+    <tr><td>Backup verification</td><td>Quarterly restore test + annual full tabletop</td></tr>
+  </tbody>
+</table>
+
+<!-- 4. Recovery procedures by scenario -->
+<h2>4. Recovery procedures by scenario</h2>
+
+<h3>4.1 Corrupted database (data integrity bug, bad migration)</h3>
+<ol>
+  <li>Identify the time of corruption from application logs</li>
+  <li>Render dashboard → Databases → Backups → Restore via PITR to a point seconds before corruption</li>
+  <li>Render provisions a new database instance at that point</li>
+  <li>Update <code>DATABASE_URL</code> on the web service to the restored instance</li>
+  <li>Smoke-test; verify data integrity</li>
+  <li>Delete the corrupted database after 7-day verification window</li>
+</ol>
+
+<h3>4.2 Accidental data deletion (operator error)</h3>
+<ol>
+  <li>Same procedure as 4.1, restoring to a point seconds before the deletion</li>
+  <li>If only specific records are missing: extract from PITR-restored instance and re-insert into live database (avoids full cutover)</li>
+</ol>
+
+<h3>4.3 Full-region Render outage (infrastructure)</h3>
+<ol>
+  <li>Confirm the outage at <a href="https://status.render.com">status.render.com</a></li>
+  <li>If outage exceeds RTO commitment (4 hours): begin failover-to-non-Render procedure (see §7)</li>
+  <li>If outage is shorter: communicate via prepared client notification template; resume on Render restoration</li>
+</ol>
+
+<h3>4.4 Account-level Render compromise (ransomware-relevant)</h3>
+<p>This is the scenario where Render-side snapshots are no longer trusted because the Render
+account itself is suspect. Procedure:</p>
+<ol>
+  <li>Treat as a ransomware incident — invoke the response checklist in the disaster-recovery skill</li>
+  <li>Restore from the most recent <strong>off-Render encrypted backup</strong> (see §5)</li>
+  <li>Provision a fresh Render account if necessary; do not re-use the compromised account</li>
+  <li>Redeploy from a known-clean Git commit (verify against a local clone before pushing)</li>
+  <li>Rotate all credentials per the response checklist before restoring service</li>
+</ol>
+
+<h3>4.5 Source code or repository compromise (GitHub takeover)</h3>
+<ol>
+  <li>Lock the GitHub repository's <code>main</code> branch protection</li>
+  <li>Identify the last clean commit (compare against a local clone)</li>
+  <li>Force-push the clean commit; revoke all GitHub PATs and OAuth apps</li>
+  <li>Rotate Gmail (the password-reset target) before rotating GitHub itself</li>
+  <li>Render auto-deploys the rotated commit; smoke-test</li>
+</ol>
+
+<!-- 5. Off-Render backup commitment -->
+<h2>5. Off-Render backup commitment</h2>
+
+<div class="commit-box">
+  <strong>The platform commits to maintaining backups outside the Render account.</strong>
+  This addresses the failure mode in which a compromised Render account renders
+  Render-side snapshots untrustworthy. Without this commitment, the snapshot story
+  collapses under an account-takeover scenario.
+</div>
+
+<table class="data">
+  <thead><tr><th>Aspect</th><th>Commitment</th></tr></thead>
+  <tbody>
+    <tr><td>Cadence</td><td>Monthly encrypted <code>pg_dump</code> downloaded out of Render</td></tr>
+    <tr><td>Storage</td><td>Encrypted USB in physical safe + separate-credentials cloud bucket</td></tr>
+    <tr><td>Encryption</td><td>AES-256 symmetric (<code>gpg --symmetric --cipher-algo AES256</code>)</td></tr>
+    <tr><td>Passphrase storage</td><td>Password manager separate from primary credentials</td></tr>
+    <tr><td>Retention</td><td>12 monthly backups; older deleted including from version history</td></tr>
+    <tr><td>Verification</td><td>Annual decrypt + restore to scratch database</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Unacceptable storage locations:</strong> Dropbox, iCloud, Google Drive, OneDrive,
+or any cloud-sync folder tied to the developer's primary identity. Compromise of the
+primary identity reaches into the sync folder.</p>
+
+<!-- 6. Pre-made decisions -->
+<h2>6. Pre-made decisions</h2>
+
+<p>Three decisions made and signed off ahead of any incident, to remove the cost of
+deciding under duress.</p>
+
+<h3>6.1 Ransom payment policy</h3>
+<div class="commit-box">
+  <strong>Decision: do not pay ransom.</strong>
+  Reasoning: paying funds further attacks; ~50% of paying victims do not fully recover
+  data; modern ransomware exfiltrates data so decryption does not undo the breach;
+  OFAC sanctions risk; the cost of paying typically exceeds the cost of rebuilding for
+  a small SaaS shop. If circumstances ever justify revisiting this decision, it requires
+  written sign-off from the platform operator and legal counsel.
+</div>
+
+<h3>6.2 Breach declaration trigger</h3>
+<div class="commit-box">
+  <strong>Trigger: any confirmed or strongly-suspected exfiltration of personal information
+  triggers POPIA Section 22 notification within 72 hours.</strong>
+  The 72-hour clock starts on suspicion, not confirmation. Personal information includes
+  learner records, attempt scores, password hashes, session tokens, and any uploaded
+  working sheet scans. The decision-maker is the platform operator (responsible party);
+  legal counsel is consulted but the timeline does not pause for legal turnaround.
+</div>
+
+<h3>6.3 Communications fallback</h3>
+<div class="commit-box">
+  <strong>If primary channels (email, Slack) are compromised or assumed compromised,
+  incident communication moves to phone.</strong>
+  A list of relevant phone numbers is maintained in the offline-stored DR plan:
+  registrar support, Render support, legal counsel, business partner, key client
+  contacts. A pre-drafted POPIA-aligned breach notification template is included in
+  the same offline document.
+</div>
+
+<!-- 7. Failover commitment -->
+<h2>7. Failover to a non-Render host</h2>
+
+<p>If Render becomes unsuitable due to cost (>5% of revenue), regional latency, sustained
+outage exceeding RTO, or a client demand for SA data residency, a documented procedure
+exists to migrate to a SA-region host (Hetzner SA, CloudAfrica, or equivalent).</p>
+
+<table class="data">
+  <thead><tr><th>Phase</th><th>Estimated duration</th></tr></thead>
+  <tbody>
+    <tr><td>Provisioning + base setup</td><td>4–8 hours</td></tr>
+    <tr><td>Database migration</td><td>1–2 hours</td></tr>
+    <tr><td>App deployment under systemd</td><td>4–6 hours</td></tr>
+    <tr><td>nginx + Let's Encrypt SSL</td><td>2–3 hours</td></tr>
+    <tr><td>DNS swap + smoke testing</td><td>1–2 hours (plus up to 48h DNS propagation)</td></tr>
+    <tr><td>Backup procedure setup</td><td>2–4 hours</td></tr>
+    <tr><td><strong>Total one-time effort</strong></td><td><strong>14–25 hours focused work</strong></td></tr>
+  </tbody>
+</table>
+
+<div class="warn-box">
+  <strong>This is a documented option, not the recommended path.</strong>
+  Self-hosting transfers the burden of SSL certificate renewal, systemd process management,
+  manual deployment pipelines, OS patching, and backup infrastructure to the platform
+  operator. For a single-developer shop, this complexity dwarfs the FX-rate exposure on
+  Render at small client counts. Stay on Render until a trigger condition is met.
+</div>
+
+<!-- 8. Verification cadence -->
+<h2>8. Verification cadence</h2>
+
+<table class="data">
+  <thead><tr><th>Frequency</th><th>What is verified</th></tr></thead>
+  <tbody>
+    <tr><td>Quarterly</td><td>Backup existence in Render dashboard; test restore to scratch database; confirm Django boots and recent attempts are present</td></tr>
+    <tr><td>Before each new client cohort</td><td>Repeat quarterly check, scoped to data the new cohort will touch; manual snapshot taken before any fixture load or migration</td></tr>
+    <tr><td>Annually</td><td>Full tabletop exercise: decrypt off-Render backup, restore to fresh database, run <code>python manage.py check --deploy</code>, time the whole exercise against the RTO commitment</td></tr>
+  </tbody>
+</table>
+
+<p>The verification log is maintained in the administrator guide. A failed verification is
+treated as P1: backup integrity is foundational; everything else stands on it.</p>
+
+<!-- 9. Procurement responses -->
+<h2>9. Paste-ready procurement responses</h2>
+
+<h3>9.1 Free tier (current state — honest)</h3>
+<div class="response">
+  <strong>Backup &amp; Recovery — current state</strong>
+  The platform currently runs on Render's free tier. Render does not provide automated
+  backups for free PostgreSQL databases, and free databases are deleted 44 days after
+  creation if not upgraded. The current backup approach is manual encrypted
+  <code>pg_dump</code> taken before any schema migration. RPO is undefined; RTO is 2–8
+  hours from the last manual dump. Upgrade to paid tier with point-in-time recovery is
+  a condition of any production cohort deployment, and a written upgrade procedure
+  exists.
+</div>
+
+<h3>9.2 Paid tier (post-upgrade)</h3>
+<div class="response">
+  <strong>Backup &amp; Recovery — paid tier</strong>
+  The platform runs on Render's paid tier with managed PostgreSQL. Daily automated
+  snapshots and point-in-time recovery (PITR) are enabled. Manual snapshots are taken
+  before any schema migration. A monthly encrypted off-Render backup is downloaded and
+  stored on a separate medium with separate credentials. RPO is 1 hour; RTO is 4 hours.
+  Backup integrity is verified quarterly via test restore and annually via full tabletop
+  exercise.
+</div>
+
+<h3>9.3 Ransomware-specific</h3>
+<div class="response">
+  <strong>Incident Response — ransomware</strong>
+  A written ransomware response plan exists, stored offline (printed and on a USB outside
+  the production cloud accounts). Pre-made decisions include: ransom payment policy
+  (do not pay), breach declaration trigger keyed to POPIA Section 22 with a 72-hour
+  notification clock starting on suspicion, and an offline communications fallback list.
+  An annual tabletop exercise tests recovery end-to-end against the off-Render backup.
+  The response procedure addresses account-takeover scenarios specific to a managed-PaaS
+  context: GitHub, Render, and email account compromise as primary vectors.
+</div>
+
+<!-- Sign-off -->
+<h2>10. Sign-off</h2>
+
+<table class="signoff">
+  <tr><td>Document version</td><td>1.0 — initial DR plan; closes procurement review flag #3</td></tr>
+  <tr><td>Author / responsible party</td><td>Platform operator</td></tr>
+  <tr><td>Date</td><td>April 2026</td></tr>
+  <tr><td>Next review</td><td>April 2027 (or sooner if architecture changes materially)</td></tr>
+  <tr><td>Storage</td><td>Printed in physical safe; encrypted USB outside primary cloud accounts; this digital copy in repository</td></tr>
+</table>
+
+<div class="footer">
+  NQF Learner Placement Assessment Platform — Disaster Recovery Plan v1.0 &nbsp;·&nbsp; April 2026
+</div>
+
+</body>
+</html>
