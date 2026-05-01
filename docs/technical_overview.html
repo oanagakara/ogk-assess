@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Technical Overview — NQF Learner Placement Assessment Platform</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 10.5pt; color: #1c1c1e; background: #fff; padding: 20mm 22mm 18mm 22mm; line-height: 1.75; }
+
+  .cover { text-align: center; padding: 40px 0 32px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+  .cover h1 { font-size: 20pt; margin-bottom: 6px; }
+  .cover .subtitle { font-size: 11pt; color: #444; margin-top: 6px; }
+  .cover .tag { font-size: 9.5pt; color: #888; margin-top: 10px; font-style: italic; }
+
+  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 9.5pt; }
+  .meta-table td { border: 1px solid #ddd; padding: 6px 10px; }
+  .meta-table td:first-child { font-weight: bold; background: #f5f5f5; width: 200px; }
+
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 28px; margin-bottom: 10px; color: #1e3a5f; border-left: 4px solid #1e3a5f; padding-left: 10px; }
+  h3 { font-size: 11pt; font-weight: bold; margin-top: 18px; margin-bottom: 6px; }
+
+  p { margin-bottom: 10px; }
+  ol { margin-left: 22px; margin-bottom: 12px; }
+  ul { margin-left: 22px; margin-bottom: 12px; }
+  li { margin-bottom: 6px; }
+
+  table.facts { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 9.5pt; }
+  table.facts th, table.facts td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; vertical-align: top; }
+  table.facts th { background: #f5f5f5; font-weight: bold; }
+
+  .pass-box { background: #f0fff4; border-left: 4px solid #2d6a4f; padding: 12px 16px; margin-bottom: 14px; }
+  .pass-box strong { display: block; margin-bottom: 6px; color: #2d6a4f; font-size: 10.5pt; }
+
+  .note-box { background: #fff8e1; border-left: 4px solid #f0c040; padding: 12px 16px; margin-bottom: 14px; }
+  .note-box strong { display: block; margin-bottom: 6px; color: #7d6000; font-size: 10.5pt; }
+
+  .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8.5pt; color: #888; text-align: center; }
+
+  .page-break { page-break-before: always; margin-top: 0; }
+
+  @media screen {
+    body { max-width: 880px; margin: 0 auto; padding: 40px 48px; }
+  }
+  @media print {
+    body { padding: 20mm 22mm 18mm 22mm; }
+    @page { margin: 0; size: A4 portrait; }
+    .no-print { display: none !important; }
+    h2 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:right; margin-bottom:16px;">
+  <button onclick="window.print()" style="padding:6px 16px; font-size:10pt; cursor:pointer;">Save as PDF</button>
+</div>
+
+<div class="cover">
+  <div style="font-size:9pt; color:#888; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Vendor Technical Overview</div>
+  <h1>NQF Learner Placement Assessment Platform</h1>
+  <div class="subtitle">Hosting, Stack, Security, POPIA Compliance, Backup &amp; Support</div>
+  <div class="tag">Prepared for Group IT pre-engagement review</div>
+</div>
+
+<table class="meta-table">
+  <tr><td>Vendor</td><td>OANAGAKARA (Pty) Ltd</td></tr>
+  <tr><td>Registration</td><td>South African Private Company, registered 24 April 2026</td></tr>
+  <tr><td>Tax / Compliance</td><td>SARS-registered; Beneficial Ownership filed with CIPC</td></tr>
+  <tr><td>Document version</td><td>1.0</td></tr>
+  <tr><td>Date</td><td>1 May 2026</td></tr>
+  <tr><td>Classification</td><td>Confidential — for recipient&rsquo;s internal review</td></tr>
+  <tr><td>Primary contact</td><td>Donavan Bugan, Director &mdash; donbugan@gmail.com</td></tr>
+</table>
+
+<h2>1. Executive Summary</h2>
+
+<p>The platform assesses learners aged 18&ndash;29 against NQF levels 1&ndash;4 for learnership placement, including learners with physical, neurological, or psychiatric disabilities. It is a Django 6 / Python 3.13 application backed by managed PostgreSQL, deployed one tenant per Render service so that no client&rsquo;s data shares a database with another. POPIA compliance is documented in a signed Data Processing Agreement; an independent security audit (21 April 2026) found no critical vulnerabilities, and the three HIGH-severity findings raised at that audit have been remediated in code. Backup, recovery point/time objectives, and ransomware response are documented in a standalone Disaster Recovery Plan. Support is contracted under a Service Agreement with response-time commitments. This document summarises each topic and points to the underlying artefact for depth.</p>
+
+<h2>2. Architecture &amp; Hosting</h2>
+
+<table class="facts">
+  <tr><th>Hosting provider</th><td>Render (US-based PaaS); Oregon region for application and database</td></tr>
+  <tr><th>Deployment topology</th><td>Single-tenant per deployment &mdash; one Render web service and one PostgreSQL instance per client. No shared database between clients.</td></tr>
+  <tr><th>Data residency</th><td>United States (Render Oregon). Cross-border transfer addressed in the DPA. A documented failover path exists to a South African host (Hetzner SA / CloudAfrica) if data residency becomes a contractual requirement.</td></tr>
+  <tr><th>Deploy mechanism</th><td>Git-driven auto-deploy from a private GitHub repository; database migrations run as part of the build script.</td></tr>
+  <tr><th>TLS</th><td>Render-managed Let&rsquo;s Encrypt certificates on all custom domains, auto-renewed.</td></tr>
+  <tr><th>Maintenance window</th><td>Sundays 22:00&ndash;02:00 SAST. 24 hours&rsquo; advance notice for any maintenance expected to exceed 30 minutes.</td></tr>
+</table>
+
+<p><strong>Tier note.</strong> The current deployment runs on Render&rsquo;s free PostgreSQL tier. Free tier carries no automated backups and a hard expiry window, and is not suitable for production cohorts. The migration to Render paid tier (Basic-1gb or Pro depending on cohort size) is operationalised by a one-shot script (<code>scripts/render_upgrade.sh</code>) and is documented in the Disaster Recovery Plan, Section 8. Group IT may wish to make sign-off conditional on this upgrade being completed before the first cohort runs; we expect to do so as part of go-live.</p>
+
+<h2>3. Application Stack</h2>
+
+<table class="facts">
+  <tr><th>Application framework</th><td>Django 6 with server-side rendering &mdash; no JavaScript framework dependency</td></tr>
+  <tr><th>Runtime</th><td>Python 3.13 (CPython); Gunicorn application server; Whitenoise for static assets</td></tr>
+  <tr><th>Database</th><td>PostgreSQL (managed by Render in production); SQLite used only in local development</td></tr>
+  <tr><th>Front-end</th><td>TailwindCSS + DaisyUI components; pre-compiled static CSS; no build step on deploy</td></tr>
+  <tr><th>File handling</th><td>Working sheet scans stored as base64-encoded blobs in the database. No external object-storage service is required, which keeps the trust boundary at one provider.</td></tr>
+  <tr><th>External APIs</th><td>Anthropic API (Claude) for assisted marking on the LIT-D-WRITE writing component only. All other marking is rule-based.</td></tr>
+  <tr><th>Source control</th><td>Private GitHub repository with branch protection on <code>main</code>.</td></tr>
+</table>
+
+<p>Detailed system overview, data model, and feature roadmap are in <em>Product Specification</em> (see Annex).</p>
+
+<h2>4. Security Posture</h2>
+
+<p>An independent security audit was conducted on 21 April 2026 against the OWASP Top 10 plus Django-specific hardening guidance. The audit found <strong>no critical vulnerabilities</strong>. It identified three HIGH-severity, four MEDIUM-severity, and three LOW-severity findings, alongside seventeen positively-verified controls.</p>
+
+<h3>Controls verified at audit (selection)</h3>
+<div class="pass-box">
+  <strong>Verified passing</strong>
+  SECRET_KEY loaded from environment with hard-fail in production; HTTPS enforcement (SECURE_SSL_REDIRECT, HSTS); CSRF and session protection; Content-Security-Policy and Permissions-Policy headers; brute-force rate limiting on login (10 attempts / 10 min); session-bound assessment access; <code>login_required</code> + <code>@user_passes_test</code> on every assessor view; magic-byte file-type validation on uploaded scans; opaque non-enumerable identifiers; custom error pages (no debug info leakage); immutable score audit log.
+</div>
+
+<h3>HIGH-severity findings &mdash; remediated in code (re-audit pending)</h3>
+<table class="facts">
+  <tr><th>Finding</th><th>Status</th></tr>
+  <tr><td>Unauthenticated <code>/error-report/</code> endpoint</td><td>Now requires HMAC-validated <code>X-Error-Token</code> header (<code>assessment/views.py</code>); rejects without 403</td></tr>
+  <tr><td><code>ALLOWED_HOSTS</code> wildcard default</td><td>Now sourced from environment; raises <code>ImproperlyConfigured</code> in production if unset (<code>config/settings.py</code>)</td></tr>
+  <tr><td>No <code>LOGGING</code> configuration</td><td>Explicit logging block now present (<code>config/settings.py</code>)</td></tr>
+</table>
+
+<h3>MEDIUM-severity findings &mdash; status</h3>
+<table class="facts">
+  <tr><th>Finding</th><th>Status</th></tr>
+  <tr><td>Login rate-limit cache scope across Gunicorn workers</td><td>To be moved to a database-backed or Redis-backed cache before paid-tier migration</td></tr>
+  <tr><td>Reflected XSS vector in fallback 500 handler</td><td>Remediated &mdash; values now escaped before rendering</td></tr>
+  <tr><td>Database connection SSL not explicit</td><td>Remediated &mdash; <code>ssl_require=True</code> set in <code>dj_database_url.parse</code></td></tr>
+  <tr><td>Cookie security flags not explicit</td><td>Remediated &mdash; <code>SESSION_COOKIE_HTTPONLY/SECURE/SAMESITE</code> and <code>CSRF_COOKIE_*</code> equivalents set explicitly</td></tr>
+</table>
+
+<p>An updated audit will be commissioned before first paying-cohort go-live and re-audited annually thereafter. Both the current audit and the prior baseline (18 April 2026) are available on request. See <em>Security Audit 2026-04-21</em> in the Annex for the full report.</p>
+
+<h2>5. POPIA Compliance</h2>
+
+<p>The platform is operated as the POPIA <em>Operator</em> on behalf of the client as <em>Responsible Party</em>. A signed Data Processing Agreement governs the processing relationship.</p>
+
+<table class="facts">
+  <tr><th>Lawful basis</th><td>Processing only on documented written instructions from the Responsible Party (DPA Clause 3.1)</td></tr>
+  <tr><th>Data minimisation</th><td>Only data fields necessary for assessment delivery and reporting are collected. No advertising identifiers, no behavioural tracking.</td></tr>
+  <tr><th>Retention</th><td>Learner identity, assessment records, scoring/audit, and working sheets retained for <strong>5 years</strong> from date of assessment, or as required by the SETA / QCTO. Platform user accounts retained for the duration of engagement plus 2 years.</td></tr>
+  <tr><th>Sub-processors</th><td>Render Services Inc. (US, Oregon) for hosting and managed PostgreSQL; GitHub Inc. (US, Microsoft Corporation) for source code repository. Both are listed in DPA Schedule B.</td></tr>
+  <tr><th>Cross-border transfer</th><td>US-based sub-processors covered by contractual safeguards; data residency commitment to a South African host can be activated under the failover plan if Group IT requires it as a contractual condition.</td></tr>
+  <tr><th>Breach notification</th><td>Within <strong>72 hours</strong> of becoming aware of a compromise of learner personal information (DPA Clause 5.1)</td></tr>
+  <tr><th>Data subject rights</th><td>Access, correction, deletion, and processing-restriction requests honoured within a reasonable time on written request (DPA Clause 6)</td></tr>
+  <tr><th>Contract end</th><td>Within <strong>30 calendar days</strong> of termination: full export to the Responsible Party in CSV or JSON, followed by secure deletion from primary and backup storage except where legal retention applies (DPA Clause 9.3)</td></tr>
+</table>
+
+<p>The full DPA is available on request as <em>Data Processing Agreement</em> (see Annex).</p>
+
+<h2>6. Backup &amp; Disaster Recovery</h2>
+
+<p>Disaster recovery is documented as a standalone plan covering five scenarios: corrupted database, accidental deletion, full-region outage, account-level provider compromise, and source code repository compromise. Recovery objectives are tier-dependent.</p>
+
+<table class="facts">
+  <tr><th></th><th>Current state (free tier)</th><th>Target state (paid tier &mdash; before first cohort)</th></tr>
+  <tr><td>RPO (data loss tolerance)</td><td>Undefined &mdash; manual <code>pg_dump</code> only</td><td><strong>1 hour</strong> via point-in-time recovery</td></tr>
+  <tr><td>RTO (recovery time)</td><td>2&ndash;8 hours from a recent dump</td><td><strong>4 hours</strong> &mdash; snapshot restore plus smoke test plus notification</td></tr>
+  <tr><td>Backup automation</td><td>None on free tier</td><td>Daily snapshots plus PITR plus monthly off-Render encrypted dump</td></tr>
+  <tr><td>Backup verification</td><td>Manual on demand</td><td>Quarterly restore test plus annual full tabletop exercise</td></tr>
+</table>
+
+<h3>Off-Render backup commitment</h3>
+<p>A monthly <code>pg_dump</code> is downloaded out of the Render account, encrypted with AES-256 (GnuPG symmetric), and stored on a separate medium with separate credentials. Twelve monthly backups are retained on rolling rotation. This addresses the scenario where the Render account itself is compromised and Render-side snapshots become untrusted &mdash; an outcome that account-level credentials alone cannot recover from.</p>
+
+<h3>Failover commitment</h3>
+<p>A documented procedure exists to migrate from Render to a South African host (Hetzner SA / CloudAfrica) within an estimated 14&ndash;25 hours of focused work. This is held as a contingency, not a default operating mode.</p>
+
+<p>See <em>Disaster Recovery Plan</em> in the Annex.</p>
+
+<h2>7. Support Model</h2>
+
+<table class="facts">
+  <tr><th>Channel</th><td>Email during South African Business Days (Monday&ndash;Friday, excluding public holidays)</td></tr>
+  <tr><th>Acknowledgement</th><td>Within 1 Business Day for all requests</td></tr>
+  <tr><th>Critical incident</th><td>Initial response within <strong>4 Business Hours</strong>. Critical = platform inaccessible to learners or assessors, or confirmed data loss.</td></tr>
+  <tr><th>Non-critical issue</th><td>Resolution within <strong>5 Business Days</strong></td></tr>
+  <tr><th>Enhancement requests</th><td>Scoped and delivered within a mutually agreed timeframe, typically 1&ndash;3 weeks</td></tr>
+  <tr><th>Uptime target</th><td>99% measured monthly, excluding the published maintenance window</td></tr>
+  <tr><th>Escalation</th><td>Single named contact (the Director) on the founding/Campus tier; an enhanced SLA with a named alternate is available on higher tiers</td></tr>
+</table>
+
+<p>Full terms are in the <em>Service Agreement</em> (see Annex).</p>
+
+<h2>8. Continuity &amp; Key-Person Risk</h2>
+
+<p>Group IT will rightly note that OANAGAKARA is presently a single-developer operation. The procurement self-review flagged this and we want to address it transparently rather than minimise it.</p>
+
+<ul>
+  <li><strong>Source code escrow / handover.</strong> The full source repository, deployment configuration, administrator guide, and operational runbooks can be placed in escrow with a nominated third party on contract execution. On a defined trigger event (extended unavailability, business cessation), the Responsible Party receives the escrow release and continues operating the platform on its own infrastructure under the existing licence terms.</li>
+  <li><strong>Operational runbook.</strong> Deployment, tenant onboarding, environment variables, role management, troubleshooting, and migration procedures are documented in the <em>Administrator Guide</em>. A reasonably competent Django operator can stand up and run the platform from this document alone.</li>
+  <li><strong>Stack choice.</strong> The technology choices (Django, PostgreSQL, server-side rendering, no proprietary framework) were made to keep the platform portable and the operator pool large.</li>
+  <li><strong>Insurance and continuity.</strong> Director&rsquo;s professional indemnity and cyber liability cover will be in place by first paying-cohort go-live; specifics available to Group IT on request.</li>
+</ul>
+
+<h2>9. Commercial Model</h2>
+
+<p>The platform is offered as a SaaS subscription (monthly or annual), not a perpetual licence. Commercial terms are agreed bilaterally with each client; the price tiers below are indicative.</p>
+
+<table class="facts">
+  <tr><th>Tier</th><th>Monthly (per campus)</th><th>Capacity</th></tr>
+  <tr><td>Starter Campus</td><td>R2,500</td><td>up to 75 assessments / month</td></tr>
+  <tr><td>Campus (recommended)</td><td>R5,500</td><td>up to 250 assessments / month</td></tr>
+  <tr><td>Multi-Campus</td><td>R11,000</td><td>up to 600 assessments / month</td></tr>
+</table>
+
+<p>Annual billing carries a discount equivalent to approximately one month free. Implementation fees and any founding-client concessions are negotiated separately and documented in the executed Service Agreement. The leasing preference flagged by the client contact maps directly to this monthly subscription model &mdash; there is no separate &ldquo;perpetual&rdquo; SKU to evaluate.</p>
+
+<h2>10. Annex &mdash; Supporting Documents</h2>
+
+<p>The following artefacts are available on request. Items marked <em>(NDA)</em> contain commercially sensitive detail and are released under non-disclosure.</p>
+
+<table class="facts">
+  <tr><th>Document</th><th>Contents</th></tr>
+  <tr><td>Product Specification</td><td>System overview, functional and non-functional requirements, data model, feature roadmap, glossary</td></tr>
+  <tr><td>Security Audit (21 April 2026)</td><td>Independent OWASP-aligned audit, full finding list, remediation status</td></tr>
+  <tr><td>Procurement Review</td><td>Independent self-review identifying flags before signing; closure status of each</td></tr>
+  <tr><td>Data Processing Agreement</td><td>POPIA-compliant Operator commitments, sub-processors, retention schedule, breach process</td></tr>
+  <tr><td>Disaster Recovery Plan</td><td>RPO/RTO targets, off-Render backup procedure, ransomware response, failover plan</td></tr>
+  <tr><td>Service Agreement <em>(NDA)</em></td><td>Support terms, SLA, change-request process, termination</td></tr>
+  <tr><td>Administrator Guide</td><td>Deployment, tenant onboarding, role management, troubleshooting, runbooks</td></tr>
+  <tr><td>Marking Rubric</td><td>Construct-aligned rubric across CAPS and Cambridge syllabi, NQF levels 1&ndash;4</td></tr>
+  <tr><td>Assessor Training Manual</td><td>Marker onboarding, calibration, moderation procedure</td></tr>
+  <tr><td>Costing Model <em>(NDA)</em></td><td>Infrastructure cost basis, margin model</td></tr>
+</table>
+
+<h2>11. Next Steps</h2>
+
+<ol>
+  <li>Group IT confirms which annex documents it wishes to review for sign-off; we provide them under the agreed confidentiality terms.</li>
+  <li>Any sign-off conditions (paid-tier upgrade before go-live, SA data residency, escrow arrangement) are recorded as preconditions in the executed Service Agreement.</li>
+  <li>On contract execution: implementation begins; first cohort target date agreed; updated security audit scheduled before go-live.</li>
+</ol>
+
+<div class="footer">
+  OANAGAKARA (Pty) Ltd &mdash; Vendor Technical Overview &mdash; Version 1.0 &mdash; 1 May 2026
+</div>
+
+</body>
+</html>
