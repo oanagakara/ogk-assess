@@ -81,7 +81,7 @@
 <table class="facts">
   <tr><th>Hosting provider</th><td>Render (US-based PaaS); Oregon region for application and database</td></tr>
   <tr><th>Deployment topology</th><td>Single-tenant per deployment &mdash; one Render web service and one PostgreSQL instance per client. No shared database between clients.</td></tr>
-  <tr><th>Data residency</th><td>United States (Render Oregon). Cross-border transfer addressed in the DPA. A documented failover path exists to a South African host (Hetzner SA / CloudAfrica) if data residency becomes a contractual requirement.</td></tr>
+  <tr><th>Data residency</th><td>Default: United States (Render Oregon). Cross-border transfer is addressed in the DPA under contractual safeguards (POPIA Section 72). Available on written request from the Responsible Party: full migration to a South African host (Hetzner SA or CloudAfrica). Activation timeline once requested: approximately 14&ndash;25 hours of focused engineering, completing within 5 business days.</td></tr>
   <tr><th>Deploy mechanism</th><td>Git-driven auto-deploy from a private GitHub repository; database migrations run as part of the build script.</td></tr>
   <tr><th>TLS</th><td>Render-managed Let&rsquo;s Encrypt certificates on all custom domains, auto-renewed.</td></tr>
   <tr><th>Maintenance window</th><td>Sundays 22:00&ndash;02:00 SAST. 24 hours&rsquo; advance notice for any maintenance expected to exceed 30 minutes.</td></tr>
@@ -124,7 +124,7 @@
 <h3>MEDIUM-severity findings &mdash; status</h3>
 <table class="facts">
   <tr><th>Finding</th><th>Status</th></tr>
-  <tr><td>Login rate-limit cache scope across Gunicorn workers</td><td>To be moved to a database-backed or Redis-backed cache before paid-tier migration</td></tr>
+  <tr><td>Login rate-limit cache scope across Gunicorn workers</td><td>Remediation scheduled with the Render paid-tier database migration (precondition to first paying-cohort go-live; recorded in the executed Service Agreement). Cache will move to Django&rsquo;s built-in <code>DatabaseCache</code> so rate-limit counters share state across Gunicorn workers. Verifiable on completion via the <code>CACHES</code> setting in <code>config/settings.py</code> and presence of the cache table in the production database.</td></tr>
   <tr><td>Reflected XSS vector in fallback 500 handler</td><td>Remediated &mdash; values now escaped before rendering</td></tr>
   <tr><td>Database connection SSL not explicit</td><td>Remediated &mdash; <code>ssl_require=True</code> set in <code>dj_database_url.parse</code></td></tr>
   <tr><td>Cookie security flags not explicit</td><td>Remediated &mdash; <code>SESSION_COOKIE_HTTPONLY/SECURE/SAMESITE</code> and <code>CSRF_COOKIE_*</code> equivalents set explicitly</td></tr>
