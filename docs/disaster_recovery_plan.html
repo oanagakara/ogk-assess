@@ -218,6 +218,22 @@ account itself is suspect. Procedure:</p>
 or any cloud-sync folder tied to the developer's primary identity. Compromise of the
 primary identity reaches into the sync folder.</p>
 
+<h3>5.1 Operational implementation (sam-pack)</h3>
+
+<p>The commitments above are operationalised by two scripts in <code>scripts/</code>:</p>
+
+<table class="data">
+  <thead><tr><th>Script</th><th>Purpose</th><th>When to run</th></tr></thead>
+  <tbody>
+    <tr><td><code>verify_backup_environment.sh</code></td><td>Pre-flight check &mdash; validates required commands, environment variables, backup directory state, <code>backup_log.txt</code> recency, database reachability, and GPG AES-256 capability. Read-only; no side effects.</td><td>Before each monthly backup</td></tr>
+    <tr><td><code>off_render_backup.sh</code></td><td>Monthly backup runner &mdash; <code>pg_dump</code> &rarr; GPG AES-256 symmetric encrypt &rarr; SHA-256 hash &rarr; append entry to <code>backup_log.txt</code> &rarr; delete plaintext &rarr; rotate encrypted dumps older than 365 days. Supports <code>--dry-run</code>, <code>--keep-plaintext</code>, and <code>--rotate-only</code> flags.</td><td>First Monday of every month</td></tr>
+  </tbody>
+</table>
+
+<p>Required environment variables: <code>DATABASE_URL</code> (production Render Postgres) and <code>BACKUP_DIR</code> (mounted backup medium). The backup script optionally accepts <code>GPG_PASSPHRASE_FILE</code> for non-interactive use; otherwise the GPG agent prompts.</p>
+
+<p><strong>Audit trail.</strong> Every backup appends a single line to <code>backup_log.txt</code> in the format <code>YYYY-MM-DD &lt;sha256-hash&gt; &lt;filename&gt;</code>. Annual restore-tests are appended with a <code>RESTORE-VERIFIED YYYY-MM-DD</code> prefix. This log is the verifiable artefact of compliance with the Section 5 commitment and is reviewed on the cadence in Section 8.</p>
+
 <!-- 6. Pre-made decisions -->
 <h2>6. Pre-made decisions</h2>
 
