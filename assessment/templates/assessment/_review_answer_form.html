@@ -127,7 +127,7 @@
   <div class="flex items-center justify-between">
     <div>
       {% if has_prev %}
-        <a href="{% url 'assessment:attempt_review_question' attempt.code n|add:'-1' %}"
+        <a href="{% url 'assessment:attempt_section_review_question' attempt.code section.pk n|add:'-1' %}"
            class="btn">← Previous</a>
       {% endif %}
     </div>

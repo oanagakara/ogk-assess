@@ -248,6 +248,7 @@ class Attempt(models.Model):
     popia_accepted_at = models.DateTimeField(blank=True, null=True)
     section_timings_json = models.JSONField(default=dict, blank=True)
     review_started_at = models.DateTimeField(null=True, blank=True)
+    section_review_started_at = models.JSONField(default=dict, blank=True)
     finalised_at = models.DateTimeField(null=True, blank=True)
     finalised_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -336,6 +337,27 @@ class Attempt(models.Model):
         self.review_started_at = when
         self.last_activity_at = when
         self.save(update_fields=["review_started_at", "last_activity_at"])
+
+    def get_section_review_started_at(self, section_pk: int):
+        ts = (self.section_review_started_at or {}).get(str(section_pk))
+        if ts:
+            from django.utils.dateparse import parse_datetime
+            return parse_datetime(ts)
+        return None
+
+    def start_section_review(self, section_pk: int, when=None) -> bool:
+        """Idempotently mark the start of review for a section. Returns True if newly recorded."""
+        key = str(section_pk)
+        existing = (self.section_review_started_at or {}).get(key)
+        if existing:
+            return False
+        when = when or timezone.now()
+        review_map = dict(self.section_review_started_at or {})
+        review_map[key] = when.isoformat()
+        self.section_review_started_at = review_map
+        self.last_activity_at = when
+        self.save(update_fields=["section_review_started_at", "last_activity_at"])
+        return True
 
     def submit(self, when=None) -> None:
         when = when or timezone.now()
