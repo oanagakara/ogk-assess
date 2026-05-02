@@ -24,8 +24,8 @@ class Command(BaseCommand):
         Question.objects.filter(section__template=template).delete()
         Section.objects.filter(template=template).delete()
 
-        sec_lit = Section.objects.create(template=template, title="SECTION 1: LITERACY (45 MINUTES)", order=1)
-        sec_num = Section.objects.create(template=template, title="SECTION 2: NUMERACY (45 MINUTES)", order=2)
+        sec_lit = Section.objects.create(template=template, title="SECTION 1: LITERACY (60 MINUTES)", order=1)
+        sec_num = Section.objects.create(template=template, title="SECTION 2: NUMERACY (60 MINUTES)", order=2)
 
         items = []
 

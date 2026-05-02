@@ -109,17 +109,23 @@ def test_final_question_submission_marks_attempt_submitted(
 
     attempt.refresh_from_db()
 
-    # Finishing the last question now redirects to the review info screen (section timer
-    # still has time on the clock). Submission happens after the learner chooses to
-    # submit or finishes the review phase.
+    # Finishing the last question of a section now redirects to that section's
+    # review info screen. Submission happens after the learner skips the review
+    # (or after their review timer expires).
     assert response.status_code == 302
-    assert response["Location"] == reverse("assessment:attempt_review_info", kwargs={"code": attempt.code})
+    assert response["Location"] == reverse(
+        "assessment:attempt_section_review_info",
+        kwargs={"code": attempt.code, "section_id": section.pk},
+    )
     assert attempt.status == Attempt.IN_PROGRESS
 
-    # Choosing "submit now" on the review info screen finalises the attempt.
-    # Session key is already set from above; re-save in case session was cycled.
-    review_url = reverse("assessment:attempt_review_info", kwargs={"code": attempt.code})
-    client.post(review_url, {"action": "submit"})
+    # Choosing "Skip review and continue" on the section review info screen
+    # advances the attempt; with no further sections, the attempt is finalised.
+    review_url = reverse(
+        "assessment:attempt_section_review_info",
+        kwargs={"code": attempt.code, "section_id": section.pk},
+    )
+    client.post(review_url, {"action": "skip"})
     attempt.refresh_from_db()
     assert attempt.status == Attempt.SUBMITTED
     assert attempt.submitted_at is not None
@@ -270,6 +276,44 @@ def test_final_mark_page_shows_save_and_done(
     assert response.status_code == 200
     assert "Save & Review Summary" in html
     assert "Save & Continue" not in html
+
+
+@pytest.mark.django_db
+def test_section_review_seconds_formula(assessment_template, section, learner):
+    """min(10min, 60min − question_time) for both sections, computed from real timestamps."""
+    from datetime import timedelta
+    from assessment.views import _section_review_seconds
+
+    attempt = Attempt.objects.create(
+        template=assessment_template,
+        learner=learner,
+        honesty_accepted_at=timezone.now(),
+        started_at=timezone.now(),
+        status=Attempt.IN_PROGRESS,
+    )
+
+    base = timezone.now()
+
+    # 30 minutes on questions → 10 min review (capped)
+    attempt.record_section_entry(section.pk, when=base)
+    attempt.start_section_review(section.pk, when=base + timedelta(minutes=30))
+    assert _section_review_seconds(attempt, section.pk) == 600
+
+    # Reset and try 55 min on questions → 5 min review
+    attempt.section_timings_json = {}
+    attempt.section_review_started_at = {}
+    attempt.save(update_fields=["section_timings_json", "section_review_started_at"])
+    attempt.record_section_entry(section.pk, when=base)
+    attempt.start_section_review(section.pk, when=base + timedelta(minutes=55))
+    assert _section_review_seconds(attempt, section.pk) == 300
+
+    # Reset and try full 60 min on questions → 0 review
+    attempt.section_timings_json = {}
+    attempt.section_review_started_at = {}
+    attempt.save(update_fields=["section_timings_json", "section_review_started_at"])
+    attempt.record_section_entry(section.pk, when=base)
+    attempt.start_section_review(section.pk, when=base + timedelta(minutes=60))
+    assert _section_review_seconds(attempt, section.pk) == 0
 
 
 @pytest.mark.django_db

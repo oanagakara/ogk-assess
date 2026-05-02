@@ -38,7 +38,7 @@
             <h1 class="card-title text-2xl">Question {{ n }} of {{ total }}</h1>
             <p class="text-sm opacity-70">{{ question.section.title }}</p>
           </div>
-          <div id="review-countdown" class="badge badge-warning font-mono text-base px-3 py-3">01:30</div>
+          <div id="review-countdown" class="badge badge-warning font-mono text-base px-3 py-3">10:00</div>
         </div>
         <div class="divider my-0"></div>
         {% include "assessment/_review_answer_form.html" %}
@@ -63,7 +63,7 @@
           </div>
           <div class="flex items-center gap-2">
             <div class="badge badge-outline">{{ attempt.code }}</div>
-            <div id="review-countdown" class="badge badge-warning font-mono text-base px-3 py-3">01:30</div>
+            <div id="review-countdown" class="badge badge-warning font-mono text-base px-3 py-3">10:00</div>
           </div>
         </div>
 
@@ -84,14 +84,10 @@
 
       const serverExpiresAt = new Date(timerData.dataset.expiresAt).getTime();
       const timeoutUrl = timerData.dataset.timeoutUrl;
-      const pageLoadedAt = Date.now();
-      const SLOT_MS = 90 * 1000;
 
       function tick() {
-        const serverDiff = Math.max(0, serverExpiresAt - Date.now());
-        const displayDiff = Math.max(0, SLOT_MS - (Date.now() - pageLoadedAt));
-
-        const totalSeconds = Math.floor(displayDiff / 1000);
+        const remainingMs = Math.max(0, serverExpiresAt - Date.now());
+        const totalSeconds = Math.floor(remainingMs / 1000);
         const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
         const seconds = String(totalSeconds % 60).padStart(2, "0");
         countdown.textContent = `${minutes}:${seconds}`;
@@ -99,7 +95,7 @@
         if (totalSeconds <= 10) {
           countdown.classList.replace("badge-warning", "badge-error");
         }
-        if ((displayDiff <= 0 || serverDiff <= 0) && timeoutUrl) {
+        if (remainingMs <= 0 && timeoutUrl) {
           window.location.href = timeoutUrl;
         }
       }

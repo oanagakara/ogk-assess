@@ -34,9 +34,9 @@ from .renderers import get_renderer
 from .services import claim_seat, claim_session_seat
 
 
-ASSESSMENT_DURATION = timedelta(hours=2)   # hard cap: 45 min + 45 min + ~30 min review
-SECTION_DURATION = timedelta(minutes=45)
-REVIEW_SECONDS_PER_QUESTION = 90
+ASSESSMENT_DURATION = timedelta(hours=2)   # hard cap: two 60-min section slots
+SECTION_DURATION = timedelta(minutes=60)   # each section: questions + review fits in 60 min
+REVIEW_MAX_SECONDS = 600                   # global review timer per section: ≤10 minutes
 
 # ── Learner session ownership ─────────────────────────────────────────────────
 # H-5: Bind each attempt to the browser session that created it. Prevents one
@@ -91,19 +91,58 @@ def _is_last_section(qs_section_ids, current_section_id):
     return _first_n_of_next_section(qs_section_ids, current_section_id) is None
 
 
-def _review_question_expires_at(attempt, n):
-    """Return when review slot n (1-based) expires."""
-    if not attempt.review_started_at:
+def _section_review_seconds(attempt, section_pk: int) -> int:
+    """Return the section's review window in seconds: min(10min, 60min − question_time_used).
+
+    Question time = (review_started − section_started). Returns 0 if either timestamp is missing.
+    """
+    section_started = attempt.section_started_at(section_pk)
+    review_started = attempt.get_section_review_started_at(section_pk)
+    if not (section_started and review_started):
+        return 0
+    question_seconds = max(0, int((review_started - section_started).total_seconds()))
+    remaining = int(SECTION_DURATION.total_seconds()) - question_seconds
+    return max(0, min(REVIEW_MAX_SECONDS, remaining))
+
+
+def _section_review_expires_at(attempt, section_pk: int):
+    review_started = attempt.get_section_review_started_at(section_pk)
+    if not review_started:
         return None
-    return attempt.review_started_at + timedelta(seconds=n * REVIEW_SECONDS_PER_QUESTION)
+    return review_started + timedelta(seconds=_section_review_seconds(attempt, section_pk))
 
 
-def _current_review_n(attempt, total_questions):
-    """Return the 1-based review question the learner should be on right now."""
-    if not attempt.review_started_at:
-        return 1
-    elapsed = (timezone.now() - attempt.review_started_at).total_seconds()
-    return min(int(elapsed // REVIEW_SECONDS_PER_QUESTION) + 1, total_questions + 1)
+def _projected_section_review_seconds(attempt, section_pk: int) -> int:
+    """Projected review window if review were started right now (for the review_info preview)."""
+    section_started = attempt.section_started_at(section_pk)
+    if not section_started:
+        return 0
+    question_seconds = max(0, int((timezone.now() - section_started).total_seconds()))
+    remaining = int(SECTION_DURATION.total_seconds()) - question_seconds
+    return max(0, min(REVIEW_MAX_SECONDS, remaining))
+
+
+def _section_questions(template, section_pk: int):
+    """Return ordered list of non-layout-only questions in a specific section."""
+    qs = (
+        Question.objects.filter(section__template=template, section_id=section_pk, is_active=True)
+        .select_related("section")
+        .order_by("order", "code")
+    )
+    return [q for q in qs if not _is_layout_only_question(q)]
+
+
+def _next_section_first_n(template, section_pk: int):
+    """Global 1-based question index of the first question in the section after section_pk.
+
+    Returns None if section_pk is the last section.
+    """
+    qs_section_ids = list(
+        Question.objects.filter(section__template=template, is_active=True)
+        .order_by("section__order", "order", "code")
+        .values_list("pk", "section_id")
+    )
+    return _first_n_of_next_section(qs_section_ids, section_pk)
 
 
 def _finalize_attempt(attempt, when=None):
@@ -1058,27 +1097,23 @@ def attempt_question(request, code: str, n: int):
     sec_expires = _section_expires_at(attempt, section_pk)
 
     if sec_expires and now >= sec_expires:
-        # Time's up for this section — advance server-side
-        next_n = _first_n_of_next_section(qs_section_ids, section_pk)
-        if next_n:
-            return redirect("assessment:attempt_question", code=code, n=next_n)
-        # Last section expired — go straight to submit (no spare time for review)
-        _finalize_attempt(attempt)
-        return redirect("assessment:attempt_submitted", code=code)
+        # Section's 60-min slot exhausted — go to that section's review screen.
+        # If review time is also 0, that screen will auto-advance to the next section / submit.
+        return redirect("assessment:attempt_section_review_info", code=code, section_id=section_pk)
 
-    # Where does JS redirect when this section's clock hits zero?
-    next_n = _first_n_of_next_section(qs_section_ids, section_pk)
-    if next_n:
-        section_timeout_url = reverse(
-            "assessment:attempt_question", kwargs={"code": code, "n": next_n}
-        )
-    else:
-        section_timeout_url = reverse("assessment:attempt_review_info", kwargs={"code": code})
+    # When this section's clock hits zero, JS redirects to that section's review screen.
+    section_timeout_url = reverse(
+        "assessment:attempt_section_review_info",
+        kwargs={"code": code, "section_id": section_pk},
+    )
 
-    # Offer review after the last question only if time is still on the clock
+    # After the last question of EACH section, offer that section's review screen.
     end_redirect = None
-    if _is_last_section(qs_section_ids, section_pk) and n == total:
-        end_redirect = redirect("assessment:attempt_review_info", code=code)
+    is_last_q_in_section = (n == total) or (qs_section_ids[n][1] != section_pk)
+    if is_last_q_in_section:
+        end_redirect = redirect(
+            "assessment:attempt_section_review_info", code=code, section_id=section_pk
+        )
     # ────────────────────────────────────────────────────────────────────────
 
     spec = _question_spec(question)
@@ -1520,8 +1555,17 @@ def assessor_review_queue(request):
     return render(request, "assessment/assessor_review_queue.html", {"attempts": attempts})
 
 
-def attempt_review_info(request, code: str):
-    """Offer the learner the choice to review or submit after finishing both sections."""
+def _advance_after_section(attempt, section_pk: int):
+    """Move on after a section's review screen is dismissed: next section's first question, or finalise."""
+    next_n = _next_section_first_n(attempt.template, section_pk)
+    if next_n:
+        return redirect("assessment:attempt_question", code=attempt.code, n=next_n)
+    _finalize_attempt(attempt)
+    return redirect("assessment:attempt_submitted", code=attempt.code)
+
+
+def attempt_section_review_info(request, code: str, section_id: int):
+    """Offer the learner a choice to review (or skip) the section they just finished."""
     attempt = get_object_or_404(Attempt, code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
@@ -1532,28 +1576,45 @@ def attempt_review_info(request, code: str):
     if not attempt.has_honesty_declaration:
         return redirect("assessment:attempt_details", code=code)
 
-    total_questions = sum(
-        1 for q in Question.objects.filter(section__template=attempt.template, is_active=True)
-        if not _is_layout_only_question(q)
-    )
-    review_seconds = total_questions * REVIEW_SECONDS_PER_QUESTION
+    section = get_object_or_404(Section, pk=section_id, template=attempt.template)
+    section_questions = _section_questions(attempt.template, section.pk)
+
+    # If review already started for this section, jump straight into it
+    if attempt.get_section_review_started_at(section.pk):
+        return redirect(
+            "assessment:attempt_section_review_question",
+            code=code,
+            section_id=section.pk,
+            n=1,
+        )
+
+    projected_review_seconds = _projected_section_review_seconds(attempt, section.pk)
 
     if request.method == "POST":
-        if request.POST.get("action") == "review":
-            attempt.start_review()
-            return redirect("assessment:attempt_review_question", code=code, n=1)
-        _finalize_attempt(attempt)
-        return redirect("assessment:attempt_submitted", code=code)
+        if request.POST.get("action") == "review" and projected_review_seconds > 0 and section_questions:
+            attempt.start_section_review(section.pk)
+            return redirect(
+                "assessment:attempt_section_review_question",
+                code=code,
+                section_id=section.pk,
+                n=1,
+            )
+        return _advance_after_section(attempt, section.pk)
+
+    # Auto-skip if there is nothing to review (no time left or no questions)
+    if projected_review_seconds == 0 or not section_questions:
+        return _advance_after_section(attempt, section.pk)
 
     return render(request, "assessment/review_info.html", {
         "attempt": attempt,
-        "total_questions": total_questions,
-        "review_seconds": review_seconds,
+        "section": section,
+        "total_questions": len(section_questions),
+        "review_seconds": projected_review_seconds,
     })
 
 
-def attempt_review_question(request, code: str, n: int):
-    """Review phase: 90 seconds per question, auto-advances."""
+def attempt_section_review_question(request, code: str, section_id: int, n: int):
+    """Review phase for a single section, with one global timer (≤10 min) for the whole phase."""
     attempt = get_object_or_404(Attempt, code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
@@ -1561,27 +1622,22 @@ def attempt_review_question(request, code: str, n: int):
     if attempt.status == Attempt.SUBMITTED:
         return redirect("assessment:attempt_submitted", code=code)
 
-    if not attempt.review_started_at:
-        return redirect("assessment:attempt_review_info", code=code)
+    section = get_object_or_404(Section, pk=section_id, template=attempt.template)
 
-    qs = (
-        Question.objects.filter(section__template=attempt.template, is_active=True)
-        .select_related("section")
-        .order_by("section__order", "order", "code")
-    )
-    questions = [q for q in qs if not _is_layout_only_question(q)]
+    if not attempt.get_section_review_started_at(section.pk):
+        return redirect(
+            "assessment:attempt_section_review_info", code=code, section_id=section.pk
+        )
+
+    questions = _section_questions(attempt.template, section.pk)
     total = len(questions)
     if total == 0:
-        _finalize_attempt(attempt)
-        return redirect("assessment:attempt_submitted", code=code)
+        return _advance_after_section(attempt, section.pk)
 
-    # Server-side enforcement: advance to the correct slot
-    correct_n = _current_review_n(attempt, total)
-    if correct_n > total:
-        _finalize_attempt(attempt)
-        return redirect("assessment:attempt_submitted", code=code)
-    if n < correct_n:
-        return redirect("assessment:attempt_review_question", code=code, n=correct_n)
+    # If the global section-review timer has expired, advance off this section
+    review_expires = _section_review_expires_at(attempt, section.pk)
+    if review_expires and timezone.now() >= review_expires:
+        return _advance_after_section(attempt, section.pk)
 
     n = max(1, min(n, total))
     question = questions[n - 1]
@@ -1597,28 +1653,34 @@ def attempt_review_question(request, code: str, n: int):
         renderer.save(request, form)
         attempt.touch()
         if n >= total:
-            _finalize_attempt(attempt)
-            return redirect("assessment:attempt_submitted", code=code)
-        return redirect("assessment:attempt_review_question", code=code, n=n + 1)
+            return redirect(
+                "assessment:attempt_section_review_done", code=code, section_id=section.pk
+            )
+        return redirect(
+            "assessment:attempt_section_review_question",
+            code=code,
+            section_id=section.pk,
+            n=n + 1,
+        )
 
     learner_response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
     renderer = get_renderer(question, spec, learner_response)
     form = renderer.get_form(request)
 
-    slot_expires = _review_question_expires_at(attempt, n)
-    if n < total:
-        timeout_url = reverse(
-            "assessment:attempt_review_question", kwargs={"code": code, "n": n + 1}
-        )
-    else:
-        timeout_url = reverse("assessment:attempt_review_submit", kwargs={"code": code})
+    timeout_url = reverse(
+        "assessment:attempt_section_review_done",
+        kwargs={"code": code, "section_id": section.pk},
+    )
 
     passage = _load_passage(question, spec) if spec.get("layout") == "passage_split" else ""
-    context = _base_context(attempt, question, spec, n, total, expires_at=slot_expires, form=form, passage=passage)
+    context = _base_context(
+        attempt, question, spec, n, total, expires_at=review_expires, form=form, passage=passage
+    )
     context.update(renderer.get_context())
     context.update({
         "is_review": True,
-        "slot_expires_at": slot_expires,
+        "section": section,
+        "slot_expires_at": review_expires,
         "review_timeout_url": timeout_url,
         "has_prev": n > 1,
         "has_next": n < total,
@@ -1626,14 +1688,15 @@ def attempt_review_question(request, code: str, n: int):
     return render(request, "assessment/review_question.html", context)
 
 
-def attempt_review_submit(request, code: str):
-    """Final auto-submit when the last review slot expires (GET redirect target)."""
+def attempt_section_review_done(request, code: str, section_id: int):
+    """Section review finished or timed out — advance to the next section, or finalise."""
     attempt = get_object_or_404(Attempt, code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
-    if attempt.status != Attempt.SUBMITTED:
-        _finalize_attempt(attempt)
-    return redirect("assessment:attempt_submitted", code=code)
+    if attempt.status == Attempt.SUBMITTED:
+        return redirect("assessment:attempt_submitted", code=code)
+    section = get_object_or_404(Section, pk=section_id, template=attempt.template)
+    return _advance_after_section(attempt, section.pk)
 
 
 # ── Working sheet ──────────────────────────────────────────────────────────────

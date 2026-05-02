@@ -1,5 +1,5 @@
 {% extends "assessment/base.html" %}
-{% block title %}Review your work{% endblock %}
+{% block title %}Review {{ section.title }}{% endblock %}
 
 {% block content %}
 <div class="min-h-screen flex items-start justify-center px-4 pt-8">
@@ -18,32 +18,30 @@
         </div>
 
         <div>
-          <h1 class="text-2xl font-bold">You finished early!</h1>
+          <h1 class="text-2xl font-bold">You finished {{ section.title }}</h1>
           <p class="text-base-content opacity-60 mt-2">
-            You have completed all questions. You can use your remaining time to
-            review and update your answers.
+            You can use the time you have left in this section to review and update your answers
+            before moving on.
           </p>
         </div>
 
         <div class="stats shadow w-full">
           <div class="stat">
-            <div class="stat-title">Questions</div>
+            <div class="stat-title">Questions in this section</div>
             <div class="stat-value text-primary">{{ total_questions }}</div>
           </div>
           <div class="stat">
-            <div class="stat-title">Review time</div>
+            <div class="stat-title">Review time available</div>
             <div class="stat-value text-secondary">
-              {% with minutes=review_seconds|divisibleby:60 %}
-                {{ review_seconds|floatformat:"0" }}s
-              {% endwith %}
+              {% widthratio review_seconds 60 1 %}<span class="text-base font-normal opacity-60"> min</span>
             </div>
-            <div class="stat-desc">{{ review_seconds }} seconds total · 90s per question</div>
+            <div class="stat-desc">{{ review_seconds }} seconds — one timer for all questions</div>
           </div>
         </div>
 
         <p class="text-sm opacity-60">
-          Each question gets <strong>90 seconds</strong>. The timer advances automatically,
-          but you can use Prev / Next to move freely within your current slot.
+          Review uses a single timer (max 10 minutes) for the whole section. You can move freely
+          between questions with Previous / Next.
         </p>
 
         <form method="post" class="flex flex-col gap-3">
@@ -52,9 +50,9 @@
                   class="btn btn-primary btn-lg">
             Start review →
           </button>
-          <button type="submit" name="action" value="submit"
+          <button type="submit" name="action" value="skip"
                   class="btn btn-ghost">
-            Submit now without reviewing
+            Skip review and continue
           </button>
         </form>
 
