@@ -1240,10 +1240,12 @@ def session_join(request, code: str):
             existing = Attempt.objects.get(code=existing_code, session=session)
             if existing.consent_signed_at:
                 return redirect("assessment:attempt_question", code=existing.code, n=1)
+            learner = existing.learner
             return render(request, "assessment/session_join.html", {
                 "session": session,
                 "show_consent": True,
                 "workstation_number": existing.workstation_number,
+                "learner_name": f"{learner.first_names} {learner.surname}".strip(),
             })
         except Attempt.DoesNotExist:
             del request.session[_LEARNER_SESSION_KEY]
@@ -1265,6 +1267,7 @@ def session_join(request, code: str):
             "session": session,
             "show_consent": True,
             "workstation_number": attempt.workstation_number,
+            "learner_name": f"{learner.first_names} {learner.surname}".strip(),
         })
 
     return render(request, "assessment/session_join.html", {
@@ -1274,7 +1277,7 @@ def session_join(request, code: str):
 
 
 def session_consent(request, code: str):
-    """Step 2 of session entry: receive signed consent and begin assessment."""
+    """Step 2 of session entry: learner scrolled and accepted — record consent."""
     if request.method != "POST":
         return redirect("assessment:session_join", code=code)
 
@@ -1282,30 +1285,15 @@ def session_consent(request, code: str):
     if not attempt_code:
         return redirect("assessment:session_join", code=code)
 
-    attempt = get_object_or_404(Attempt, code=attempt_code)
+    attempt = get_object_or_404(
+        Attempt.objects.select_related("learner"), code=attempt_code
+    )
 
     if attempt.consent_signed_at:
         return redirect("assessment:attempt_question", code=attempt.code, n=1)
 
-    signature_png = request.POST.get("signature_png", "").strip()
-    honesty_name = request.POST.get("honesty_name", "").strip()
-
-    errors = {}
-    if not signature_png or not signature_png.startswith("data:image/png;base64,"):
-        errors["signature"] = "Please provide your signature."
-    if not honesty_name:
-        errors["honesty_name"] = "Please type your full name."
-
-    if errors:
-        session_obj = get_object_or_404(ExamSession, code=code)
-        return render(request, "assessment/session_join.html", {
-            "session": session_obj,
-            "show_consent": True,
-            "workstation_number": attempt.workstation_number,
-            "consent_errors": errors,
-        })
-
-    attempt.accept_consent(signature_png=signature_png, name=honesty_name)
+    full_name = f"{attempt.learner.first_names} {attempt.learner.surname}".strip()
+    attempt.accept_consent(signature_png="", name=full_name)
     return redirect("assessment:attempt_question", code=attempt.code, n=1)
 
 
