@@ -1,140 +1,246 @@
 {% extends "assessment/base.html" %}
 {% block title %}Learner details{% endblock %}
 
+{% block extra_head %}
+<style>
+  ul.errorlist { list-style: none; padding: 0; margin: 0.25rem 0 0; }
+  ul.errorlist li { font-size: 0.875rem; color: oklch(var(--er)); }
+</style>
+{% endblock %}
+
 {% block content %}
   <div class="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 pb-6">
-    <div class="w-full max-w-5xl">
+    <div class="w-full" style="max-width:1047px;">
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body p-6 md:p-8">
 
           <div class="space-y-4 mb-6">
             <div>
-              <h1 class="card-title text-2xl">Learner details</h1>
-              <p class="text-sm opacity-70">Complete your details, then read and sign the declarations to continue.</p>
+              {% if show_consent %}
+                <h1 class="card-title text-2xl">Sign consent agreement</h1>
+                <p class="text-sm opacity-70">Read the full agreement, then sign to begin your assessment.</p>
+              {% else %}
+                <h1 class="card-title text-2xl">Learner details</h1>
+                <p class="text-sm opacity-70">Complete your details to continue.</p>
+              {% endif %}
             </div>
             <div class="badge badge-outline">Code: {{ attempt.code }}</div>
           </div>
 
-          <form method="post" id="join-form" class="space-y-8" novalidate>
-            {% csrf_token %}
+          {% if show_consent %}
 
-            <section id="particulars-section" class="space-y-3">
-              <h2 class="font-semibold text-lg">Particulars</h2>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {{ learner_form.as_p }}
+            <div class="alert alert-success mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+              </svg>
+              <div>
+                <p class="font-semibold">Details saved</p>
               </div>
-            </section>
-
-            <div class="flex items-center justify-end">
-              <button type="button" id="continue-btn" class="btn btn-primary">Continue to declarations</button>
             </div>
 
-            {# Hidden honesty + POPIA fields — rendered so POST data is included #}
-            <div class="hidden" aria-hidden="true">
-              {{ honesty_form.honesty_name }}
-              {{ honesty_form.accept }}
-              {{ honesty_form.popia_accept }}
+            <div class="flex justify-end">
+              <button type="button" id="open-consent-btn" class="btn btn-primary">
+                Open consent agreement &rarr;
+              </button>
             </div>
-          </form>
+
+          {% else %}
+
+            <form method="post" id="join-form" class="space-y-8" novalidate>
+              {% csrf_token %}
+
+              <section id="particulars-section" class="space-y-3">
+                <h2 class="font-semibold text-lg">Particulars</h2>
+
+                {% if learner_form.errors %}
+                  <div class="alert alert-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.948 3.374H4.645c-1.73 0-2.813-1.874-1.948-3.374l7.303-12.375c.866-1.5 3.032-1.5 3.898 0L20.303 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                    </svg>
+                    <ul class="text-sm list-disc list-inside">
+                      {% for field in learner_form %}
+                        {% for err in field.errors %}
+                          <li>{{ field.label }}: {{ err }}</li>
+                        {% endfor %}
+                      {% endfor %}
+                      {% for err in learner_form.non_field_errors %}
+                        <li>{{ err }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {{ learner_form.as_p }}
+                </div>
+              </section>
+
+              <div class="flex items-center justify-end">
+                <button type="button" id="continue-btn" class="btn btn-primary">Continue to declarations</button>
+              </div>
+            </form>
+
+          {% endif %}
 
         </div>
       </div>
     </div>
   </div>
 
-  {# Declarations modal #}
-  <dialog id="declaration-modal" class="modal" style="border-radius:1rem;padding:0;width:min(56rem,95vw);">
-    <div class="flex flex-col overflow-hidden" style="border-radius:1rem;max-height:97vh;">
+  {# Consent modal — 97vw × 96vh per long-form-content modal rule #}
+  <dialog id="consent-modal" class="modal" style="border-radius:0;padding:0;width:97vw;max-width:97vw;height:96vh;max-height:96vh;">
+    <div class="flex flex-col" style="height:100%;border-radius:0;">
 
-      <div class="shrink-0" style="padding:2rem 2rem 1rem;">
-        <h3 class="font-bold text-xl">Declarations</h3>
-        <p class="text-sm opacity-60 mt-1">Read each section carefully before signing.</p>
+      {# Warning banner #}
+      <div class="shrink-0 bg-warning text-warning-content flex items-center gap-2" style="padding:0.75rem 1.5rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+        </svg>
+        <span class="font-semibold text-sm">You must read this agreement in full before signing.</span>
       </div>
 
-      <div class="flex-1 overflow-y-auto min-h-0 space-y-6" style="padding:0 2rem 1rem;">
+      {# Scrollable agreement #}
+      <div id="consent-scroll" class="flex-1 overflow-y-auto min-h-0 space-y-6" style="padding:1.5rem 2rem 1rem;">
 
-        {# POPIA notice #}
-        <section class="space-y-3">
-          <div class="flex items-center gap-2">
-            <h4 class="font-semibold">Personal information notice</h4>
-            <span class="badge badge-outline badge-sm">POPIA</span>
-          </div>
+        {# Document header #}
+        <div class="text-center space-y-1 pb-2 border-b">
+          <p class="font-bold text-base">OANAGAKARA (PTY) LTD &ndash; DATA SUBJECT CONSENT FORM</p>
+          <p class="font-bold text-base">PROTECTION OF PERSONAL INFORMATION ACT 4 OF 2013 (&ldquo;POPIA&rdquo;)</p>
+          <p class="text-sm mt-2">Consent to process personal information for learner placement assessment in terms of Section 18 of POPIA.</p>
+        </div>
 
-          <div class="bg-base-200 rounded-lg p-4 text-sm space-y-2">
-            <p>When you complete this form, we collect your name, South African ID number, contact details, and your assessment responses.</p>
-            <p><strong>Why:</strong> To conduct your NQF Learner Placement Assessment, record your results, and provide a placement recommendation to your institution.</p>
-            <p><strong>Who has access:</strong> Authorised assessors, moderators, and your institution's administrators only. Your information is not shared with any other party and is not used for marketing.</p>
-            <p><strong>How long we keep it:</strong> Your assessment record is retained for five years from your assessment date, after which it is permanently deleted.</p>
-            <p><strong>Your rights:</strong> You may request access to your personal information, ask for corrections to inaccurate information, or object to its processing. Contact your institution's assessment administrator to exercise any of these rights.</p>
-          </div>
-
-          <div class="form-control">
-            <label class="label cursor-pointer justify-start gap-3">
-              <input type="checkbox" id="modal-popia" class="checkbox checkbox-sm" />
-              <span class="label-text">I have read and understood the personal information notice above.</span>
-            </label>
-            <p id="popia-error" class="text-error text-sm mt-1 hidden">You must confirm you have read the POPIA notice.</p>
-          </div>
+        {# Section 1 #}
+        <section class="space-y-2 text-sm">
+          <h4 class="font-bold">1. Storage, Retention and Destruction of Information</h4>
+          <div class="border-b border-base-300"></div>
+          <p>1.1&ensp;Personal Information is used to comply with legislation and to ensure that, in terms of the operational needs of OANAGAKARA (Pty) Ltd (Oanagakara), we have the information required to conduct and administer learner placement assessments. Information given will only be used for the purposes for which it is collected (specified hereunder), will be stored securely, and will be retained for a period of five years from the date of your assessment, after which it will be permanently and securely destroyed.</p>
         </section>
 
-        <div class="divider"></div>
+        {# Section 2 #}
+        <section class="space-y-3 text-sm">
+          <h4 class="font-bold">2. Reason why the Personal Information is required</h4>
+          <div class="border-b border-base-300"></div>
+
+          <p><strong>2.1&ensp;Provided to enable assessment and placement:</strong></p>
+          <ul class="list-disc list-outside ml-6 space-y-1">
+            <li>Conduct the NQF Learner Placement Assessment and score your responses;</li>
+            <li>Generate a placement recommendation for submission to your institution;</li>
+            <li>Maintain assessment records for quality assurance, moderation, and audit purposes;</li>
+            <li>Provide statistical reporting on assessment outcomes to your institution or relevant accreditation bodies.</li>
+          </ul>
+
+          <p><strong>2.2&ensp;Required by applicable legislation:</strong></p>
+          <ul class="list-disc list-outside ml-6 space-y-1">
+            <li>Maintain records in accordance with the South African Qualifications Authority (SAQA) Act, where applicable;</li>
+            <li>Report to relevant quality assurance bodies in terms of the Skills Development Act, where applicable.</li>
+          </ul>
+        </section>
+
+        {# Section 3 #}
+        <section class="space-y-2 text-sm">
+          <h4 class="font-bold">3. Right to Object</h4>
+          <div class="border-b border-base-300"></div>
+          <p>You have the right to object to the processing of your personal information. To do so, contact Oanagakara at <a href="mailto:info@oanagakara.co.za" class="link">info@oanagakara.co.za</a>. A hold will be placed on processing while the objection is resolved.</p>
+        </section>
+
+        {# Section 4 #}
+        <section class="space-y-2 text-sm">
+          <h4 class="font-bold">4. Accuracy of Information</h4>
+          <div class="border-b border-base-300"></div>
+          <p>It is your responsibility to ensure that all personal information you supply is accurate, complete, and up to date. Please advise us of any corrections required.</p>
+        </section>
+
+        {# Section 5 #}
+        <section class="space-y-2 text-sm">
+          <h4 class="font-bold">5. Storage of Information</h4>
+          <div class="border-b border-base-300"></div>
+          <p>Your personal information is stored electronically in a secured database. Access is restricted to authorised Oanagakara assessors, moderators, your institution's appointed assessment administrators, and accredited auditors. Your information is not shared with any third party for commercial or marketing purposes.</p>
+        </section>
+
+        {# Section 6 #}
+        <section class="space-y-2 text-sm">
+          <h4 class="font-bold">6. Complaints</h4>
+          <div class="border-b border-base-300"></div>
+          <p>Complaints may be directed to Oanagakara at <a href="mailto:complaints@oanagakara.co.za" class="link">complaints@oanagakara.co.za</a>, or to the Information Regulator of South Africa at <a href="mailto:enquiries@inforegulator.org.za" class="link">enquiries@inforegulator.org.za</a>.</p>
+        </section>
+
+        {# Section 7 #}
+        <section class="space-y-2 text-sm">
+          <h4 class="font-bold">7. Access to Your Information</h4>
+          <div class="border-b border-base-300"></div>
+          <p>You may request access to your personal information at any time by contacting <a href="mailto:info@oanagakara.co.za" class="link">info@oanagakara.co.za</a> to verify that the data held is accurate.</p>
+        </section>
+
+        {# Section 8 #}
+        <section class="space-y-3 text-sm">
+          <h4 class="font-bold">8. Declaration</h4>
+          <div class="border-b border-base-300"></div>
+          <p>I confirm that I have read and understood this notice and consent to Oanagakara (Pty) Ltd collecting, processing, retaining, and at the appropriate time destroying my personal information for the purposes of the NQF Learner Placement Assessment described above.</p>
+        </section>
+
+        <div class="divider mb-0"></div>
 
         {# Honesty declaration #}
-        <section class="space-y-4">
-          <h4 class="font-semibold">Honesty declaration</h4>
+        <section class="space-y-3">
+          <h4 class="font-semibold">Assessment honesty declaration</h4>
 
           <div class="alert alert-warning">
             <span>I declare that this is my own work and I will not ask for help while completing this assessment.</span>
           </div>
 
-          <div class="form-control">
-            <label class="label pb-1" for="modal-honesty-name">Type your full name to sign</label>
-            <input type="text" id="modal-honesty-name" class="input input-bordered w-full" autocomplete="off" placeholder="Full name" />
-            <p id="name-error" class="text-error text-sm mt-1 hidden">Please type your full name.</p>
-          </div>
-
-          <div class="form-control">
-            <label class="label cursor-pointer justify-start gap-3">
-              <input type="checkbox" id="modal-accept" class="checkbox checkbox-sm" />
-              <span class="label-text">I declare and commit that I will submit my own work during this assessment.</span>
-            </label>
-            <p id="accept-error" class="text-error text-sm mt-1 hidden">You must accept the honesty declaration.</p>
-          </div>
-
           <p class="text-sm">
-            <span class="opacity-70">Signed as:</span>
-            <span class="font-medium" id="signed-as">(not signed yet)</span>
+            By accepting below you confirm that you have read and understood the personal information notice above,
+            and that you will complete this assessment entirely on your own without outside assistance.
           </p>
         </section>
 
+        {# Scroll-to-end sentinel — IntersectionObserver watches this #}
+        <div id="consent-end-sentinel" style="height:1px;"></div>
+
       </div>
 
-      <div class="shrink-0 border-t flex justify-end gap-3" style="padding:1.25rem 2rem;">
-        <button type="button" id="back-btn" class="btn btn-ghost">Back</button>
-        <button type="button" id="confirm-btn" class="btn btn-primary">Confirm &amp; Continue</button>
+      {# Confirmation record — revealed after scrolling to end #}
+      <div id="consent-confirm-section" class="shrink-0 border-t" style="display:none;padding:1rem 2rem;">
+        <p class="text-xs opacity-60 mb-2">The following will be recorded when you accept:</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="form-control">
+            <label class="label py-0"><span class="label-text text-xs">Name</span></label>
+            <input type="text" class="input input-bordered input-sm bg-base-200"
+                   value="{{ learner_name }}" readonly />
+          </div>
+          <div class="form-control">
+            <label class="label py-0"><span class="label-text text-xs">Date &amp; time</span></label>
+            <input type="text" id="consent-timestamp" class="input input-bordered input-sm bg-base-200"
+                   value="" readonly />
+          </div>
+        </div>
+      </div>
+
+      {# Footer — Accept button enables after scrolling to end #}
+      <div class="shrink-0 border-t flex items-center justify-between gap-3" style="padding:1rem 2rem;">
+        <span id="scroll-hint" class="text-sm opacity-60">Scroll to the bottom to enable acceptance.</span>
+        <form method="post" id="consent-form" action="{% url 'assessment:attempt_consent' attempt.code %}">
+          {% csrf_token %}
+          <button type="submit" id="confirm-consent-btn" class="btn btn-primary" disabled>
+            I accept
+          </button>
+        </form>
       </div>
 
     </div>
   </dialog>
 
   <script>
-    const modal = document.getElementById('declaration-modal');
-    const joinForm = document.getElementById('join-form');
+    const modal = document.getElementById('consent-modal');
 
-    const fHonestyName = joinForm.querySelector('input[name="honesty_name"]');
-    const fAccept = joinForm.querySelector('input[name="accept"]');
-    const fPopiaAccept = joinForm.querySelector('input[name="popia_accept"]');
-
-    const mPopiaBox = document.getElementById('modal-popia');
-    const mNameInput = document.getElementById('modal-honesty-name');
-    const mAcceptBox = document.getElementById('modal-accept');
-    const signedAs = document.getElementById('signed-as');
-
-    mNameInput.addEventListener('input', () => {
-      const v = mNameInput.value.trim();
-      signedAs.textContent = v || '(not signed yet)';
-    });
-
+    {% if not show_consent %}
+    // ── Step 1: particulars form ─────────────────────────────────────────────
     document.getElementById('continue-btn').addEventListener('click', () => {
       const inputs = document.querySelectorAll('#particulars-section input, #particulars-section select, #particulars-section textarea');
       for (const inp of inputs) {
@@ -143,37 +249,34 @@
           return;
         }
       }
-      modal.showModal();
+      document.getElementById('join-form').submit();
     });
-
-    document.getElementById('back-btn').addEventListener('click', () => modal.close());
-
-    document.getElementById('confirm-btn').addEventListener('click', () => {
-      let ok = true;
-
-      const popiaErr = document.getElementById('popia-error');
-      const nameErr = document.getElementById('name-error');
-      const acceptErr = document.getElementById('accept-error');
-
-      popiaErr.classList.add('hidden');
-      nameErr.classList.add('hidden');
-      acceptErr.classList.add('hidden');
-
-      if (!mPopiaBox.checked) { popiaErr.classList.remove('hidden'); ok = false; }
-      if (!mNameInput.value.trim()) { nameErr.classList.remove('hidden'); ok = false; }
-      if (!mAcceptBox.checked) { acceptErr.classList.remove('hidden'); ok = false; }
-
-      if (!ok) return;
-
-      fHonestyName.value = mNameInput.value.trim();
-      fAccept.checked = true;
-      fPopiaAccept.checked = true;
-
-      joinForm.submit();
-    });
-
-    {% if honesty_form.errors %}
-    modal.showModal();
     {% endif %}
+
+    {% if show_consent %}
+    // ── Step 2: consent modal ────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => modal.showModal());
+    document.getElementById('open-consent-btn').addEventListener('click', () => modal.showModal());
+    {% endif %}
+
+    // ── Scroll-to-end gate — reveals confirmation record and enables Accept ──
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        document.getElementById('consent-timestamp').value =
+          `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ` +
+          `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+        document.getElementById('consent-confirm-section').style.display = 'block';
+        document.getElementById('scroll-hint').style.display = 'none';
+        document.getElementById('confirm-consent-btn').disabled = false;
+        observer.disconnect();
+      }
+    }, {
+      root: document.getElementById('consent-scroll'),
+      threshold: 1.0,
+    });
+    observer.observe(document.getElementById('consent-end-sentinel'));
   </script>
 {% endblock %}
