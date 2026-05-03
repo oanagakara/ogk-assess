@@ -30,6 +30,7 @@ urlpatterns = [
     path("assessor/sessions/new/", views.assessor_new_session, name="assessor_new_session"),
     path("assessor/sessions/<str:code>/monitor/", views.session_monitor, name="session_monitor"),
     path("session/<str:code>/join/", views.session_join, name="session_join"),
+    path("session/<str:code>/consent/", views.session_consent, name="session_consent"),
     path("assessor/attempts/<str:code>/scoring-breakdown/", views.assessor_scoring_breakdown, name="assessor_scoring_breakdown"),
     path("assessor/attempts/<str:code>/audit-log/", views.assessor_score_audit_log, name="assessor_score_audit_log"),
     path("assessor/attempts/<str:code>/working-sheet/upload/", views.assessor_working_sheet_upload, name="assessor_working_sheet_upload"),
