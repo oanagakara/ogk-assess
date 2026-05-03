@@ -1293,8 +1293,8 @@ def session_consent(request, code: str):
         return redirect("assessment:attempt_question", code=attempt.code, n=1)
 
     full_name = f"{attempt.learner.first_names} {attempt.learner.surname}".strip()
-    attempt.accept_consent(signature_png="", name=full_name)
-    return redirect("assessment:attempt_question", code=attempt.code, n=1)
+    attempt.accept_consent(name=full_name)
+    return redirect("assessment:attempt_instructions", code=attempt.code)
 
 
 @login_required
