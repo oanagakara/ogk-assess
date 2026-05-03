@@ -250,6 +250,10 @@ class Attempt(models.Model):
     review_started_at = models.DateTimeField(null=True, blank=True)
     section_review_started_at = models.JSONField(default=dict, blank=True)
     finalised_at = models.DateTimeField(null=True, blank=True)
+    workstation_number = models.PositiveSmallIntegerField(null=True, blank=True)
+    consent_signature_png = models.TextField(blank=True, default="")
+    consent_signed_at = models.DateTimeField(null=True, blank=True)
+    consent_signed_name = models.CharField(max_length=200, blank=True, default="")
     finalised_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -298,6 +302,23 @@ class Attempt(models.Model):
         update_fields.append("last_activity_at")
 
         self.save(update_fields=update_fields)
+
+    def accept_consent(self, signature_png: str, name: str, when=None) -> None:
+        when = when or timezone.now()
+        cleaned = (name or "").strip()
+        if not cleaned:
+            raise ValueError("Name is required.")
+        self.consent_signature_png = signature_png
+        self.consent_signed_name = cleaned
+        self.consent_signed_at = when
+        self.honesty_name = cleaned
+        self.honesty_accepted_at = when
+        self.popia_accepted_at = when
+        self.last_activity_at = when
+        self.save(update_fields=[
+            "consent_signature_png", "consent_signed_name", "consent_signed_at",
+            "honesty_name", "honesty_accepted_at", "popia_accepted_at", "last_activity_at",
+        ])
 
     def accept_honesty_declaration(self, name: str, when=None) -> None:
         when = when or timezone.now()

@@ -56,10 +56,13 @@ def claim_session_seat(session: ExamSession, learner) -> tuple[bool, str, "Attem
     if occupied >= session.seat_limit:
         return False, "This session is full. Please ask your assessor for help.", None
 
+    workstation_number = session.seat_limit - occupied
+
     attempt = Attempt.objects.create(
         template=session.template,
         learner=learner,
         session=session,
+        workstation_number=workstation_number,
     )
     attempt.start(when=now)
     return True, "", attempt
