@@ -33,7 +33,15 @@
   {# ── 5×3 Seat Grid ── #}
   <div class="grid grid-cols-5 gap-3">
     {% for slot in slots %}
-      {% if slot %}
+      {% if slot.is_empty %}
+        {# Empty seat #}
+        <div class="card bg-base-200 shadow border border-dashed border-base-300">
+          <div class="card-body p-4 items-center justify-center min-h-[110px]">
+            <span class="text-2xl font-bold opacity-20">{{ slot.workstation_number }}</span>
+            <span class="text-xs opacity-30">Available</span>
+          </div>
+        </div>
+      {% else %}
         {# Occupied seat #}
         <div class="card shadow
              {% if slot.status == 'submitted' %}bg-success text-success-content
@@ -43,7 +51,9 @@
 
             <div class="flex items-start justify-between gap-1">
               <span class="font-semibold text-sm leading-tight">{{ slot.learner_name }}</span>
-              <span class="opacity-60 text-xs shrink-0">#{{ forloop.counter }}</span>
+              {% if slot.workstation_number %}
+                <span class="font-bold text-base opacity-80 shrink-0">W{{ slot.workstation_number }}</span>
+              {% endif %}
             </div>
 
             <div class="text-xs opacity-80">
@@ -73,15 +83,6 @@
                class="btn btn-xs w-full bg-black bg-opacity-15 border-0 hover:bg-opacity-25">
               Print working sheet
             </a>
-          </div>
-        </div>
-
-      {% else %}
-        {# Empty seat #}
-        <div class="card bg-base-200 shadow border border-dashed border-base-300">
-          <div class="card-body p-4 items-center justify-center min-h-[110px]">
-            <span class="text-xs opacity-30">#{{ forloop.counter }}</span>
-            <span class="text-xs opacity-30">Available</span>
           </div>
         </div>
       {% endif %}
