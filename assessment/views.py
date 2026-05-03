@@ -1224,7 +1224,7 @@ def attempt_submitted(request, code: str):
 
 
 def session_join(request, code: str):
-    """Learner identity + honesty declaration for session-based entry."""
+    """Step 1 of session entry: learner particulars. On success renders the consent modal."""
     session = get_object_or_404(
         ExamSession.objects.select_related("template"),
         code=code,
@@ -1233,10 +1233,24 @@ def session_join(request, code: str):
     if not session.is_open:
         return render(request, "assessment/session_expired.html", {"session": session})
 
-    learner_form = LearnerForm(request.POST or None)
-    honesty_form = HonestyForm(request.POST or None)
+    # If this browser already completed step 1, skip straight to consent (or assessment).
+    existing_code = request.session.get(_LEARNER_SESSION_KEY)
+    if existing_code:
+        try:
+            existing = Attempt.objects.get(code=existing_code, session=session)
+            if existing.consent_signed_at:
+                return redirect("assessment:attempt_question", code=existing.code, n=1)
+            return render(request, "assessment/session_join.html", {
+                "session": session,
+                "show_consent": True,
+                "workstation_number": existing.workstation_number,
+            })
+        except Attempt.DoesNotExist:
+            del request.session[_LEARNER_SESSION_KEY]
 
-    if request.method == "POST" and learner_form.is_valid() and honesty_form.is_valid():
+    learner_form = LearnerForm(request.POST or None)
+
+    if request.method == "POST" and learner_form.is_valid():
         learner = learner_form.save()
         ok, msg, attempt = claim_session_seat(session, learner)
         if not ok:
@@ -1244,20 +1258,55 @@ def session_join(request, code: str):
             return render(request, "assessment/session_join.html", {
                 "session": session,
                 "learner_form": learner_form,
-                "honesty_form": honesty_form,
                 "error": msg,
             })
-        attempt.accept_honesty_declaration(
-            name=honesty_form.cleaned_data["honesty_name"],
-        )
         _bind_attempt_to_session(request, attempt.code)
-        return redirect("assessment:attempt_question", code=attempt.code, n=1)
+        return render(request, "assessment/session_join.html", {
+            "session": session,
+            "show_consent": True,
+            "workstation_number": attempt.workstation_number,
+        })
 
     return render(request, "assessment/session_join.html", {
         "session": session,
         "learner_form": learner_form,
-        "honesty_form": honesty_form,
     })
+
+
+def session_consent(request, code: str):
+    """Step 2 of session entry: receive signed consent and begin assessment."""
+    if request.method != "POST":
+        return redirect("assessment:session_join", code=code)
+
+    attempt_code = request.session.get(_LEARNER_SESSION_KEY)
+    if not attempt_code:
+        return redirect("assessment:session_join", code=code)
+
+    attempt = get_object_or_404(Attempt, code=attempt_code)
+
+    if attempt.consent_signed_at:
+        return redirect("assessment:attempt_question", code=attempt.code, n=1)
+
+    signature_png = request.POST.get("signature_png", "").strip()
+    honesty_name = request.POST.get("honesty_name", "").strip()
+
+    errors = {}
+    if not signature_png or not signature_png.startswith("data:image/png;base64,"):
+        errors["signature"] = "Please provide your signature."
+    if not honesty_name:
+        errors["honesty_name"] = "Please type your full name."
+
+    if errors:
+        session_obj = get_object_or_404(ExamSession, code=code)
+        return render(request, "assessment/session_join.html", {
+            "session": session_obj,
+            "show_consent": True,
+            "workstation_number": attempt.workstation_number,
+            "consent_errors": errors,
+        })
+
+    attempt.accept_consent(signature_png=signature_png, name=honesty_name)
+    return redirect("assessment:attempt_question", code=attempt.code, n=1)
 
 
 @login_required
@@ -1467,10 +1516,16 @@ def session_monitor(request, code: str):
             "has_started": a.started_at is not None,
             "pct": pct,
             "mark_url": reverse("assessment:assessor_mark_attempt", kwargs={"code": a.code}),
+            "workstation_number": a.workstation_number,
         })
 
-    # Pad to seat_limit so the grid always shows all slots
-    slots = rows + [None] * max(0, session.seat_limit - len(rows))
+    # Pad to seat_limit — empty slots carry their expected workstation number
+    occupied_count = len(rows)
+    empty_slots = [
+        {"is_empty": True, "workstation_number": session.seat_limit - occupied_count - i}
+        for i in range(max(0, session.seat_limit - occupied_count))
+    ]
+    slots = rows + empty_slots
 
     return render(request, "assessment/session_monitor.html", {
         "session": session,
