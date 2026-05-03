@@ -1174,33 +1174,47 @@ def attempt_details(request, code: str):
     attempt = get_object_or_404(Attempt, code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
+
+    if attempt.consent_signed_at:
+        return redirect("assessment:attempt_question", code=code, n=1)
+
     learner = attempt.learner
+    details_key = f"attempt_details_done_{code}"
 
-    if request.method == "POST":
-        learner_form = LearnerForm(request.POST, instance=learner)
-        honesty_form = HonestyForm(request.POST)
-
-        if learner_form.is_valid() and honesty_form.is_valid():
-            learner_form.save()
-
-            attempt.accept_honesty_declaration(
-                honesty_form.cleaned_data["honesty_name"]
-            )
-
-            return redirect("assessment:attempt_instructions", code=code)
-    else:
-        learner_form = LearnerForm(instance=learner)
-        honesty_form = HonestyForm(initial={"honesty_name": attempt.honesty_name})
-
-    return render(
-        request,
-        "assessment/details.html",
-        {
+    if request.session.get(details_key) and not attempt.has_honesty_declaration:
+        return render(request, "assessment/details.html", {
             "attempt": attempt,
-            "learner_form": learner_form,
-            "honesty_form": honesty_form,
-        },
-    )
+            "show_consent": True,
+            "learner_name": f"{learner.first_names} {learner.surname}".strip(),
+        })
+
+    learner_form = LearnerForm(request.POST or None, instance=learner)
+    if request.method == "POST" and learner_form.is_valid():
+        learner_form.save()
+        request.session[details_key] = True
+        return render(request, "assessment/details.html", {
+            "attempt": attempt,
+            "show_consent": True,
+            "learner_name": f"{learner.first_names} {learner.surname}".strip(),
+        })
+
+    return render(request, "assessment/details.html", {
+        "attempt": attempt,
+        "learner_form": learner_form,
+    })
+
+
+def attempt_consent(request, code: str):
+    if request.method != "POST":
+        return redirect("assessment:attempt_details", code=code)
+    attempt = get_object_or_404(Attempt.objects.select_related("learner"), code=code)
+    if not _owns_attempt(request, code):
+        return HttpResponseForbidden()
+    if attempt.consent_signed_at:
+        return redirect("assessment:attempt_question", code=code, n=1)
+    full_name = f"{attempt.learner.first_names} {attempt.learner.surname}".strip()
+    attempt.accept_consent(name=full_name)
+    return redirect("assessment:attempt_instructions", code=code)
 
 
 def attempt_instructions(request, code: str):
