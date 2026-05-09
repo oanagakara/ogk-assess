@@ -1,0 +1,617 @@
+{% extends "assessment/base.html" %}
+{% block title %}Assessor Guide{% endblock %}
+
+{% block body %}
+<style>
+  /* ── Layout ── */
+  #guide-content { scroll-behavior: smooth; }
+
+  /* ── Prose ── */
+  .prose-body { font-size: 0.875rem; line-height: 1.75; }
+  .prose-body p { margin-bottom: 0.875rem; }
+  .prose-h2 { font-size: 1.0625rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; padding-bottom: 0.375rem; border-bottom: 1px solid oklch(var(--b3)); }
+  .prose-h3 { font-size: 0.9375rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+
+  /* ── Step list ── */
+  .step-list { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+  .step-list li { counter-increment: step; display: flex; gap: 0.875rem; margin-bottom: 0.875rem; font-size: 0.875rem; }
+  .step-list li::before { content: counter(step); min-width: 1.5rem; height: 1.5rem; border-radius: 9999px; background: oklch(var(--p)); color: oklch(var(--pc)); font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 0.125rem; }
+
+  /* ── Info / tip / warning callouts ── */
+  .callout { border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 1rem 0; font-size: 0.8125rem; line-height: 1.6; }
+  .callout-tip { background: oklch(var(--su) / 0.12); border-left: 3px solid oklch(var(--su)); }
+  .callout-warn { background: oklch(var(--wa) / 0.15); border-left: 3px solid oklch(var(--wa)); }
+  .callout-info { background: oklch(var(--in) / 0.12); border-left: 3px solid oklch(var(--in)); }
+  .callout strong { display: block; margin-bottom: 0.25rem; }
+
+  /* ── UI label pill ── */
+  .ui { display: inline; font-size: 0.75rem; font-weight: 500; background: oklch(var(--b2)); border: 1px solid oklch(var(--b3)); border-radius: 0.25rem; padding: 0.0625rem 0.375rem; white-space: nowrap; }
+
+  /* ── Chapter separator ── */
+  .guide-chapter + .guide-chapter { border-top: 1px solid oklch(var(--b3)); padding-top: 3rem; }
+
+  /* ── Nav active ── */
+  .gnav-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.15s; color: oklch(var(--bc)); opacity: 0.7; }
+  .gnav-link:hover { opacity: 1; background: oklch(var(--b2)); }
+  .gnav-link.active { background: oklch(var(--p)); color: oklch(var(--pc)); opacity: 1; }
+  .gnav-sub { display: flex; padding: 0.375rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 500; transition: all 0.15s; color: oklch(var(--bc)); opacity: 0.6; }
+  .gnav-sub:hover { opacity: 1; background: oklch(var(--b2)); }
+  .gnav-sub.active { background: oklch(var(--p)); color: oklch(var(--pc)); opacity: 1; }
+
+  /* ── TOC ── */
+  .toc-chapter { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.45; margin-top: 1rem; margin-bottom: 0.25rem; padding-left: 0.5rem; }
+  .toc-chapter:first-child { margin-top: 0; }
+  .toc-link { display: block; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.375rem; transition: all 0.15s; color: oklch(var(--bc)); opacity: 0.55; border-left: 2px solid transparent; }
+  .toc-link:hover { opacity: 1; background: oklch(var(--b3)); }
+  .toc-link.active { opacity: 1; color: oklch(var(--p)); border-left-color: oklch(var(--p)); background: oklch(var(--p) / 0.08); }
+
+  /* ── Print ── */
+  @media print {
+    #guide-nav, #guide-toc, .no-print { display: none !important; }
+    .guide-chapter.print-hidden { display: none !important; }
+    #guide-content { overflow: visible !important; }
+    .prose-h2 { border-color: #ccc; }
+    .guide-chapter + .guide-chapter { border-top-color: #ccc; }
+    .callout { border-left-width: 3px; }
+  }
+</style>
+
+<div class="flex h-screen overflow-hidden">
+
+  {# ── Left guide nav ── #}
+  <aside id="guide-nav" class="w-64 shrink-0 flex flex-col bg-base-300 border-r border-base-200">
+
+    {# Header #}
+    <div class="px-5 py-4 border-b border-base-200">
+      <a href="{% url 'assessment:assessor_dashboard' %}"
+         class="inline-flex items-center gap-1.5 text-xs opacity-55 hover:opacity-100 transition-opacity mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+        </svg>
+        Dashboard
+      </a>
+      <p class="font-bold text-sm tracking-tight">Assessor Guide</p>
+    </div>
+
+    {# Nav #}
+    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto text-sm">
+
+      <a href="#ch-overview" data-nav-ch="ch-overview" class="gnav-link">Overview</a>
+
+      <details open>
+        <summary class="gnav-link cursor-pointer list-none select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" class="shrink-0 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
+          Sessions
+        </summary>
+        <div class="ml-5 mt-0.5 space-y-0.5">
+          <a href="#s-sessions-create"  data-nav-s="s-sessions-create"  class="gnav-sub">Creating a Session</a>
+          <a href="#s-sessions-monitor" data-nav-s="s-sessions-monitor" class="gnav-sub">Monitoring a Session</a>
+          <a href="#s-sessions-seats"   data-nav-s="s-sessions-seats"   class="gnav-sub">Seat Limits</a>
+        </div>
+      </details>
+
+      <details open>
+        <summary class="gnav-link cursor-pointer list-none select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" class="shrink-0 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+          Attempts
+        </summary>
+        <div class="ml-5 mt-0.5 space-y-0.5">
+          <a href="#s-attempts-statuses"  data-nav-s="s-attempts-statuses"  class="gnav-sub">Attempt Statuses</a>
+          <a href="#s-attempts-viewing"   data-nav-s="s-attempts-viewing"   class="gnav-sub">Viewing Attempts</a>
+          <a href="#s-attempts-unlocking" data-nav-s="s-attempts-unlocking" class="gnav-sub">Unlocking an Attempt</a>
+        </div>
+      </details>
+
+      <details open>
+        <summary class="gnav-link cursor-pointer list-none select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" class="shrink-0 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487 18.549 2.8a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
+          Marking
+        </summary>
+        <div class="ml-5 mt-0.5 space-y-0.5">
+          <a href="#s-marking-queue"   data-nav-s="s-marking-queue"   class="gnav-sub">The Review Queue</a>
+          <a href="#s-marking-written" data-nav-s="s-marking-written" class="gnav-sub">Marking Written Responses</a>
+          <a href="#s-marking-audit"   data-nav-s="s-marking-audit"   class="gnav-sub">Score Audit Log</a>
+        </div>
+      </details>
+
+      <details open>
+        <summary class="gnav-link cursor-pointer list-none select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" class="shrink-0 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+          Results
+        </summary>
+        <div class="ml-5 mt-0.5 space-y-0.5">
+          <a href="#s-results-overview" data-nav-s="s-results-overview" class="gnav-sub">Results Overview</a>
+          <a href="#s-results-export"   data-nav-s="s-results-export"   class="gnav-sub">Exporting to CSV</a>
+        </div>
+      </details>
+
+      <details open>
+        <summary class="gnav-link cursor-pointer list-none select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" class="shrink-0 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm4.875 6.75h-4.875m0 3h3"/></svg>
+          Working Sheets
+        </summary>
+        <div class="ml-5 mt-0.5 space-y-0.5">
+          <a href="#s-ws-print"  data-nav-s="s-ws-print"  class="gnav-sub">Printing Sheets</a>
+          <a href="#s-ws-upload" data-nav-s="s-ws-upload" class="gnav-sub">Uploading a Scan</a>
+        </div>
+      </details>
+
+      <details open>
+        <summary class="gnav-link cursor-pointer list-none select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" class="shrink-0 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+          Error Reports
+        </summary>
+        <div class="ml-5 mt-0.5 space-y-0.5">
+          <a href="#s-errors-submit" data-nav-s="s-errors-submit" class="gnav-sub">How Learners Report Errors</a>
+          <a href="#s-errors-review" data-nav-s="s-errors-review" class="gnav-sub">Reviewing Error Reports</a>
+        </div>
+      </details>
+
+    </nav>
+
+    {# Bottom: theme + font #}
+    <div class="px-4 py-4 border-t border-base-200 space-y-3">
+      <div class="flex items-center gap-2 opacity-60">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+        <input type="checkbox" id="theme-toggle" class="toggle toggle-xs"/>
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+      </div>
+      <div class="flex items-center gap-2 opacity-60">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7V5h16v2M9 20h6M12 5v15"/></svg>
+        <select id="font-picker" class="select select-xs bg-transparent border-none text-xs w-full focus:outline-none">
+          <option value="">System</option>
+          <option value="comic-sans">Comic Sans</option>
+          <option value="times">Times New Roman</option>
+          <option value="arial">Arial</option>
+          <option value="century-gothic">Century Gothic</option>
+        </select>
+      </div>
+    </div>
+
+  </aside>
+
+  {# ── Content + TOC ── #}
+  <div class="flex flex-1 min-h-0 overflow-hidden">
+
+    {# Main content #}
+    <main id="guide-content" class="flex-1 overflow-y-auto bg-base-100">
+      <div class="max-w-2xl mx-auto px-10 py-10 prose-body">
+
+        {# ══════════════════════════════════════════════════════════ #}
+        {# Chapter 1 — Overview                                      #}
+        {# ══════════════════════════════════════════════════════════ #}
+        <section id="ch-overview" class="guide-chapter mb-16">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 1</p>
+              <h1 class="text-2xl font-bold">Overview</h1>
+            </div>
+            <button onclick="printChapter('ch-overview')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+              Print
+            </button>
+          </div>
+
+          <p>The NQF Learner Placement Assessment Platform automates the delivery, timing, and scoring of placement assessments. This guide covers everything an assessor needs — from setting up a session to exporting final results.</p>
+
+          <h2 id="s-overview-concepts" class="prose-h2">Key Concepts</h2>
+          <div class="space-y-3 not-prose">
+            <div class="rounded-lg border border-base-200 p-4">
+              <p class="text-sm font-semibold mb-1">Sessions</p>
+              <p class="text-sm opacity-70 leading-relaxed">A session groups multiple learners under a single access code. Learners join by entering the code at the start page. Each session has a configurable seat limit and expiry window. The same session code remains valid until the session expires or all seats are taken.</p>
+            </div>
+            <div class="rounded-lg border border-base-200 p-4">
+              <p class="text-sm font-semibold mb-1">Attempts</p>
+              <p class="text-sm opacity-70 leading-relaxed">Each learner's individual assessment instance is called an attempt. Attempts move through statuses: <span class="badge badge-sm badge-ghost">In Progress</span> → <span class="badge badge-sm badge-info">Submitted</span> → <span class="badge badge-sm badge-success">Marked</span>. An attempt that was started but not completed becomes <span class="badge badge-sm badge-error">Incomplete</span>.</p>
+            </div>
+            <div class="rounded-lg border border-base-200 p-4">
+              <p class="text-sm font-semibold mb-1">Review Queue</p>
+              <p class="text-sm opacity-70 leading-relaxed">Written-response questions require assessor marking and appear in the Review Queue after a learner submits. Automated marking handles all other question types immediately on submission.</p>
+            </div>
+          </div>
+
+          <h2 id="s-overview-workflow" class="prose-h2">Typical Workflow</h2>
+          <ol class="step-list">
+            <li><span>Print working sheets and distribute them to learners before the session starts.</span></li>
+            <li><span>Create a session in <span class="ui">Sessions → New Session</span>. Share the session code with learners.</span></li>
+            <li><span>Learners join using the code, sign the consent agreement, and begin the timed assessment.</span></li>
+            <li><span>Monitor the session in real time from <span class="ui">Sessions → Monitor</span>.</span></li>
+            <li><span>After learners submit, mark written responses from the <span class="ui">Review Queue</span>.</span></li>
+            <li><span>View and export results from <span class="ui">Results at a Glance</span>.</span></li>
+            <li><span>Upload scanned working sheets to each attempt for record-keeping.</span></li>
+          </ol>
+        </section>
+
+        {# ══════════════════════════════════════════════════════════ #}
+        {# Chapter 2 — Sessions                                      #}
+        {# ══════════════════════════════════════════════════════════ #}
+        <section id="ch-sessions" class="guide-chapter mb-16">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 2</p>
+              <h1 class="text-2xl font-bold">Sessions</h1>
+            </div>
+            <button onclick="printChapter('ch-sessions')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+              Print
+            </button>
+          </div>
+
+          <p>Sessions are the primary way to run assessments. A session generates a single code that multiple learners use to join and start their individual attempts simultaneously.</p>
+
+          <h2 id="s-sessions-create" class="prose-h2">Creating a Session</h2>
+          <p>Navigate to <span class="ui">Sessions → New Session</span> in the sidebar.</p>
+          <ol class="step-list">
+            <li><span><strong>Template</strong> — select the assessment template to use for this session.</span></li>
+            <li><span><strong>Seat limit</strong> — set the maximum number of learners who can join. Once the limit is reached, no further learners can join this session.</span></li>
+            <li><span><strong>Duration</strong> — set how long the session window stays open. Learners can join at any point before expiry, provided seats remain available.</span></li>
+            <li><span>Click <span class="ui">Create Session</span>. The session code is displayed immediately — share it with learners verbally or in writing.</span></li>
+          </ol>
+          <div class="callout callout-tip">
+            <strong>Tip</strong>
+            You can reuse a session code for the full duration of the session window. Learners can join one at a time as long as seats remain and the session has not expired.
+          </div>
+
+          <h2 id="s-sessions-monitor" class="prose-h2">Monitoring a Session</h2>
+          <p>Open the monitor from <span class="ui">Sessions</span> → click <span class="ui">Monitor</span> next to an active session.</p>
+          <p>The monitor shows a live table of all learners who have joined, including:</p>
+          <ul class="list-disc list-outside ml-5 space-y-1 text-sm opacity-80">
+            <li>Learner name and workstation number</li>
+            <li>Current attempt status</li>
+            <li>Questions answered vs total</li>
+            <li>Time elapsed and remaining</li>
+          </ul>
+          <p>The page refreshes automatically every 30 seconds. You can also refresh manually at any time.</p>
+          <div class="callout callout-info">
+            <strong>Note</strong>
+            The monitor is read-only. To act on a specific attempt (e.g. unlock it), go to <span class="ui">Attempts</span> and find the learner by name or code.
+          </div>
+
+          <h2 id="s-sessions-seats" class="prose-h2">Seat Limits</h2>
+          <p>A seat is considered occupied as soon as a learner joins — regardless of whether they complete the assessment. Seats are not released if a learner abandons or is disconnected.</p>
+          <div class="callout callout-warn">
+            <strong>Important</strong>
+            If a learner fails to complete and you need to accommodate a replacement, the session seat limit may need to be increased, or a new session created. Contact your system administrator if you need to adjust a seat limit after a session is created.
+          </div>
+        </section>
+
+        {# ══════════════════════════════════════════════════════════ #}
+        {# Chapter 3 — Attempts                                      #}
+        {# ══════════════════════════════════════════════════════════ #}
+        <section id="ch-attempts" class="guide-chapter mb-16">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 3</p>
+              <h1 class="text-2xl font-bold">Attempts</h1>
+            </div>
+            <button onclick="printChapter('ch-attempts')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+              Print
+            </button>
+          </div>
+
+          <h2 id="s-attempts-statuses" class="prose-h2">Attempt Statuses</h2>
+          <div class="overflow-x-auto not-prose">
+            <table class="table table-sm w-full text-sm">
+              <thead>
+                <tr class="text-xs opacity-60">
+                  <th>Status</th>
+                  <th>Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><span class="badge badge-sm badge-warning">In Progress</span></td><td class="opacity-70">Learner has started and is actively working through questions.</td></tr>
+                <tr><td><span class="badge badge-sm badge-info">Submitted</span></td><td class="opacity-70">Learner has submitted. Automated marking has run; written responses (if any) are awaiting assessor review.</td></tr>
+                <tr><td><span class="badge badge-sm badge-success">Marked</span></td><td class="opacity-70">All questions have been scored, including any written responses. Results are finalised.</td></tr>
+                <tr><td><span class="badge badge-sm badge-error">Incomplete</span></td><td class="opacity-70">The assessment window expired before the learner submitted. The attempt contains whatever the learner answered before time ran out.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="s-attempts-viewing" class="prose-h2">Viewing Attempts</h2>
+          <p>Navigate to <span class="ui">Attempts</span> in the sidebar. Tabs filter the list by status. You can also search by learner name or attempt code using the filter row at the top of the table.</p>
+          <p>Click any attempt row to open its detail view, which shows all question responses, auto-mark scores, and a link to the scoring breakdown.</p>
+
+          <h2 id="s-attempts-unlocking" class="prose-h2">Unlocking an Attempt</h2>
+          <p>If a learner is disconnected mid-attempt and cannot rejoin, their attempt may be locked in a state that prevents re-entry. Unlocking resets the attempt to <span class="badge badge-sm badge-warning">In Progress</span> so the learner can continue.</p>
+          <div class="callout callout-warn">
+            <strong>No data is lost when unlocking.</strong>
+            All previously saved answers are retained. The learner resumes from where they left off. Only use unlock when the learner is present and ready to continue.
+          </div>
+          <p>To unlock: open the attempt detail view → click <span class="ui">Unlock Attempt</span>. The learner can then re-enter using their original attempt code.</p>
+        </section>
+
+        {# ══════════════════════════════════════════════════════════ #}
+        {# Chapter 4 — Marking                                       #}
+        {# ══════════════════════════════════════════════════════════ #}
+        <section id="ch-marking" class="guide-chapter mb-16">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 4</p>
+              <h1 class="text-2xl font-bold">Marking &amp; Review Queue</h1>
+            </div>
+            <button onclick="printChapter('ch-marking')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+              Print
+            </button>
+          </div>
+
+          <p>The platform automatically scores all question types except written responses (LIT-D-WRITE), which require an assessor to read and award marks manually.</p>
+
+          <h2 id="s-marking-queue" class="prose-h2">The Review Queue</h2>
+          <p>The <span class="ui">Review Queue</span> in the sidebar shows all submitted attempts that contain at least one written response pending assessor scoring. The badge count updates as you work through the queue.</p>
+          <p>Attempts with all written responses scored and no outstanding items are automatically moved to <span class="badge badge-sm badge-success">Marked</span> and removed from the queue.</p>
+
+          <h2 id="s-marking-written" class="prose-h2">Marking Written Responses</h2>
+          <ol class="step-list">
+            <li><span>Click an attempt in the Review Queue to open the marking view.</span></li>
+            <li><span>The learner's written response is displayed in full. The marking rubric is shown alongside it.</span></li>
+            <li><span>Enter the mark in the score field. Marks must be within the question's maximum.</span></li>
+            <li><span>Optionally add an assessor note.</span></li>
+            <li><span>Click <span class="ui">Save &amp; Next</span> to proceed to the next unscored response, or <span class="ui">Save &amp; Exit</span> to return to the queue.</span></li>
+          </ol>
+          <div class="callout callout-tip">
+            <strong>Tip</strong>
+            You can return to an already-marked response and adjust the score at any time before the attempt is moderated and finalised.
+          </div>
+
+          <h2 id="s-marking-audit" class="prose-h2">Score Audit Log</h2>
+          <p>Every score change — whether from automated marking or assessor input — is recorded in the audit log. To view it, open an attempt and click <span class="ui">Audit Log</span>.</p>
+          <p>The log shows the question, the score awarded, who awarded it (system or assessor username), and the timestamp. This record is immutable and is retained for moderation and quality assurance purposes.</p>
+        </section>
+
+        {# ══════════════════════════════════════════════════════════ #}
+        {# Chapter 5 — Results                                       #}
+        {# ══════════════════════════════════════════════════════════ #}
+        <section id="ch-results" class="guide-chapter mb-16">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 5</p>
+              <h1 class="text-2xl font-bold">Results &amp; Export</h1>
+            </div>
+            <button onclick="printChapter('ch-results')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+              Print
+            </button>
+          </div>
+
+          <h2 id="s-results-overview" class="prose-h2">Results Overview</h2>
+          <p>Navigate to <span class="ui">Results at a Glance</span> under <span class="ui">Attempts</span>. This view shows all marked attempts in a summary table, including the learner's name, total score, section scores, and placement outcome.</p>
+          <p>You can filter the table by session, date range, or placement outcome. Results are only shown for attempts with status <span class="badge badge-sm badge-success">Marked</span>.</p>
+
+          <h2 id="s-results-export" class="prose-h2">Exporting to CSV</h2>
+          <p>Click <span class="ui">Export CSV</span> from the Results page. The download includes one row per marked attempt with columns for:</p>
+          <ul class="list-disc list-outside ml-5 space-y-1 text-sm opacity-80">
+            <li>Learner name, ID number, and contact details</li>
+            <li>Attempt code and session code</li>
+            <li>Date and time of assessment</li>
+            <li>Total score and per-section scores</li>
+            <li>Placement recommendation</li>
+          </ul>
+          <div class="callout callout-info">
+            <strong>Note</strong>
+            Filters applied on the Results page are reflected in the export. To export all results, clear all filters before clicking <span class="ui">Export CSV</span>.
+          </div>
+        </section>
+
+        {# ══════════════════════════════════════════════════════════ #}
+        {# Chapter 6 — Working Sheets                                #}
+        {# ══════════════════════════════════════════════════════════ #}
+        <section id="ch-working-sheets" class="guide-chapter mb-16">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 6</p>
+              <h1 class="text-2xl font-bold">Working Sheets</h1>
+            </div>
+            <button onclick="printChapter('ch-working-sheets')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+              Print
+            </button>
+          </div>
+
+          <p>Working sheets are printed templates distributed to learners before the assessment. Learners use them for rough calculations and written working. After the session, assessors scan and upload the completed sheets to each attempt for record-keeping.</p>
+
+          <h2 id="s-ws-print" class="prose-h2">Printing Sheets</h2>
+          <p>Open an attempt and click <span class="ui">Print Working Sheet</span>. The sheet opens in a print-optimised view. Print one copy per learner before the session begins.</p>
+          <div class="callout callout-tip">
+            <strong>Tip</strong>
+            Print sheets in bulk before the session starts. The sheet includes the attempt code, learner name, and date — ensure you match the right sheet to the right learner.
+          </div>
+
+          <h2 id="s-ws-upload" class="prose-h2">Uploading a Scan</h2>
+          <ol class="step-list">
+            <li><span>Scan the completed working sheet as a JPEG or PNG image.</span></li>
+            <li><span>Open the corresponding attempt from the <span class="ui">Attempts</span> list.</span></li>
+            <li><span>Click <span class="ui">Upload Working Sheet</span> and select the scanned file.</span></li>
+            <li><span>The image is attached to the attempt and visible to moderators and auditors.</span></li>
+          </ol>
+          <div class="callout callout-warn">
+            <strong>Important</strong>
+            Only one working sheet image can be attached per attempt. Uploading a new image replaces the existing one. Ensure the correct scan is uploaded before finalising.
+          </div>
+        </section>
+
+        {# ══════════════════════════════════════════════════════════ #}
+        {# Chapter 7 — Error Reports                                 #}
+        {# ══════════════════════════════════════════════════════════ #}
+        <section id="ch-errors" class="guide-chapter mb-16">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 7</p>
+              <h1 class="text-2xl font-bold">Error Reports</h1>
+            </div>
+            <button onclick="printChapter('ch-errors')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+              Print
+            </button>
+          </div>
+
+          <p>Learners can flag questions they believe contain errors during an assessment. These flags appear in the error report system for assessor review.</p>
+
+          <h2 id="s-errors-submit" class="prose-h2">How Learners Report Errors</h2>
+          <p>While answering a question, learners can click <span class="ui">Report an error with this question</span> at the bottom of the question page. They enter a brief description of the suspected error and submit the report. This does not pause or interrupt their assessment.</p>
+          <p>A learner may submit multiple error reports across different questions in the same attempt.</p>
+
+          <h2 id="s-errors-review" class="prose-h2">Reviewing Error Reports</h2>
+          <p>All submitted error reports are visible to staff users. Navigate to <span class="ui">Error Reports</span> (staff only) to see a list of all submitted reports, including the question reference, learner's description, and submission timestamp.</p>
+          <p>From the list, click <span class="ui">Preview</span> to view the exact question as the learner saw it. Use this to assess whether the reported issue is valid and to escalate to content owners if a question requires correction.</p>
+          <div class="callout callout-info">
+            <strong>Note</strong>
+            Error reports do not automatically adjust scores. Any scoring adjustments following an error investigation must be made manually via the attempt's marking view and are recorded in the audit log.
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    {# ── Right TOC ── #}
+    <aside id="guide-toc" class="w-44 shrink-0 overflow-y-auto border-l border-base-200 py-6 px-3 bg-base-200 no-print">
+      <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-3 px-2">On this page</p>
+      <nav id="toc-nav" class="space-y-0.5">
+
+        <p class="toc-chapter">Overview</p>
+        <a href="#s-overview-concepts" data-toc="s-overview-concepts" class="toc-link">Key Concepts</a>
+        <a href="#s-overview-workflow" data-toc="s-overview-workflow" class="toc-link">Typical Workflow</a>
+
+        <p class="toc-chapter">Sessions</p>
+        <a href="#s-sessions-create"  data-toc="s-sessions-create"  class="toc-link">Creating a Session</a>
+        <a href="#s-sessions-monitor" data-toc="s-sessions-monitor" class="toc-link">Monitoring</a>
+        <a href="#s-sessions-seats"   data-toc="s-sessions-seats"   class="toc-link">Seat Limits</a>
+
+        <p class="toc-chapter">Attempts</p>
+        <a href="#s-attempts-statuses"  data-toc="s-attempts-statuses"  class="toc-link">Statuses</a>
+        <a href="#s-attempts-viewing"   data-toc="s-attempts-viewing"   class="toc-link">Viewing</a>
+        <a href="#s-attempts-unlocking" data-toc="s-attempts-unlocking" class="toc-link">Unlocking</a>
+
+        <p class="toc-chapter">Marking</p>
+        <a href="#s-marking-queue"   data-toc="s-marking-queue"   class="toc-link">Review Queue</a>
+        <a href="#s-marking-written" data-toc="s-marking-written" class="toc-link">Written Responses</a>
+        <a href="#s-marking-audit"   data-toc="s-marking-audit"   class="toc-link">Audit Log</a>
+
+        <p class="toc-chapter">Results</p>
+        <a href="#s-results-overview" data-toc="s-results-overview" class="toc-link">Overview</a>
+        <a href="#s-results-export"   data-toc="s-results-export"   class="toc-link">Exporting CSV</a>
+
+        <p class="toc-chapter">Working Sheets</p>
+        <a href="#s-ws-print"  data-toc="s-ws-print"  class="toc-link">Printing</a>
+        <a href="#s-ws-upload" data-toc="s-ws-upload" class="toc-link">Uploading</a>
+
+        <p class="toc-chapter">Error Reports</p>
+        <a href="#s-errors-submit" data-toc="s-errors-submit" class="toc-link">Learner Reporting</a>
+        <a href="#s-errors-review" data-toc="s-errors-review" class="toc-link">Reviewing</a>
+      </nav>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  // ── Theme + font (same as assessor_base) ────────────────────────
+  var root = document.documentElement;
+  var themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    var saved = localStorage.getItem('theme') || 'business';
+    themeToggle.checked = (saved === 'corporate');
+    themeToggle.addEventListener('change', function () {
+      var next = themeToggle.checked ? 'corporate' : 'business';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+  }
+  var fontMap = {
+    'comic-sans': "'Comic Sans MS', cursive",
+    'times': "'Times New Roman', serif",
+    'arial': 'Arial, sans-serif',
+    'century-gothic': "'Century Gothic', 'Apple Gothic', sans-serif"
+  };
+  var fontPicker = document.getElementById('font-picker');
+  if (fontPicker) {
+    var savedFont = localStorage.getItem('font') || '';
+    fontPicker.value = savedFont;
+    fontPicker.addEventListener('change', function () {
+      var key = fontPicker.value;
+      if (fontMap[key]) root.style.setProperty('--font-body', fontMap[key]);
+      else root.style.removeProperty('--font-body');
+      localStorage.setItem('font', key);
+    });
+  }
+
+  // ── Smooth anchor scroll (prevent layout jump) ───────────────────
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var id = a.getAttribute('href').slice(1);
+      var el = document.getElementById(id);
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // ── Scroll-spy ──────────────────────────────────────────────────
+  var content = document.getElementById('guide-content');
+  var headings = content.querySelectorAll('h2[id], h1[id]');
+  var tocLinks = document.querySelectorAll('[data-toc]');
+  var navSubs  = document.querySelectorAll('[data-nav-s]');
+  var navChs   = document.querySelectorAll('[data-nav-ch]');
+
+  // Map chapter sections to chapter-level nav links
+  var chapterMap = {
+    'ch-overview':       'ch-overview',
+    's-overview-concepts': 'ch-overview',
+    's-overview-workflow': 'ch-overview',
+    'ch-sessions':       null,
+    's-sessions-create': null,
+    's-sessions-monitor': null,
+    's-sessions-seats':  null,
+    'ch-attempts':       null,
+    's-attempts-statuses': null,
+    's-attempts-viewing':  null,
+    's-attempts-unlocking': null,
+    'ch-marking':        null,
+    's-marking-queue':   null,
+    's-marking-written': null,
+    's-marking-audit':   null,
+    'ch-results':        null,
+    's-results-overview': null,
+    's-results-export':  null,
+    'ch-working-sheets': null,
+    's-ws-print':        null,
+    's-ws-upload':       null,
+    'ch-errors':         null,
+    's-errors-submit':   null,
+    's-errors-review':   null,
+  };
+
+  function setActive(id) {
+    tocLinks.forEach(function (l) { l.classList.toggle('active', l.dataset.toc === id); });
+    navSubs.forEach(function (l)  { l.classList.toggle('active', l.dataset.navS === id); });
+  }
+
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) setActive(entry.target.id);
+    });
+  }, {
+    root: content,
+    rootMargin: '-15% 0px -75% 0px',
+    threshold: 0,
+  });
+
+  headings.forEach(function (h) { observer.observe(h); });
+
+  // ── Print per chapter ────────────────────────────────────────────
+  window.printChapter = function (chapterId) {
+    document.querySelectorAll('.guide-chapter').forEach(function (ch) {
+      ch.classList.toggle('print-hidden', ch.id !== chapterId);
+    });
+    window.print();
+    document.querySelectorAll('.guide-chapter').forEach(function (ch) {
+      ch.classList.remove('print-hidden');
+    });
+  };
+})();
+</script>
+{% endblock %}
