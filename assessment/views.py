@@ -443,6 +443,12 @@ def assessor_dashboard(request):
 
 
 @login_required
+@user_passes_test(is_assessor)
+def assessor_guide(request):
+    return render(request, "assessment/assessor_guide.html")
+
+
+@login_required
 @user_passes_test(is_auditor)
 def assessor_attempts(request):
     _expire_overdue_attempts()
