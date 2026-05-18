@@ -34,6 +34,10 @@ NQF_DISPLAY_GROUPS: dict[str, list[dict]] = {
         {"label": "Basic Numeracy",          "prefixes": ["NUM-A", "NUM-B"]},
         {"label": "Mathematics Skills",      "prefixes": ["NUM-C", "NUM-D"]},
     ],
+    "gen_literacy": [
+        {"label": "NQF Level 1–2", "prefixes": ["GEN-A", "GEN-B", "GEN-C", "GEN-D"]},
+        {"label": "NQF Level 3–4", "prefixes": ["GEN-E", "GEN-F"]},
+    ],
 }
 
 # Per-prefix percentage thresholds.
@@ -129,23 +133,29 @@ def _describe_level(level: NQFLevel, subject: str) -> str:
 # Computation — operates on plain dicts, no ORM coupling
 # ---------------------------------------------------------------------------
 
-def compute_levels_from_prefix_scores(prefix_scores: dict[str, list[float]]) -> tuple[str, str]:
+def compute_levels_from_prefix_scores(
+    prefix_scores: dict[str, list[float]],
+    prefix_domain: dict[str, str] | None = None,
+) -> tuple[str, str]:
     """
     Return (lit_level, num_level) from a prefix → [awarded, max] mapping.
     Applies the Post-L4 numeracy override when all four NUM prefixes qualify.
+    prefix_domain maps prefix → "literacy"/"numeracy" for non-LIT/NUM prefixes.
     """
     lit_q_levels: list[str] = []
     num_q_levels: list[str] = []
     num_prefix_pcts: dict[str, float] = {}
+    _domain = prefix_domain or {}
 
     for prefix, (awarded, maximum) in prefix_scores.items():
         pct = round(awarded / maximum * 100) if maximum else 0
         thresholds = NQF_QUESTION_PCT_THRESHOLDS.get(prefix, NQF_PCT_THRESHOLDS)
         level = level_for_percentage(pct, thresholds)
 
-        if prefix.startswith("LIT"):
+        domain = _domain.get(prefix, "")
+        if prefix.startswith("LIT") or domain == "literacy":
             lit_q_levels.append(level)
-        elif prefix.startswith("NUM"):
+        elif prefix.startswith("NUM") or domain == "numeracy":
             num_q_levels.append(level)
             num_prefix_pcts[prefix] = pct
 
@@ -207,10 +217,15 @@ def build_question_metadata(questions) -> dict[int, dict]:
 
 def _accumulate_scores(
     responses, q_meta: dict[int, dict]
-) -> tuple[dict[str, list[float]], dict[str, list[float]]]:
-    """Walk attempt responses and sum (awarded, max) per prefix and section kind."""
+) -> tuple[dict[str, list[float]], dict[str, list[float]], dict[str, str]]:
+    """Walk attempt responses and sum (awarded, max) per prefix and section kind.
+
+    Returns (prefix_scores, section_scores, prefix_domain) where prefix_domain
+    maps each prefix to its section domain ("literacy", "numeracy", or "other").
+    """
     prefix_scores: dict[str, list[float]] = {}
     section_scores: dict[str, list[float]] = {}
+    prefix_domain: dict[str, str] = {}
 
     for response in responses:
         meta = q_meta.get(response.question_id)
@@ -219,6 +234,7 @@ def _accumulate_scores(
 
         prefix = meta["prefix"]
         sk = section_kind(meta["section_title"])
+        prefix_domain.setdefault(prefix, sk)
 
         try:
             pts = float(response.score.points)
@@ -234,7 +250,7 @@ def _accumulate_scores(
         section_scores[sk][0] += pts
         section_scores[sk][1] += mx
 
-    return prefix_scores, section_scores
+    return prefix_scores, section_scores, prefix_domain
 
 
 # ---------------------------------------------------------------------------
@@ -254,6 +270,18 @@ class NQFPlacement:
     comment: str
 
 
+def _lit_display_groups(prefix_scores: dict) -> list[dict]:
+    if any(p.startswith("GEN") for p in prefix_scores):
+        return NQF_DISPLAY_GROUPS["gen_literacy"]
+    return NQF_DISPLAY_GROUPS["literacy"]
+
+
+def _num_display_groups(prefix_scores: dict) -> list[dict]:
+    if any(p.startswith("GEN") for p in prefix_scores):
+        return []
+    return NQF_DISPLAY_GROUPS["numeracy"]
+
+
 def compute_nqf_placement(attempt, q_meta: dict[int, dict]) -> NQFPlacement:
     """
     Compute the NQF placement for a single attempt.
@@ -266,9 +294,9 @@ def compute_nqf_placement(attempt, q_meta: dict[int, dict]) -> NQFPlacement:
         NQFPlacement with level labels and group breakdowns for the report.
     """
     responses = attempt.response_set.select_related("score").all()
-    prefix_scores, section_scores = _accumulate_scores(responses, q_meta)
+    prefix_scores, section_scores, prefix_domain = _accumulate_scores(responses, q_meta)
 
-    lit_level, num_level = compute_levels_from_prefix_scores(prefix_scores)
+    lit_level, num_level = compute_levels_from_prefix_scores(prefix_scores, prefix_domain)
 
     lit = section_scores.get("literacy", [0.0, 0.0])
     num = section_scores.get("numeracy", [0.0, 0.0])
@@ -276,8 +304,8 @@ def compute_nqf_placement(attempt, q_meta: dict[int, dict]) -> NQFPlacement:
     return NQFPlacement(
         attempt=attempt,
         learner=attempt.learner,
-        literacy_groups=compute_group_data(prefix_scores, NQF_DISPLAY_GROUPS["literacy"]),
-        numeracy_groups=compute_group_data(prefix_scores, NQF_DISPLAY_GROUPS["numeracy"]),
+        literacy_groups=compute_group_data(prefix_scores, _lit_display_groups(prefix_scores)),
+        numeracy_groups=compute_group_data(prefix_scores, _num_display_groups(prefix_scores)),
         lit_total={
             "awarded": lit[0],
             "max": lit[1],
