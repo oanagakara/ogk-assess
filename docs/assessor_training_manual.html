@@ -55,8 +55,8 @@
     body { max-width: 1800px; margin: 0 auto; padding: 40px 60px; }
   }
   @media print {
-    body { padding: 20mm 22mm 18mm 22mm; }
-    @page { margin: 0; size: A4 portrait; }
+    body { max-width: none; width: auto; margin: 0; padding: 0; }
+    @page { margin: 15mm 18mm; size: A4 portrait; }
     .no-print { display: none !important; }
     h2 { page-break-before: always; page-break-after: avoid; }
     h3 { page-break-after: avoid; }
@@ -80,7 +80,7 @@
 </div>
 
 <table class="meta-table">
-  <tr><td>Version</td><td>1.2</td></tr>
+  <tr><td>Version</td><td>1.3</td></tr>
   <tr><td>Audience</td><td>Assessors and Train-the-Trainer leads</td></tr>
   <tr><td>Support contact</td><td>support@oanagakara.co.za</td></tr>
   <tr><td>Platform URL</td><td>https://assessment-engine-rxrh.onrender.com/accounts/login/</td></tr>
