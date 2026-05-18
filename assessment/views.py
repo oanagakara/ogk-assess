@@ -1528,9 +1528,13 @@ def assessor_results_export(request):
         for g in placement.literacy_groups:
             row += [g["awarded"], g["max"], g["pct"]]
         row += [placement.lit_level]
+        num_filled = len(placement.numeracy_groups)
         for g in placement.numeracy_groups:
             row += [g["awarded"], g["max"], g["pct"]]
-        row += [placement.num_level, placement.comment]
+        for _ in range(len(num_groups) - num_filled):
+            row += ["", "", ""]
+        num_level_val = "" if placement.num_level == "N/A" else placement.num_level
+        row += [num_level_val, placement.comment]
 
         writer.writerow(row)
 

@@ -141,15 +141,19 @@
                 {% endfor %}
               {% endwith %}
 
-              {# Numeracy total — level badge only #}
+              {# Numeracy total — level badge only, or dash if not assessed #}
               <td class="text-center">
-                <span class="badge badge-sm
-                  {% if row.num_level == 'L4' or row.num_level == 'Post L4' %}badge-success
-                  {% elif row.num_level == 'L3' %}badge-info
-                  {% elif row.num_level == 'L2' %}badge-warning
-                  {% else %}badge-error{% endif %}">
-                  {{ row.num_level }}
-                </span>
+                {% if row.num_level == 'N/A' %}
+                  <span class="opacity-30 text-sm">—</span>
+                {% else %}
+                  <span class="badge badge-sm
+                    {% if row.num_level == 'L4' or row.num_level == 'Post L4' %}badge-success
+                    {% elif row.num_level == 'L3' %}badge-info
+                    {% elif row.num_level == 'L2' %}badge-warning
+                    {% else %}badge-error{% endif %}">
+                    {{ row.num_level }}
+                  </span>
+                {% endif %}
               </td>
 
               {# NQF Placement comment #}
