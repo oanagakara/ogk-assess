@@ -31,7 +31,8 @@ def assessor_nav_counts(request):
     user_groups = set(request.user.groups.values_list("name", flat=True)) if not request.user.is_staff else set()
     if not (request.user.is_staff or user_groups & {"assessor", "moderator", "auditor"}):
         return {}
-    user_is_moderator = request.user.is_staff or "moderator" in user_groups
+    user_is_moderator = request.user.is_staff or bool(user_groups & {"moderator", "auditor"})
+    user_is_auditor = request.user.is_staff or "auditor" in user_groups
 
     has_review_score = Score.objects.filter(
         response__attempt_id=OuterRef("pk"),
@@ -58,6 +59,7 @@ def assessor_nav_counts(request):
 
     return {
         "user_is_moderator": user_is_moderator,
+        "user_is_auditor": user_is_auditor,
         "nav_counts": {
             "in_progress":  in_progress,
             "submitted":    submitted,

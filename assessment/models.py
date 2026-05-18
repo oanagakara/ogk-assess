@@ -453,3 +453,38 @@ class Response(models.Model):
     def __str__(self) -> str:
         return f"{self.attempt.code} :: {self.question.code}"
 
+
+import uuid as _uuid
+
+class AssessorInvite(models.Model):
+    ROLE_ASSESSOR  = "assessor"
+    ROLE_MODERATOR = "moderator"
+    ROLE_CHOICES = [
+        (ROLE_ASSESSOR,  "Assessor"),
+        (ROLE_MODERATOR, "Moderator"),
+    ]
+
+    token = models.UUIDField(default=_uuid.uuid4, unique=True, editable=False)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_ASSESSOR)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_invites"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    used_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="invite_used"
+    )
+
+    @property
+    def is_valid(self):
+        return self.used_at is None and timezone.now() < self.expires_at
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        status = "used" if self.used_at else ("expired" if not self.is_valid else "active")
+        return f"Invite by {self.created_by.username} [{status}]"
+
