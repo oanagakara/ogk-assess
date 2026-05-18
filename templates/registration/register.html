@@ -1,0 +1,51 @@
+{% extends "assessment/base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-4">
+  <div class="card w-full max-w-md bg-base-100 shadow-xl">
+    <div class="card-body space-y-4">
+      <h1 class="card-title text-2xl">Create assessor account</h1>
+
+      {% if errors %}
+        <div class="alert alert-error text-sm">
+          {% for error in errors %}<div>{{ error }}</div>{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Username</span></label>
+          <input class="input input-bordered w-full" type="text" name="username"
+                 value="{{ form_data.username|default:'' }}" autofocus required>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Email address</span></label>
+          <input class="input input-bordered w-full" type="email" name="email"
+                 value="{{ form_data.email|default:'' }}" required>
+          <label class="label"><span class="label-text-alt opacity-50">Used for password resets only</span></label>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Password</span></label>
+          <input class="input input-bordered w-full" type="password" name="password1" required>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Confirm password</span></label>
+          <input class="input input-bordered w-full" type="password" name="password2" required>
+        </div>
+
+        <button class="btn btn-primary w-full" type="submit">Create account</button>
+      </form>
+
+      <div class="text-center text-sm opacity-60">
+        <a href="{% url 'login' %}" class="link">Back to sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

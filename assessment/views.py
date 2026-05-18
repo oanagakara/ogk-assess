@@ -11,7 +11,10 @@ from typing import NamedTuple
 logger = logging.getLogger(__name__)
 
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.paginator import Paginator 
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 
 from django.db.models import Count, Prefetch, Q
 from django.http import HttpResponse, HttpResponseForbidden
@@ -28,7 +31,7 @@ from .forms import (
     StartForm,
 )
 from .auto_mark import auto_mark_attempt
-from .models import AssessmentTemplate, Attempt, ExamSession, Learner, Question, Response, Score, ScoreAuditLog, Section, WorkingSheet
+from .models import AssessmentTemplate, AssessorInvite, Attempt, ExamSession, Learner, Question, Response, Score, ScoreAuditLog, Section, WorkingSheet
 from .nqf import NQF_DISPLAY_GROUPS, build_question_metadata, compute_nqf_placement
 from .renderers import get_renderer
 from .services import claim_seat, claim_session_seat
@@ -338,7 +341,8 @@ def start(request):
 
 def is_assessor(user):
     return user.is_authenticated and (
-        user.is_staff or user.groups.filter(name="assessor").exists()
+        user.is_staff
+        or user.groups.filter(name__in=["assessor", "moderator", "auditor"]).exists()
     )
 
 
@@ -348,14 +352,15 @@ def is_staff(user):
 
 def is_moderator(user):
     return user.is_authenticated and (
-        user.is_staff or user.groups.filter(name="moderator").exists()
+        user.is_staff
+        or user.groups.filter(name__in=["moderator", "auditor"]).exists()
     )
 
 
 def is_auditor(user):
     return user.is_authenticated and (
         user.is_staff
-        or user.groups.filter(name__in=["assessor", "auditor", "moderator"]).exists()
+        or user.groups.filter(name="auditor").exists()
     )
 
 
@@ -449,7 +454,7 @@ def assessor_guide(request):
 
 
 @login_required
-@user_passes_test(is_auditor)
+@user_passes_test(is_assessor)
 def assessor_attempts(request):
     _expire_overdue_attempts()
 
@@ -667,7 +672,7 @@ def _compute_marking_totals(markable_questions, responses_by_qid) -> MarkingTota
 
 
 @login_required
-@user_passes_test(is_auditor)
+@user_passes_test(is_assessor)
 def assessor_mark_attempt(request, code: str):
     _expire_overdue_attempts()
 
@@ -869,7 +874,7 @@ def _get_working_sheet(attempt):
 
 
 @login_required
-@user_passes_test(is_auditor)
+@user_passes_test(is_assessor)
 def assessor_auto_marked_attempt(request, code: str):
     """Read-only view of all scored questions not requiring assessor input."""
     attempt = get_object_or_404(
@@ -1334,7 +1339,7 @@ def assessor_sessions(request):
 
 
 @login_required
-@user_passes_test(is_auditor)
+@user_passes_test(is_assessor)
 def assessor_results(request):
     q_code    = (request.GET.get("q_code")    or "").strip()
     q_learner = (request.GET.get("q_learner") or "").strip()
@@ -1814,7 +1819,7 @@ def assessor_working_sheet_upload(request, code: str):
 
 
 @login_required
-@user_passes_test(is_auditor)
+@user_passes_test(is_assessor)
 def assessor_working_sheet_image(request, code: str):
     """Serve the stored working sheet image/PDF."""
     import base64
@@ -1830,7 +1835,7 @@ def assessor_working_sheet_image(request, code: str):
 
 
 @login_required
-@user_passes_test(is_auditor)
+@user_passes_test(is_assessor)
 def assessor_working_sheet_print(request, code: str):
     """Printable working sheet for a specific attempt."""
     attempt = get_object_or_404(
@@ -2014,7 +2019,7 @@ def assessor_scoring_breakdown(request, code: str):
 
 
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_auditor)
 def assessor_score_audit_log(request, code: str):
     """Per-attempt score audit log — every score creation and change."""
     attempt = get_object_or_404(
@@ -2133,3 +2138,80 @@ def error_preview(request, code: int):
         "error_type": error_type,
         "error_msg": error_msg,
     }, status=code)
+
+
+def register(request, token):
+    if request.user.is_authenticated:
+        return redirect("assessment:assessor_dashboard")
+
+    try:
+        invite = AssessorInvite.objects.get(token=token)
+    except AssessorInvite.DoesNotExist:
+        return render(request, "registration/register_invalid.html", status=404)
+
+    if not invite.is_valid:
+        return render(request, "registration/register_invalid.html", status=410)
+
+    errors = []
+    form_data = {}
+
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password1 = request.POST.get("password1", "")
+        password2 = request.POST.get("password2", "")
+
+        form_data = {"username": username, "email": email}
+
+        if not username:
+            errors.append("Username is required.")
+        elif User.objects.filter(username=username).exists():
+            errors.append("That username is already taken.")
+        if not email:
+            errors.append("Email address is required.")
+        elif User.objects.filter(email=email).exists():
+            errors.append("An account with that email already exists.")
+        if password1 != password2:
+            errors.append("Passwords do not match.")
+        else:
+            try:
+                validate_password(password1)
+            except ValidationError as e:
+                errors.extend(e.messages)
+
+        if not errors:
+            user = User.objects.create_user(username=username, email=email, password=password1)
+            group, _ = Group.objects.get_or_create(name=invite.role)
+            user.groups.add(group)
+            invite.used_at = timezone.now()
+            invite.used_by = user
+            invite.save(update_fields=["used_at", "used_by"])
+            from django.contrib.auth import login as auth_login
+            auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            return redirect("assessment:assessor_dashboard")
+
+    return render(request, "registration/register.html", {
+        "errors": errors,
+        "form_data": form_data,
+        "token": token,
+    })
+
+
+@login_required
+@user_passes_test(is_assessor)
+def generate_invite(request):
+    invite = None
+    can_invite_moderator = is_moderator(request.user)
+    if request.method == "POST":
+        role = request.POST.get("role", AssessorInvite.ROLE_ASSESSOR)
+        if role == AssessorInvite.ROLE_MODERATOR and not can_invite_moderator:
+            role = AssessorInvite.ROLE_ASSESSOR
+        invite = AssessorInvite.objects.create(
+            created_by=request.user,
+            role=role,
+            expires_at=timezone.now() + timedelta(hours=48),
+        )
+    return render(request, "assessment/generate_invite.html", {
+        "invite": invite,
+        "can_invite_moderator": can_invite_moderator,
+    })
