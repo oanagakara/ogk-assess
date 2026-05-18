@@ -126,13 +126,20 @@
                 </span>
               </td>
 
-              {# Numeracy group scores #}
+              {# Numeracy group scores — pad missing columns for templates with no numeracy section #}
               {% for g in row.numeracy_groups %}
                 <td class="text-center border-l border-base-300">
                   <span class="font-mono text-xs">{{ g.awarded|floatformat:"-2" }}/{{ g.max|floatformat:"-2" }}</span>
                   <span class="text-xs opacity-50 ml-0.5">({{ g.pct }}%)</span>
                 </td>
               {% endfor %}
+              {% with filled=row.numeracy_groups|length %}
+                {% for g in num_groups %}
+                  {% if forloop.counter > filled %}
+                    <td class="text-center border-l border-base-300 opacity-30">—</td>
+                  {% endif %}
+                {% endfor %}
+              {% endwith %}
 
               {# Numeracy total — level badge only #}
               <td class="text-center">
