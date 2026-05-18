@@ -418,6 +418,25 @@ class WorkingSheet(models.Model):
         return f"Working sheet — {self.attempt.code}"
 
 
+class WritingSubmission(models.Model):
+    attempt = models.OneToOneField(
+        "Attempt", on_delete=models.CASCADE, related_name="writing_submission"
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    content_type = models.CharField(max_length=50)
+    original_filename = models.CharField(max_length=255, blank=True)
+    data = models.TextField()  # base64-encoded file content
+
+    def __str__(self) -> str:
+        return f"Writing submission — {self.attempt.code}"
+
+
 class ScoreAuditLog(models.Model):
     score       = models.ForeignKey("Score", on_delete=models.CASCADE, related_name="audit_log")
     changed_by  = models.ForeignKey(
