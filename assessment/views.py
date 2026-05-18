@@ -38,8 +38,20 @@ from .services import claim_seat, claim_session_seat
 
 
 ASSESSMENT_DURATION = timedelta(hours=2)   # hard cap: two 60-min section slots
-SECTION_DURATION = timedelta(minutes=60)   # each section: questions + review fits in 60 min
+SECTION_DURATION = timedelta(minutes=60)   # fallback when title has no duration
 REVIEW_MAX_SECONDS = 600                   # global review timer per section: ≤10 minutes
+
+
+def _section_timedelta(section_pk: int) -> timedelta:
+    """Return the allotted duration for a section, parsed from its title.
+
+    Section titles embed the slot in the form '(45 MINUTES)' or '(60 MINUTES)'.
+    Falls back to SECTION_DURATION (60 min) when no match is found.
+    """
+    import re as _re
+    title = Section.objects.filter(pk=section_pk).values_list("title", flat=True).first() or ""
+    m = _re.search(r'\((\d+)\s+MINUTES?\)', title, _re.IGNORECASE)
+    return timedelta(minutes=int(m.group(1))) if m else SECTION_DURATION
 
 # ── Learner session ownership ─────────────────────────────────────────────────
 # H-5: Bind each attempt to the browser session that created it. Prevents one
@@ -76,7 +88,7 @@ def _section_expires_at(attempt, section_pk):
     started = attempt.section_started_at(section_pk)
     if not started:
         return None
-    return started + SECTION_DURATION
+    return started + _section_timedelta(section_pk)
 
 
 def _first_n_of_next_section(qs_section_ids, current_section_id):
@@ -104,7 +116,7 @@ def _section_review_seconds(attempt, section_pk: int) -> int:
     if not (section_started and review_started):
         return 0
     question_seconds = max(0, int((review_started - section_started).total_seconds()))
-    remaining = int(SECTION_DURATION.total_seconds()) - question_seconds
+    remaining = int(_section_timedelta(section_pk).total_seconds()) - question_seconds
     return max(0, min(REVIEW_MAX_SECONDS, remaining))
 
 
@@ -121,7 +133,7 @@ def _projected_section_review_seconds(attempt, section_pk: int) -> int:
     if not section_started:
         return 0
     question_seconds = max(0, int((timezone.now() - section_started).total_seconds()))
-    remaining = int(SECTION_DURATION.total_seconds()) - question_seconds
+    remaining = int(_section_timedelta(section_pk).total_seconds()) - question_seconds
     return max(0, min(REVIEW_MAX_SECONDS, remaining))
 
 
@@ -1131,7 +1143,7 @@ def attempt_question(request, code: str, n: int):
     sec_expires = _section_expires_at(attempt, section_pk)
 
     if sec_expires and now >= sec_expires:
-        # Section's 60-min slot exhausted — go to that section's review screen.
+        # Section's time slot exhausted — go to that section's review screen.
         # If review time is also 0, that screen will auto-advance to the next section / submit.
         return redirect("assessment:attempt_section_review_info", code=code, section_id=section_pk)
 
