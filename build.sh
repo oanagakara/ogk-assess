@@ -63,7 +63,7 @@ else:
     qs = Question.objects.filter(section__template=a.template).select_related('section')
     q_meta = build_question_metadata(qs)
     responses = list(a.response_set.select_related('score', 'question').order_by('question__code'))
-    prefix_scores, _ = _accumulate_scores(responses, q_meta)
+    prefix_scores, _, prefix_domain = _accumulate_scores(responses, q_meta)
     total_a = sum(v[0] for v in prefix_scores.values())
     total_m = sum(v[1] for v in prefix_scores.values())
     pct_overall = round(total_a / total_m * 100) if total_m else 0
@@ -74,7 +74,7 @@ else:
         th = NQF_QUESTION_PCT_THRESHOLDS.get(prefix, NQF_PCT_THRESHOLDS)
         level = level_for_percentage(pct, th)
         print(f'[diag]   {prefix}: {awarded}/{maximum} = {pct}% -> {level}')
-    lit, num = compute_levels_from_prefix_scores(prefix_scores)
+    lit, num = compute_levels_from_prefix_scores(prefix_scores, prefix_domain)
     print(f'[diag] Computed: Literacy={lit}  Numeracy={num}')
     print('[diag] Response detail:')
     for r in responses:
