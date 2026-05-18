@@ -32,14 +32,14 @@ from .forms import (
 )
 from .auto_mark import auto_mark_attempt
 from .models import AssessmentTemplate, AssessorInvite, Attempt, ExamSession, Learner, Question, Response, Score, ScoreAuditLog, Section, WorkingSheet, WritingSubmission
-from .nqf import NQF_DISPLAY_GROUPS, build_question_metadata, compute_nqf_placement
+from .nqf import NQF_DISPLAY_GROUPS, build_question_metadata, compute_nqf_placement, section_kind as _nqf_section_kind
 from .renderers import get_renderer
 from .services import claim_seat, claim_session_seat
 
 
-ASSESSMENT_DURATION = timedelta(hours=2)   # hard cap: two 60-min section slots
+ASSESSMENT_DURATION = timedelta(hours=2)   # safety cap; section timers enforce the real limits
 SECTION_DURATION = timedelta(minutes=60)   # fallback when title has no duration
-REVIEW_MAX_SECONDS = 600                   # global review timer per section: ≤10 minutes
+REVIEW_MAX_SECONDS = 900                   # review cap per subject group: ≤15 minutes
 
 
 def _section_timedelta(section_pk: int) -> timedelta:
@@ -52,6 +52,40 @@ def _section_timedelta(section_pk: int) -> timedelta:
     title = Section.objects.filter(pk=section_pk).values_list("title", flat=True).first() or ""
     m = _re.search(r'\((\d+)\s+MINUTES?\)', title, _re.IGNORECASE)
     return timedelta(minutes=int(m.group(1))) if m else SECTION_DURATION
+
+
+def _clock_start_for_section(attempt, section_pk: int):
+    """Return the clock-start time for the timer group this section belongs to.
+
+    Sections that share a subject domain (all literacy or all numeracy) within
+    the same template share one clock — the start time of the first-entered
+    section in that group. This prevents the timer resetting when moving from
+    Section 1 to Section 2 of the same subject.
+
+    Sections with domain 'other', or templates where sections belong to
+    different domains, each get their own independent clock.
+    """
+    section = Section.objects.filter(pk=section_pk).select_related("template").first()
+    if not section:
+        return attempt.section_started_at(section_pk)
+
+    kind = _nqf_section_kind(section.title)
+    if kind == "other":
+        return attempt.section_started_at(section_pk)
+
+    same_kind_pks = [
+        s.pk for s in Section.objects.filter(template=section.template).order_by("order")
+        if _nqf_section_kind(s.title) == kind
+    ]
+
+    earliest = None
+    for pk in same_kind_pks:
+        t = attempt.section_started_at(pk)
+        if t is not None and (earliest is None or t < earliest):
+            earliest = t
+
+    return earliest or attempt.section_started_at(section_pk)
+
 
 # ── Learner session ownership ─────────────────────────────────────────────────
 # H-5: Bind each attempt to the browser session that created it. Prevents one
@@ -85,7 +119,7 @@ def _attempt_expires_at(attempt):
 
 
 def _section_expires_at(attempt, section_pk):
-    started = attempt.section_started_at(section_pk)
+    started = _clock_start_for_section(attempt, section_pk)
     if not started:
         return None
     return started + _section_timedelta(section_pk)
@@ -107,16 +141,18 @@ def _is_last_section(qs_section_ids, current_section_id):
 
 
 def _section_review_seconds(attempt, section_pk: int) -> int:
-    """Return the section's review window in seconds: min(10min, 60min − question_time_used).
+    """Return the review window in seconds: min(15min, slot − time_used_since_clock_start).
 
-    Question time = (review_started − section_started). Returns 0 if either timestamp is missing.
+    For shared-clock groups (e.g. two literacy sections), time_used counts from
+    the first section's start so review time cannot be gamed by skipping sections.
     """
-    section_started = attempt.section_started_at(section_pk)
+    clock_start = _clock_start_for_section(attempt, section_pk)
     review_started = attempt.get_section_review_started_at(section_pk)
-    if not (section_started and review_started):
+    if not (clock_start and review_started):
         return 0
-    question_seconds = max(0, int((review_started - section_started).total_seconds()))
-    remaining = int(_section_timedelta(section_pk).total_seconds()) - question_seconds
+    question_seconds = max(0, int((review_started - clock_start).total_seconds()))
+    slot_seconds = int(_section_timedelta(section_pk).total_seconds())
+    remaining = slot_seconds + REVIEW_MAX_SECONDS - question_seconds
     return max(0, min(REVIEW_MAX_SECONDS, remaining))
 
 
@@ -129,11 +165,12 @@ def _section_review_expires_at(attempt, section_pk: int):
 
 def _projected_section_review_seconds(attempt, section_pk: int) -> int:
     """Projected review window if review were started right now (for the review_info preview)."""
-    section_started = attempt.section_started_at(section_pk)
-    if not section_started:
+    clock_start = _clock_start_for_section(attempt, section_pk)
+    if not clock_start:
         return 0
-    question_seconds = max(0, int((timezone.now() - section_started).total_seconds()))
-    remaining = int(_section_timedelta(section_pk).total_seconds()) - question_seconds
+    question_seconds = max(0, int((timezone.now() - clock_start).total_seconds()))
+    slot_seconds = int(_section_timedelta(section_pk).total_seconds())
+    remaining = slot_seconds + REVIEW_MAX_SECONDS - question_seconds
     return max(0, min(REVIEW_MAX_SECONDS, remaining))
 
 
