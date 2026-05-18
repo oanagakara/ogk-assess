@@ -4,6 +4,8 @@ from . import views
 app_name = "assessment"
 
 urlpatterns = [
+    path("accounts/register/<uuid:token>/", views.register, name="register"),
+    path("assessor/invite/", views.generate_invite, name="generate_invite"),
     path("", views.home, name="home"),
     path("start/", views.start, name="start"),
     path("attempt/<str:code>/details/", views.attempt_details, name="attempt_details"),

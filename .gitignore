@@ -42,7 +42,9 @@ assessment/migrations/__pycache__/
 #temporary exports
 tmp/
 
-# docs — only assessor_training_manual.html is committed
+# docs — committed: assessor_training_manual.html, changelog_external.html
+# internal changelog stays local
+docs/changelog_internal.html
 docs/marking_rubric.html
 docs/security_audit_2026-04-18.html
 docs/security_audit_2026-04-21.html
