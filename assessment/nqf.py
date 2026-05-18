@@ -19,6 +19,7 @@ class NQFLevel(StrEnum):
     L3 = "L3"
     L4 = "L4"
     POST_L4 = "Post L4"
+    NA = "N/A"
 
 
 # ---------------------------------------------------------------------------
@@ -124,6 +125,8 @@ def section_kind(section_title: str) -> str:
 
 
 def _describe_level(level: NQFLevel, subject: str) -> str:
+    if level == NQFLevel.NA:
+        return f"{subject} not assessed"
     if level == NQFLevel.POST_L4:
         return f"Post-AET Level for {subject} — no further AET training required"
     return f"NQF Level {int(level[1])} for {subject}"
@@ -160,7 +163,7 @@ def compute_levels_from_prefix_scores(
             num_prefix_pcts[prefix] = pct
 
     lit_level = modal_level(lit_q_levels) if lit_q_levels else NQFLevel.L1
-    num_level = modal_level(num_q_levels) if num_q_levels else NQFLevel.L1
+    num_level = modal_level(num_q_levels) if num_q_levels else NQFLevel.NA
 
     if (
         _NUM_PREFIXES <= num_prefix_pcts.keys()
