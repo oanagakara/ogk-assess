@@ -31,7 +31,7 @@ from .forms import (
     StartForm,
 )
 from .auto_mark import auto_mark_attempt
-from .models import AssessmentTemplate, AssessorInvite, Attempt, ExamSession, Learner, Question, Response, Score, ScoreAuditLog, Section, WorkingSheet
+from .models import AssessmentTemplate, AssessorInvite, Attempt, ExamSession, Learner, Question, Response, Score, ScoreAuditLog, Section, WorkingSheet, WritingSubmission
 from .nqf import NQF_DISPLAY_GROUPS, build_question_metadata, compute_nqf_placement
 from .renderers import get_renderer
 from .services import claim_seat, claim_session_seat
@@ -831,6 +831,8 @@ def assessor_mark_attempt(request, code: str):
             "sidebar_questions": sidebar_questions,
             "sidebar_spot": sidebar_spot,
             "working_sheet": _get_working_sheet(attempt),
+            "writing_submission": _get_writing_submission(attempt),
+            "paper_submitted": _get_paper_submitted(attempt),
             "is_finalised": finalised,
             "can_mark": can_mark,
             "can_unlock": finalised and is_moderator(request.user) and attempt.template.moderation_mode == AssessmentTemplate.MODERATION_FULL,
@@ -871,6 +873,27 @@ def _get_working_sheet(attempt):
         return attempt.working_sheet
     except WorkingSheet.DoesNotExist:
         return None
+
+
+def _get_writing_submission(attempt):
+    try:
+        return attempt.writing_submission
+    except WritingSubmission.DoesNotExist:
+        return None
+
+
+def _get_paper_submitted(attempt):
+    """Return True if learner answered Yes to GEN-G-HANDWRITE."""
+    import json as _json
+    resp = Response.objects.filter(
+        attempt=attempt, question__code="GEN-G-HANDWRITE"
+    ).first()
+    if not resp or not resp.response_json:
+        return False
+    try:
+        return _json.loads(resp.response_json).get("answer", "").strip().lower() == "yes"
+    except (ValueError, AttributeError):
+        return False
 
 
 @login_required
@@ -1830,6 +1853,63 @@ def assessor_working_sheet_image(request, code: str):
     data = base64.b64decode(sheet.data)
     response = HttpResponse(data, content_type=sheet.content_type)
     safe_name = re.sub(r'["\r\n\\]', '', sheet.original_filename or f"working_sheet_{code}")
+    response["Content-Disposition"] = f'inline; filename="{safe_name}"'
+    return response
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_writing_submission_upload(request, code: str):
+    """Upload or replace the handwritten essay scan for an attempt."""
+    import base64
+
+    attempt = get_object_or_404(Attempt.objects.select_related("learner"), code=code)
+
+    if request.method != "POST":
+        return redirect("assessment:assessor_mark_attempt", code=code)
+
+    uploaded_file = request.FILES.get("writing_submission")
+    if not uploaded_file:
+        return redirect(f"{reverse('assessment:assessor_mark_attempt', kwargs={'code': code})}?ws_error=1")
+
+    allowed_types = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
+    if uploaded_file.content_type not in allowed_types:
+        return redirect(f"{reverse('assessment:assessor_mark_attempt', kwargs={'code': code})}?ws_error=2")
+
+    header = uploaded_file.read(12)
+    uploaded_file.seek(0)
+    if not _valid_file_magic(header):
+        return redirect(f"{reverse('assessment:assessor_mark_attempt', kwargs={'code': code})}?ws_error=2")
+
+    encoded = base64.b64encode(uploaded_file.read()).decode("utf-8")
+
+    WritingSubmission.objects.update_or_create(
+        attempt=attempt,
+        defaults={
+            "uploaded_by": request.user,
+            "content_type": uploaded_file.content_type,
+            "original_filename": uploaded_file.name,
+            "data": encoded,
+        },
+    )
+
+    q = Question.objects.filter(section__template=attempt.template, code="GEN-G-WRITE").first()
+    qid_param = f"?qid={q.pk}" if q else ""
+    return redirect(f"{reverse('assessment:assessor_mark_attempt', kwargs={'code': code})}{qid_param}&ws_saved=1")
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_writing_submission_image(request, code: str):
+    """Serve the stored handwritten essay image/PDF."""
+    import base64
+    from django.http import HttpResponse
+
+    attempt = get_object_or_404(Attempt, code=code)
+    submission = get_object_or_404(WritingSubmission, attempt=attempt)
+    data = base64.b64decode(submission.data)
+    response = HttpResponse(data, content_type=submission.content_type)
+    safe_name = re.sub(r'["\r\n\\]', '', submission.original_filename or f"writing_{code}")
     response["Content-Disposition"] = f'inline; filename="{safe_name}"'
     return response
 

@@ -29,6 +29,7 @@ Match question (kind == "match"):
 """
 
 import json
+import os
 import re
 
 
@@ -263,6 +264,103 @@ def _auto_mark_tiered_keyword(question, response, key) -> dict:
     }
 
 
+def _auto_mark_ai_rubric(question, response, key) -> dict:
+    """
+    AI-suggested marking for written responses. Always sets needs_review=True.
+    Calls Claude with the rubric and learner text; pre-fills per-criterion scores.
+    """
+    import anthropic
+
+    data = json.loads(response.response_json or "{}")
+    response_text = str(data.get("answer", "")).strip()
+    criteria = key.get("criteria", [])
+    max_marks = float(question.max_marks or 0)
+
+    if not response_text:
+        return _zero_score(question)
+
+    rubric_lines = "\n".join(
+        f"- {c['label']} (0–{c['max_points']} marks): {c.get('description', '')}"
+        for c in criteria
+    )
+    criteria_template = "\n".join(
+        f'    "{c["key"]}": {{"score": <int 0–{int(c["max_points"])}>, "note": "<reason>"}}'
+        for c in criteria
+    )
+
+    prompt = (
+        f"You are marking a written response for an adult learner placement assessment.\n\n"
+        f"TASK PROMPT: {question.prompt}\n\n"
+        f"RUBRIC:\n{rubric_lines}\n\n"
+        f"LEARNER RESPONSE:\n{response_text}\n\n"
+        f"Score each criterion. Respond ONLY with a JSON object:\n"
+        f"{{\n"
+        f'  "criteria": {{\n{criteria_template}\n  }},\n'
+        f'  "summary": "<1–2 sentence overall comment>"\n'
+        f"}}"
+    )
+
+    try:
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ValueError("ANTHROPIC_API_KEY not set")
+
+        client = anthropic.Anthropic(api_key=api_key)
+        msg = client.messages.create(
+            model="claude-opus-4-7",
+            max_tokens=512,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        content = msg.content[0].text.strip()
+        if content.startswith("```"):
+            content = re.sub(r"^```[^\n]*\n?", "", content)
+            content = re.sub(r"\n?```$", "", content)
+
+        ai_result = json.loads(content)
+
+        criteria_payload = []
+        total_points = 0.0
+        for c in criteria:
+            ck = c["key"]
+            max_c = float(c.get("max_points", 0))
+            ai_score = float(ai_result.get("criteria", {}).get(ck, {}).get("score", 0))
+            pts = max(0.0, min(ai_score, max_c))
+            note = ai_result.get("criteria", {}).get(ck, {}).get("note", "")
+            criteria_payload.append({
+                "key": ck,
+                "label": c["label"],
+                "max_points": max_c,
+                "points": pts,
+                "feedback": note,
+            })
+            total_points += pts
+
+        return {
+            "points": total_points,
+            "max_points": max_marks,
+            "rubric_json": {
+                "mode": "ai",
+                "auto_marked": True,
+                "needs_review": True,
+                "criteria": criteria_payload,
+                "notes": ai_result.get("summary", "AI-suggested scores — please review."),
+            },
+        }
+
+    except Exception as exc:
+        return {
+            "points": 0.0,
+            "max_points": max_marks,
+            "rubric_json": {
+                "mode": "ai",
+                "auto_marked": True,
+                "needs_review": True,
+                "notes": f"AI marking unavailable ({exc}). Please mark manually.",
+            },
+        }
+
+
 def auto_mark_response(question, response) -> dict | None:
     """
     Attempt to auto-mark a single response.
@@ -271,6 +369,10 @@ def auto_mark_response(question, response) -> dict | None:
     key = json.loads(question.answer_key_json or "{}")
     if not key.get("auto_mark"):
         return None
+
+    # AI rubric marking for written questions
+    if key.get("ai_rubric"):
+        return _auto_mark_ai_rubric(question, response, key)
 
     # Match questions
     if question.kind == "match" and key.get("match"):

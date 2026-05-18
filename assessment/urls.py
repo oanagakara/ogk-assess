@@ -40,6 +40,8 @@ urlpatterns = [
     path("assessor/attempts/<str:code>/working-sheet/upload/", views.assessor_working_sheet_upload, name="assessor_working_sheet_upload"),
     path("assessor/attempts/<str:code>/working-sheet/image/", views.assessor_working_sheet_image, name="assessor_working_sheet_image"),
     path("assessor/attempts/<str:code>/working-sheet/print/", views.assessor_working_sheet_print, name="assessor_working_sheet_print"),
+    path("assessor/attempts/<str:code>/writing-submission/upload/", views.assessor_writing_submission_upload, name="assessor_writing_submission_upload"),
+    path("assessor/attempts/<str:code>/writing-submission/image/", views.assessor_writing_submission_image, name="assessor_writing_submission_image"),
     path("error-report/", views.error_report, name="error_report"),
     path("assessor/error-preview/<int:code>/", views.error_preview, name="error_preview"),
 ]
