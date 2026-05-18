@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Platform Changelog — NQF Learner Placement Assessment Platform</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 10.5pt; color: #1c1c1e; background: #fff; line-height: 1.75; }
+  @media screen { body { max-width: 1000px; margin: 0 auto; padding: 40px 60px; } }
+  @media print { body { padding: 15mm 18mm; } @page { margin: 0; size: A4 portrait; } }
+
+  .cover { text-align: center; padding: 32px 0 24px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+  .cover h1 { font-size: 18pt; margin-bottom: 4px; }
+  .cover .sub { font-size: 10pt; color: #555; margin-top: 6px; }
+
+  h2.release { font-size: 12pt; font-weight: bold; color: #1e3a5f; border-left: 4px solid #1e3a5f;
+    padding-left: 10px; margin-top: 32px; margin-bottom: 4px; }
+  .release-date { font-size: 9pt; color: #888; padding-left: 14px; margin-bottom: 10px; }
+  ul { margin-left: 22px; margin-bottom: 10px; }
+  li { margin-bottom: 4px; font-size: 10pt; }
+  .tag { display: inline; font-size: 8pt; font-weight: 600; padding: 1px 6px; border-radius: 3px;
+    text-transform: uppercase; letter-spacing: 0.04em; }
+  .tag-new { background: #e0f0e0; color: #1a5c1a; }
+  .tag-fix { background: #fff0d0; color: #7a4800; }
+  .tag-improve { background: #e8eeff; color: #1e3a8a; }
+  .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8.5pt; color: #888; text-align: center; }
+  hr { border: none; border-top: 1px solid #eee; margin: 8px 0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div style="font-size:9pt;color:#888;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">NQF Learner Placement Assessment Platform</div>
+  <h1>Platform Changelog</h1>
+  <div class="sub">Feature releases and improvements — assessor-facing changes</div>
+</div>
+
+<!-- ── 2026-05-18 ── -->
+<h2 class="release">Authentication &amp; Account Management</h2>
+<div class="release-date">18 May 2026</div>
+<ul>
+  <li><span class="tag tag-new">New</span> Assessors can reset a forgotten password via <strong>Forgot password?</strong> on the login page — a secure link is emailed and valid for 1 hour.</li>
+  <li><span class="tag tag-new">New</span> Invite-based self-registration: any assessor can generate a single-use invite link from <strong>Invite Assessor</strong> in the sidebar and share it with a new colleague. The link expires after 48 hours.</li>
+  <li><span class="tag tag-new">New</span> New assessors complete their own registration form — no administrator involvement required for standard assessor accounts.</li>
+</ul>
+
+<!-- ── 2026-05-18 ── -->
+<h2 class="release">Assessor Guide &amp; Training Manual</h2>
+<div class="release-date">9–18 May 2026</div>
+<ul>
+  <li><span class="tag tag-new">New</span> In-app <strong>Assessor Guide</strong> accessible from the sidebar — covers sessions, attempts, marking, results, and working sheets.</li>
+  <li><span class="tag tag-new">New</span> <strong>Assessor Training Manual</strong> (printable PDF, v1.4) — train-the-trainer format with a post-training sign-off checklist.</li>
+</ul>
+
+<!-- ── 2026-05-03 ── -->
+<h2 class="release">Consent Flow &amp; Section Timers</h2>
+<div class="release-date">3 May 2026</div>
+<ul>
+  <li><span class="tag tag-improve">Improved</span> POPIA consent modal unified across session and individual-attempt entry flows.</li>
+  <li><span class="tag tag-improve">Improved</span> Per-section timer: 45 minutes per section, up to 10 minutes review phase per section.</li>
+  <li><span class="tag tag-fix">Fix</span> Workstation number now visible in the consent modal.</li>
+  <li><span class="tag tag-fix">Fix</span> Learner redirected to instructions page (not questions) immediately after consent.</li>
+</ul>
+
+<!-- ── 2026-04-26 ── -->
+<h2 class="release">POPIA Consent Modal</h2>
+<div class="release-date">26 April 2026</div>
+<ul>
+  <li><span class="tag tag-new">New</span> Learners must scroll through and accept the POPIA notice before any assessment begins.</li>
+  <li><span class="tag tag-new">New</span> Consent timestamp recorded on the attempt record.</li>
+</ul>
+
+<!-- ── 2026-04-25 ── -->
+<h2 class="release">Roles, Moderation &amp; Results</h2>
+<div class="release-date">25 April 2026</div>
+<ul>
+  <li><span class="tag tag-new">New</span> Three access roles: <strong>Assessor</strong>, <strong>Moderator</strong>, and <strong>Auditor</strong>. Roles can be stacked.</li>
+  <li><span class="tag tag-new">New</span> Finalisation workflow: assessor finalises a marked attempt; moderator can unlock if required.</li>
+  <li><span class="tag tag-improve">Improved</span> Results page: search by learner name or attempt code, date range filter.</li>
+  <li><span class="tag tag-new">New</span> CSV export from Results page includes all scored attempts.</li>
+</ul>
+
+<!-- ── 2026-04-19–20 ── -->
+<h2 class="release">Score Audit Log, Font Picker &amp; Error Handling</h2>
+<div class="release-date">19–20 April 2026</div>
+<ul>
+  <li><span class="tag tag-new">New</span> Score audit log: every score change (automated or manual) is recorded with who made it and when.</li>
+  <li><span class="tag tag-new">New</span> Learner font picker: System, Comic Sans, Times New Roman, Arial, Century Gothic — preference persists across sessions.</li>
+  <li><span class="tag tag-improve">Improved</span> Custom error pages (400, 403, 404, 500) with clear messaging.</li>
+</ul>
+
+<!-- ── 2026-04-16–18 ── -->
+<h2 class="release">Working Sheets &amp; Marking Interface</h2>
+<div class="release-date">16–18 April 2026</div>
+<ul>
+  <li><span class="tag tag-new">New</span> Print a working sheet for each learner from the session monitor.</li>
+  <li><span class="tag tag-new">New</span> Upload a scanned working sheet to any attempt for record-keeping.</li>
+  <li><span class="tag tag-improve">Improved</span> Review queue scoped to written-response questions only (LIT-D-WRITE).</li>
+  <li><span class="tag tag-improve">Improved</span> Auto-marking fires on all other question types immediately on submission.</li>
+</ul>
+
+<!-- ── 2026-04-19 ── -->
+<h2 class="release">Security Hardening &amp; White-Label Branding</h2>
+<div class="release-date">19 April 2026</div>
+<ul>
+  <li><span class="tag tag-improve">Improved</span> OWASP compliance sprint: CSRF, session hardening, input sanitisation, rate limiting.</li>
+  <li><span class="tag tag-new">New</span> Multi-tenant branding: organisation name, logo, and colour scheme configurable per deployment.</li>
+</ul>
+
+<!-- ── 2026-04-13 ── -->
+<h2 class="release">Session Management &amp; Core Platform</h2>
+<div class="release-date">13 April 2026</div>
+<ul>
+  <li><span class="tag tag-new">New</span> Session codes: one code for multiple learners to join simultaneously.</li>
+  <li><span class="tag tag-new">New</span> Session monitor: live grid showing every learner's status, progress, and time remaining.</li>
+  <li><span class="tag tag-new">New</span> NQF placement logic: literacy and numeracy levels calculated from section scores.</li>
+  <li><span class="tag tag-new">New</span> Results at a Glance: summary table of all marked attempts with placement outcomes.</li>
+  <li><span class="tag tag-new">New</span> PostgreSQL database and Render cloud deployment.</li>
+</ul>
+
+<div class="footer">
+  NQF Learner Placement Assessment Platform &nbsp;·&nbsp; support@oanagakara.co.za
+</div>
+
+</body>
+</html>
