@@ -1383,7 +1383,6 @@ def assessor_results(request):
         .select_related("section")
     )
     q_meta = build_question_metadata(all_questions)
-    logger.info("[results] template_ids=%s q_meta_size=%d", template_ids, len(q_meta))
 
     rows = [compute_nqf_placement(attempt, q_meta) for attempt in page_obj.object_list]
 
