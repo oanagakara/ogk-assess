@@ -1376,10 +1376,10 @@ def assessor_results(request):
     paginator = Paginator(attempts, per_page)
     page_obj  = paginator.get_page(request.GET.get("page"))
 
-    sections = Section.objects.filter(template__attempt__in=page_obj.object_list).distinct()
+    template_ids = {a.template_id for a in page_obj.object_list}
     all_questions = (
         Question.objects
-        .filter(section__in=sections)
+        .filter(section__template_id__in=template_ids)
         .select_related("section")
     )
     q_meta = build_question_metadata(all_questions)
