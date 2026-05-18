@@ -13,8 +13,7 @@ SPEC = json.dumps({
 }, ensure_ascii=False)
 
 ANSWER_KEY = json.dumps({
-    "auto_mark": True,
-    "ai_rubric": True,
+    "auto_mark": False,
     "criteria": [
         {
             "key": "motivation",
@@ -48,7 +47,12 @@ ANSWER_KEY = json.dumps({
     ],
 }, ensure_ascii=False)
 
-MARKING_NOTES = "AI-suggested scores are pre-filled. Review each criterion and adjust as needed before saving."
+MARKING_NOTES = (
+    "Score each criterion independently. "
+    "MOTIVATION (0-3): motivation stated, elaborated, personal context. "
+    "SKILLS (0-3): specific skills named with relevance. "
+    "LANGUAGE (0-2): sentence quality and length (6-8 sentences)."
+)
 
 
 def add_question(apps, schema_editor):
