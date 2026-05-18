@@ -317,6 +317,30 @@
                                         {% endfor %}
                                     </div>
 
+                                {% elif spec.layout == "writing" %}
+                                    <div class="space-y-3">
+                                        {% if spec.prompt %}
+                                            <div class="font-medium">{{ spec.prompt }}</div>
+                                        {% endif %}
+                                        {% if spec.instructions %}
+                                            <ul class="list-disc pl-5 space-y-1 text-sm opacity-70">
+                                                {% for line in spec.instructions %}
+                                                    <li>{{ line }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                        <textarea
+                                            name="answer"
+                                            style="min-height:180px; resize:vertical;"
+                                            class="textarea textarea-bordered w-full text-base"
+                                            placeholder="Write your response here..."
+                                            spellcheck="false"
+                                            autocorrect="off"
+                                            autocomplete="off"
+                                            autocapitalize="off"
+                                        >{{ current_answer }}</textarea>
+                                    </div>
+
                                 {% else %}
                                     {{ form.answer }}
                                     {% if form.answer.errors %}
@@ -641,6 +665,30 @@
                                                 <span class="label-text text-base">{{ choice }}</span>
                                             </label>
                                         {% endfor %}
+                                    </div>
+
+                                {% elif spec.layout == "writing" %}
+                                    <div class="space-y-3">
+                                        {% if spec.prompt %}
+                                            <div class="font-medium">{{ spec.prompt }}</div>
+                                        {% endif %}
+                                        {% if spec.instructions %}
+                                            <ul class="list-disc pl-5 space-y-1 text-sm opacity-70">
+                                                {% for line in spec.instructions %}
+                                                    <li>{{ line }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                        <textarea
+                                            name="answer"
+                                            style="min-height:180px; resize:vertical;"
+                                            class="textarea textarea-bordered w-full text-base"
+                                            placeholder="Write your response here..."
+                                            spellcheck="false"
+                                            autocorrect="off"
+                                            autocomplete="off"
+                                            autocapitalize="off"
+                                        >{{ current_answer }}</textarea>
                                     </div>
 
                                 {% else %}

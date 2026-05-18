@@ -294,9 +294,13 @@
             </div>
             <div class="flex items-center gap-2">
               {% if row.score and row.score.rubric_json.auto_marked %}
-                <div class="badge {% if row.score.rubric_json.needs_review %}badge-warning{% else %}badge-success{% endif %} badge-sm">
-                  {% if row.score.rubric_json.needs_review %}Review{% else %}Auto-marked{% endif %}
-                </div>
+                {% if row.score.rubric_json.mode == "ai" %}
+                  <div class="badge badge-warning badge-sm">AI suggested</div>
+                {% elif row.score.rubric_json.needs_review %}
+                  <div class="badge badge-warning badge-sm">Review</div>
+                {% else %}
+                  <div class="badge badge-success badge-sm">Auto-marked</div>
+                {% endif %}
               {% endif %}
               <span class="badge badge-outline font-mono">{{ row.awarded|floatformat:"-2" }} / {{ row.max_points|floatformat:"-2" }}</span>
             </div>
