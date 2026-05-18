@@ -166,7 +166,7 @@ LOGGING = {
     "loggers": {
         "django.security": {"handlers": ["console"], "level": "WARNING", "propagate": False},
         "django.request":  {"handlers": ["console"], "level": "ERROR",   "propagate": False},
-        "assessment":      {"handlers": ["console"], "level": "WARNING", "propagate": False},
+        "assessment":      {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
 }
 
