@@ -3,6 +3,7 @@ import csv
 import json
 import logging
 import os
+import random
 import re
 import sys
 import uuid
@@ -1112,8 +1113,14 @@ def _handle_passage_only(request, attempt, question, spec, n, total, expires_at,
 
 def _handle_with_response(request, attempt, question, spec, n, total, expires_at, *, end_redirect=None, extra_context=None):
     passage = _load_passage(question, spec)
+    # Seed-shuffle MCQ choices (>2 options) so order is stable per attempt but
+    # varies across attempts, defeating answer-pattern copying between learners.
+    if isinstance(spec.get("choices"), list) and len(spec["choices"]) > 2:
+        rng = random.Random(f"{attempt.code}:{question.pk}")
+        spec["choices"] = list(spec["choices"])
+        rng.shuffle(spec["choices"])
     response, _ = Response.objects.get_or_create(attempt=attempt, question=question)
-    renderer = get_renderer(question, spec, response)
+    renderer = get_renderer(question, spec, response, attempt=attempt)
     form = renderer.get_form(request)
 
     if request.method == "POST":

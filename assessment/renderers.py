@@ -6,10 +6,16 @@ from .forms import TextResponseForm, MatchResponseForm
 class BaseRenderer:
     template = "assessment/question.html"
 
-    def __init__(self, question, spec, response):
+    def __init__(self, question, spec, response, attempt=None):
         self.question = question
         self.spec = spec
         self.response = response
+        self.attempt = attempt
+
+    def _rng(self):
+        """Seeded RNG — stable per attempt+question, varies across attempts."""
+        seed = f"{self.attempt.code}:{self.question.pk}" if self.attempt else None
+        return random.Random(seed)
 
     def get_form(self, request):
         return None
@@ -32,16 +38,16 @@ def register_renderer(name):
     return decorator
 
 
-def get_renderer(question, spec, response):
+def get_renderer(question, spec, response, attempt=None):
     layout = spec.get("layout")
 
     if layout in RENDERERS:
-        return RENDERERS[layout](question, spec, response)
+        return RENDERERS[layout](question, spec, response, attempt=attempt)
 
     if question.kind in RENDERERS:
-        return RENDERERS[question.kind](question, spec, response)
+        return RENDERERS[question.kind](question, spec, response, attempt=attempt)
 
-    return BaseRenderer(question, spec, response)
+    return BaseRenderer(question, spec, response, attempt=attempt)
 
 
 @register_renderer("text")
@@ -91,11 +97,12 @@ class MatchRenderer(BaseRenderer):
         self.response.save(update_fields=["response_json"])
 
     def get_context(self):
+        rng = self._rng()
         if isinstance(self.spec.get("bank"), list):
-            random.shuffle(self.spec["bank"])
+            rng.shuffle(self.spec["bank"])
         targets = self.spec.get("targets", [])
         if isinstance(targets, list):
-            random.shuffle(targets)
+            rng.shuffle(targets)
 
         matched = {}
         if self.response.response_json:
