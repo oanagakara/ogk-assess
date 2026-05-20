@@ -138,7 +138,7 @@ def _auto_mark_sentence_word(question, response, key) -> dict:
         "rubric_json": {
             "mode": "auto",
             "auto_marked": True,
-            "needs_review": False,
+            "needs_review": True,
             "notes": note,
         },
     }
