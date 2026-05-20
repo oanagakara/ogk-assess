@@ -182,7 +182,7 @@
 
                                     <div class="gap-3" style="display:grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 1fr;">
                                         {% for t in spec.targets %}
-                                            <div class="card bg-base-200 shadow">
+                                            <div class="card bg-base-200 shadow" style="min-width:0;">
                                                 <div class="card-body p-3">
                                                     <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
                                                     <div
@@ -261,9 +261,6 @@
                                     }
 
                                     document.addEventListener("dragstart", onDragStart);
-                                    document.addEventListener("dragstart", () => { document.body.style.overflow = "hidden"; });
-                                    document.addEventListener("dragend",   () => { document.body.style.overflow = ""; });
-                                    document.addEventListener("drop",      () => { document.body.style.overflow = ""; });
 
                                     targets.forEach(t => {
                                         t.addEventListener("dragover", e => e.preventDefault());
@@ -422,7 +419,7 @@
 
                                     <div class="gap-3" style="display:grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 1fr;">
                                         {% for t in spec.targets %}
-                                            <div class="card bg-base-200 shadow">
+                                            <div class="card bg-base-200 shadow" style="min-width:0;">
                                                 <div class="card-body p-3">
                                                     <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
                                                     <div
@@ -501,9 +498,6 @@
                                     }
 
                                     document.addEventListener("dragstart", onDragStart);
-                                    document.addEventListener("dragstart", () => { document.body.style.overflow = "hidden"; });
-                                    document.addEventListener("dragend",   () => { document.body.style.overflow = ""; });
-                                    document.addEventListener("drop",      () => { document.body.style.overflow = ""; });
 
                                     targets.forEach(t => {
                                         t.addEventListener("dragover", e => e.preventDefault());
