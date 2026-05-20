@@ -258,6 +258,9 @@
                                     }
 
                                     document.addEventListener("dragstart", onDragStart);
+                                    document.addEventListener("dragstart", () => { document.body.style.overflow = "hidden"; });
+                                    document.addEventListener("dragend",   () => { document.body.style.overflow = ""; });
+                                    document.addEventListener("drop",      () => { document.body.style.overflow = ""; });
 
                                     targets.forEach(t => {
                                         t.addEventListener("dragover", e => e.preventDefault());
@@ -492,6 +495,9 @@
                                     }
 
                                     document.addEventListener("dragstart", onDragStart);
+                                    document.addEventListener("dragstart", () => { document.body.style.overflow = "hidden"; });
+                                    document.addEventListener("dragend",   () => { document.body.style.overflow = ""; });
+                                    document.addEventListener("drop",      () => { document.body.style.overflow = ""; });
 
                                     targets.forEach(t => {
                                         t.addEventListener("dragover", e => e.preventDefault());
