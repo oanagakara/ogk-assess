@@ -1,533 +1,533 @@
 [
-{
-  "model": "assessment.assessmenttemplate",
-  "pk": 2,
-  "fields": {
-    "name": "Questions",
-    "version": "V1",
-    "created_by": null,
-    "created_at": "2026-02-19T21:32:37.617Z"
+  {
+    "model": "assessment.assessmenttemplate",
+    "pk": 2,
+    "fields": {
+      "name": "Questions",
+      "version": "V1",
+      "created_by": null,
+      "created_at": "2026-02-19T21:32:37.617Z"
+    }
+  },
+  {
+    "model": "assessment.assessmenttemplate",
+    "pk": 3,
+    "fields": {
+      "name": "NQF Learner Placement Assessment",
+      "version": "v1",
+      "created_by": null,
+      "created_at": "2026-02-22T07:00:25.894Z"
+    }
+  },
+  {
+    "model": "assessment.assessmenttemplate",
+    "pk": 4,
+    "fields": {
+      "name": "Test",
+      "version": "v1",
+      "created_by": null,
+      "created_at": "2026-02-22T14:12:26.463Z"
+    }
+  },
+  {
+    "model": "assessment.section",
+    "pk": 1,
+    "fields": {
+      "template": 2,
+      "title": "Literacy",
+      "order": 1
+    }
+  },
+  {
+    "model": "assessment.section",
+    "pk": 2,
+    "fields": {
+      "template": 2,
+      "title": "Numeracy",
+      "order": 0
+    }
+  },
+  {
+    "model": "assessment.section",
+    "pk": 3,
+    "fields": {
+      "template": 3,
+      "title": "SECTION 1: LITERACY (45 MINUTES)",
+      "order": 1
+    }
+  },
+  {
+    "model": "assessment.section",
+    "pk": 4,
+    "fields": {
+      "template": 3,
+      "title": "SECTION 2: NUMERACY (45 MINUTES)",
+      "order": 2
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 3,
+    "fields": {
+      "section": 3,
+      "order": 2,
+      "code": "LIT-A-1",
+      "prompt": "Part A: Vocabulary & Sentences (NQF 1–2)",
+      "kind": "match",
+      "max_marks": 4,
+      "spec_json": "{\r\n  \"prompt\": \"1) Match the word to the meaning:\",\r\n  \"bank\": [\"Apply\", \"Interview\", \"Contract\", \"Salary\"],\r\n  \"targets\": [\r\n    {\"id\": \"t1\", \"text\": \"Money you earn from work\"},\r\n    {\"id\": \"t2\", \"text\": \"A meeting where you answer questions for a job\"},\r\n    {\"id\": \"t3\", \"text\": \"A written agreement\"},\r\n    {\"id\": \"t4\", \"text\": \"Ask for a job or programme\"}\r\n  ]\r\n}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"Salary\", \"t2\": \"Interview\", \"t3\": \"Contract\", \"t4\": \"Apply\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 4,
+    "fields": {
+      "section": 3,
+      "order": 3,
+      "code": "LIT-A-2A",
+      "prompt": "2a) Choose the correct word:\nShe ____ (go / went) to the interview yesterday.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"kind_hint\": \"mcq_or_choice\"}",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"went\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 5,
+    "fields": {
+      "section": 3,
+      "order": 4,
+      "code": "LIT-A-2B",
+      "prompt": "2b) Choose the correct word:\nThe supervisor asked me to ____ (fill / filled) in the form.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"kind_hint\": \"mcq_or_choice\"}",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"fill\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 6,
+    "fields": {
+      "section": 3,
+      "order": 5,
+      "code": "LIT-A-3A",
+      "prompt": "3) Write a sentence using the word: Learn",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"sentence_word\": \"learn\", \"min_words\": 4, \"flag_always\": true}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 7,
+    "fields": {
+      "section": 3,
+      "order": 6,
+      "code": "LIT-A-3B",
+      "prompt": "3) Write a sentence using the word: Work",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"sentence_word\": \"work\", \"min_words\": 4, \"flag_always\": true}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 8,
+    "fields": {
+      "section": 3,
+      "order": 7,
+      "code": "LIT-A-3C",
+      "prompt": "3) Write a sentence using the word: Help",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"sentence_word\": \"help\", \"min_words\": 4, \"flag_always\": true}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 9,
+    "fields": {
+      "section": 3,
+      "order": 8,
+      "code": "LIT-B-READ",
+      "prompt": "Part B: Reading Comprehension (NQF 2-3)\n\nRead the text:\n\nThandi is 23 years old. She lives in a township near Cape Town.\n\nShe wants to join a learnership in Office Administration.\n\nShe sends her CV to a training provider and goes for an interview. She hopes the programme will help her get a job and support her family.",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\r\n  \"layout\": \"passage_only\",\r\n  \"passage_key\": \"thandi\"\r\n}",
+      "answer_key_json": "",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 10,
+    "fields": {
+      "section": 3,
+      "order": 9,
+      "code": "LIT-B-1",
+      "prompt": "1) How old is Thandi?",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\r\n  \"layout\": \"passage_split\",\r\n  \"passage_key\": \"thandi\"\r\n}",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"23\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 11,
+    "fields": {
+      "section": 3,
+      "order": 10,
+      "code": "LIT-B-2",
+      "prompt": "2) What programme does she want to join?",
+      "kind": "text",
+      "max_marks": 2,
+      "spec_json": "{\r\n  \"layout\": \"passage_split\",\r\n  \"passage_key\": \"thandi\"\r\n}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_per_mark\": [\"Office Administration\", \"learnership\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 12,
+    "fields": {
+      "section": 3,
+      "order": 11,
+      "code": "LIT-B-3",
+      "prompt": "3) Why does she want to join the learnership?",
+      "kind": "text",
+      "max_marks": 2,
+      "spec_json": "{\r\n  \"layout\": \"passage_split\",\r\n  \"passage_key\": \"thandi\"\r\n}",
+      "answer_key_json": "{\"auto_mark\": true, \"tiered_keyword\": [{\"marks\": 2, \"require_all\": [\"family\"], \"require_any\": [\"support\", \"help\", \"provide\", \"care\", \"look after\"]}], \"flag_always\": false}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 13,
+    "fields": {
+      "section": 3,
+      "order": 12,
+      "code": "LIT-B-4",
+      "prompt": "4) What does “support her family” mean?",
+      "kind": "text",
+      "max_marks": 2,
+      "spec_json": "{\r\n  \"layout\": \"passage_split\",\r\n  \"passage_key\": \"thandi\"\r\n}",
+      "answer_key_json": "",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 14,
+    "fields": {
+      "section": 3,
+      "order": 13,
+      "code": "LIT-C-FORM",
+      "prompt": "Part C: Functional Literacy (NQF 3)\r\n\r\nComplete the form:\r\nName: __________\r\nID Number: __________\r\nCell Number: __________\r\nHighest Grade Passed: __________\r\nDisability (if any): __________",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\r\n  \"layout\": \"form_fill\",\r\n  \"fields\": [\r\n    {\"name\": \"name\", \"label\": \"Name\", \"type\": \"text\", \"required\": true},\r\n    {\"name\": \"id_number\", \"label\": \"ID Number\", \"type\": \"text\", \"required\": true},\r\n    {\"name\": \"cell_number\", \"label\": \"Cell Number\", \"type\": \"text\", \"required\": true},\r\n    {\"name\": \"highest_grade\", \"label\": \"Highest Grade Passed\", \"type\": \"text\", \"required\": true},\r\n    {\"name\": \"disability\", \"label\": \"Disability (if any)\", \"type\": \"text\", \"required\": false}\r\n  ]\r\n}",
+      "answer_key_json": "",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 15,
+    "fields": {
+      "section": 3,
+      "order": 14,
+      "code": "LIT-C-1",
+      "prompt": "1) Why is this form important?",
+      "kind": "text",
+      "max_marks": 3,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"tiered_keyword\": [{\"marks\": 3, \"require_all\": [\"full name\", \"ID number\", \"contact\", \"grade\", \"disability\"]}, {\"marks\": 2, \"require_any\": [\"basic personal information\"]}, {\"marks\": 1, \"require_any\": [\"basic information\"]}], \"flag_always\": false}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 16,
+    "fields": {
+      "section": 3,
+      "order": 15,
+      "code": "LIT-C-2",
+      "prompt": "2) What does “if any” mean?",
+      "kind": "text",
+      "max_marks": 2,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"tiered_keyword\": [{\"marks\": 2, \"require_any\": [\"exist\", \"exists\", \"existing\", \"existence\"], \"min_words\": 4}, {\"marks\": 1, \"require_any\": [\"exist\", \"exists\", \"existing\", \"existence\"]}]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 17,
+    "fields": {
+      "section": 3,
+      "order": 16,
+      "code": "LIT-D-WRITE",
+      "prompt": "Part D: Writing Task (NQF 3–4)\n\nWrite a short paragraph (6–8 sentences):\n“Why I want to join a learnership and what skills I want to develop.”\n",
+      "kind": "text",
+      "max_marks": 8,
+      "spec_json": "",
+      "answer_key_json": "",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 18,
+    "fields": {
+      "section": 4,
+      "order": 17,
+      "code": "NUM-A-INTRO",
+      "prompt": "Part A: Basic Arithmetic (NQF 1–2)",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\r\n  \"layout\": \"info_only\",\r\n  \"title\": \"Part A: Basic Arithmetic (NQF 1–2)\",\r\n  \"instructions\": [\r\n    \"Work on one question at a time\",\r\n    \"You may skip and come back\",\r\n    \"No phones, dictionaries, or calculators\",\r\n    \"Ask the facilitator for help if instructions are not clear\"\r\n  ]\r\n}",
+      "answer_key_json": "",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 19,
+    "fields": {
+      "section": 4,
+      "order": 18,
+      "code": "NUM-A-1",
+      "prompt": "1) 25 + 47 =",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"72\"], \"working_keywords\": [], \"partial_marks\": 0}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 20,
+    "fields": {
+      "section": 4,
+      "order": 19,
+      "code": "NUM-A-2",
+      "prompt": "2) 100 − 38 =",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"62\"], \"working_keywords\": [], \"partial_marks\": 0}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 21,
+    "fields": {
+      "section": 4,
+      "order": 20,
+      "code": "NUM-A-3",
+      "prompt": "3) 6 × 7 =",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"42\"], \"working_keywords\": [], \"partial_marks\": 0}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 22,
+    "fields": {
+      "section": 4,
+      "order": 21,
+      "code": "NUM-A-4",
+      "prompt": "4) 84 ÷ 4 =",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"21\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 23,
+    "fields": {
+      "section": 4,
+      "order": 22,
+      "code": "NUM-B-INTRO",
+      "prompt": "Part B: Fractions & Percentages (NQF 2–3)",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\r\n  \"layout\": \"info_only\",\r\n  \"title\": \"Part B: Fractions & Percentages (NQF 2–3)\",\r\n  \"instructions\": [\r\n    \"Work on one question at a time\",\r\n    \"You may skip and come back\",\r\n    \"No phones, dictionaries, or calculators\",\r\n    \"Ask the facilitator for help if instructions are not clear\"\r\n  ]\r\n}",
+      "answer_key_json": "",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 24,
+    "fields": {
+      "section": 4,
+      "order": 23,
+      "code": "NUM-B-1",
+      "prompt": "1) What is ½ of 60?",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"30\"], \"working_keywords\": [], \"partial_marks\": 0}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 25,
+    "fields": {
+      "section": 4,
+      "order": 24,
+      "code": "NUM-B-2",
+      "prompt": "2) What is 25% of 200?",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"50\"], \"working_keywords\": [\"200\", \"25\"], \"partial_marks\": 0, \"flag_if_no_working\": true}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 26,
+    "fields": {
+      "section": 4,
+      "order": 25,
+      "code": "NUM-B-3",
+      "prompt": "3) A jacket costs R400. It is on special with 10% off. → How much do you pay?",
+      "kind": "text",
+      "max_marks": 2,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"360\"], \"working_keywords\": [\"40\", \"9\"], \"partial_marks\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 27,
+    "fields": {
+      "section": 4,
+      "order": 26,
+      "code": "NUM-C-INTRO",
+      "prompt": "Part C: Time, Distance & Money (NQF 3)",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\r\n  \"layout\": \"info_only\",\r\n  \"title\": \"Part C: Time, Distance & Money (NQF 3)\",\r\n  \"instructions\": [\r\n    \"Work on one question at a time\",\r\n    \"You may skip and come back\",\r\n    \"No phones, dictionaries, or calculators\",\r\n    \"Ask the facilitator for help if instructions are not clear\"\r\n  ]\r\n}",
+      "answer_key_json": "",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 28,
+    "fields": {
+      "section": 4,
+      "order": 27,
+      "code": "NUM-C-1",
+      "prompt": "1) Your shift starts at 08:00 and ends at 16:30. → How many hours do you work?",
+      "kind": "text",
+      "max_marks": 2,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"8.5\", \"8,5\"], \"working_keywords\": [\"8\", \"30\"], \"partial_marks\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 29,
+    "fields": {
+      "section": 4,
+      "order": 28,
+      "code": "NUM-C-2",
+      "prompt": "2) You travel 15 km to training and 15 km back. → How far in total per day?",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"30\"], \"working_keywords\": [], \"partial_marks\": 0}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 30,
+    "fields": {
+      "section": 4,
+      "order": 29,
+      "code": "NUM-C-3",
+      "prompt": "3) Your monthly stipend is R4,000.\nYou spend:\n• Transport: R800\n• Food: R1,200\n• Airtime: R300\n\n→ How much money is left?",
+      "kind": "text",
+      "max_marks": 2,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"1700\"], \"working_keywords\": [\"2300\", \"600\"], \"partial_marks\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 31,
+    "fields": {
+      "section": 4,
+      "order": 30,
+      "code": "NUM-D-INTRO",
+      "prompt": "Part D: Patterns & Simple Algebra (NQF 3–4)",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\r\n  \"layout\": \"info_only\",\r\n  \"title\": \"Part D: Patterns & Simple Algebra (NQF 3–4)\",\r\n  \"instructions\": [\r\n    \"Work on one question at a time\",\r\n    \"You may skip and come back\",\r\n    \"No phones, dictionaries, or calculators\",\r\n    \"Ask the facilitator for help if instructions are not clear\"\r\n  ]\r\n}",
+      "answer_key_json": "",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 32,
+    "fields": {
+      "section": 4,
+      "order": 31,
+      "code": "NUM-D-1",
+      "prompt": "1) Complete the pattern:\n2, 4, 6, 8, ___",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"10\"], \"working_keywords\": [], \"partial_marks\": 0}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 33,
+    "fields": {
+      "section": 4,
+      "order": 32,
+      "code": "NUM-D-2",
+      "prompt": "2) Solve:\n5x + 10 = 30",
+      "kind": "text",
+      "max_marks": 2,
+      "spec_json": "",
+      "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"4\"], \"working_keywords\": [\"20\", \"5\"], \"partial_marks\": 1}",
+      "marking_notes": ""
+    }
   }
-},
-{
-  "model": "assessment.assessmenttemplate",
-  "pk": 3,
-  "fields": {
-    "name": "NQF Learner Placement Assessment",
-    "version": "v1",
-    "created_by": null,
-    "created_at": "2026-02-22T07:00:25.894Z"
-  }
-},
-{
-  "model": "assessment.assessmenttemplate",
-  "pk": 4,
-  "fields": {
-    "name": "Test",
-    "version": "v1",
-    "created_by": null,
-    "created_at": "2026-02-22T14:12:26.463Z"
-  }
-},
-{
-  "model": "assessment.section",
-  "pk": 1,
-  "fields": {
-    "template": 2,
-    "title": "Literacy",
-    "order": 1
-  }
-},
-{
-  "model": "assessment.section",
-  "pk": 2,
-  "fields": {
-    "template": 2,
-    "title": "Numeracy",
-    "order": 0
-  }
-},
-{
-  "model": "assessment.section",
-  "pk": 3,
-  "fields": {
-    "template": 3,
-    "title": "SECTION 1: LITERACY (45 MINUTES)",
-    "order": 1
-  }
-},
-{
-  "model": "assessment.section",
-  "pk": 4,
-  "fields": {
-    "template": 3,
-    "title": "SECTION 2: NUMERACY (45 MINUTES)",
-    "order": 2
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 3,
-  "fields": {
-    "section": 3,
-    "order": 2,
-    "code": "LIT-A-1",
-    "prompt": "Part A: Vocabulary & Sentences (NQF 1–2)",
-    "kind": "match",
-    "max_marks": 4,
-    "spec_json": "{\r\n  \"prompt\": \"1) Match the word to the meaning:\",\r\n  \"bank\": [\"Apply\", \"Interview\", \"Contract\", \"Salary\"],\r\n  \"targets\": [\r\n    {\"id\": \"t1\", \"text\": \"Money you earn from work\"},\r\n    {\"id\": \"t2\", \"text\": \"A meeting where you answer questions for a job\"},\r\n    {\"id\": \"t3\", \"text\": \"A written agreement\"},\r\n    {\"id\": \"t4\", \"text\": \"Ask for a job or programme\"}\r\n  ]\r\n}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"Salary\", \"t2\": \"Interview\", \"t3\": \"Contract\", \"t4\": \"Apply\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 4,
-  "fields": {
-    "section": 3,
-    "order": 3,
-    "code": "LIT-A-2A",
-    "prompt": "2a) Choose the correct word:\nShe ____ (go / went) to the interview yesterday.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"kind_hint\": \"mcq_or_choice\"}",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"went\"]}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 5,
-  "fields": {
-    "section": 3,
-    "order": 4,
-    "code": "LIT-A-2B",
-    "prompt": "2b) Choose the correct word:\nThe supervisor asked me to ____ (fill / filled) in the form.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"kind_hint\": \"mcq_or_choice\"}",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"fill\"]}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 6,
-  "fields": {
-    "section": 3,
-    "order": 5,
-    "code": "LIT-A-3A",
-    "prompt": "3) Write a sentence using the word: Learn",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"sentence_word\": \"learn\", \"min_words\": 4}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 7,
-  "fields": {
-    "section": 3,
-    "order": 6,
-    "code": "LIT-A-3B",
-    "prompt": "3) Write a sentence using the word: Work",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"sentence_word\": \"work\", \"min_words\": 4}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 8,
-  "fields": {
-    "section": 3,
-    "order": 7,
-    "code": "LIT-A-3C",
-    "prompt": "3) Write a sentence using the word: Help",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"sentence_word\": \"help\", \"min_words\": 4}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 9,
-  "fields": {
-    "section": 3,
-    "order": 8,
-    "code": "LIT-B-READ",
-    "prompt": "Part B: Reading Comprehension (NQF 2-3)\n\nRead the text:\n\nThandi is 23 years old. She lives in a township near Cape Town.\n\nShe wants to join a learnership in Office Administration.\n\nShe sends her CV to a training provider and goes for an interview. She hopes the programme will help her get a job and support her family.",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\r\n  \"layout\": \"passage_only\",\r\n  \"passage_key\": \"thandi\"\r\n}",
-    "answer_key_json": "",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 10,
-  "fields": {
-    "section": 3,
-    "order": 9,
-    "code": "LIT-B-1",
-    "prompt": "1) How old is Thandi?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\r\n  \"layout\": \"passage_split\",\r\n  \"passage_key\": \"thandi\"\r\n}",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"23\"]}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 11,
-  "fields": {
-    "section": 3,
-    "order": 10,
-    "code": "LIT-B-2",
-    "prompt": "2) What programme does she want to join?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\r\n  \"layout\": \"passage_split\",\r\n  \"passage_key\": \"thandi\"\r\n}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"Office Administration\", \"learnership\"], \"partial_marks\": 0, \"flag_always\": false}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 12,
-  "fields": {
-    "section": 3,
-    "order": 11,
-    "code": "LIT-B-3",
-    "prompt": "3) Why does she want to join the learnership?",
-    "kind": "text",
-    "max_marks": 2,
-    "spec_json": "{\r\n  \"layout\": \"passage_split\",\r\n  \"passage_key\": \"thandi\"\r\n}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"support\", \"family\"], \"partial_marks\": 1, \"flag_always\": true}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 13,
-  "fields": {
-    "section": 3,
-    "order": 12,
-    "code": "LIT-B-4",
-    "prompt": "4) What does “support her family” mean?",
-    "kind": "text",
-    "max_marks": 2,
-    "spec_json": "{\r\n  \"layout\": \"passage_split\",\r\n  \"passage_key\": \"thandi\"\r\n}",
-    "answer_key_json": "",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 14,
-  "fields": {
-    "section": 3,
-    "order": 13,
-    "code": "LIT-C-FORM",
-    "prompt": "Part C: Functional Literacy (NQF 3)\r\n\r\nComplete the form:\r\nName: __________\r\nID Number: __________\r\nCell Number: __________\r\nHighest Grade Passed: __________\r\nDisability (if any): __________",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\r\n  \"layout\": \"form_fill\",\r\n  \"fields\": [\r\n    {\"name\": \"name\", \"label\": \"Name\", \"type\": \"text\", \"required\": true},\r\n    {\"name\": \"id_number\", \"label\": \"ID Number\", \"type\": \"text\", \"required\": true},\r\n    {\"name\": \"cell_number\", \"label\": \"Cell Number\", \"type\": \"text\", \"required\": true},\r\n    {\"name\": \"highest_grade\", \"label\": \"Highest Grade Passed\", \"type\": \"text\", \"required\": true},\r\n    {\"name\": \"disability\", \"label\": \"Disability (if any)\", \"type\": \"text\", \"required\": false}\r\n  ]\r\n}",
-    "answer_key_json": "",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 15,
-  "fields": {
-    "section": 3,
-    "order": 14,
-    "code": "LIT-C-1",
-    "prompt": "1) Why is this form important?",
-    "kind": "text",
-    "max_marks": 2,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"information\", \"assessment\"], \"partial_marks\": 1, \"flag_always\": true}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 16,
-  "fields": {
-    "section": 3,
-    "order": 15,
-    "code": "LIT-C-2",
-    "prompt": "2) What does “if any” mean?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"existing\", \"condition\"], \"partial_marks\": 0, \"flag_always\": false}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 17,
-  "fields": {
-    "section": 3,
-    "order": 16,
-    "code": "LIT-D-WRITE",
-    "prompt": "Part D: Writing Task (NQF 3–4)\n\nWrite a short paragraph (6–8 sentences):\n“Why I want to join a learnership and what skills I want to develop.”\n",
-    "kind": "text",
-    "max_marks": 8,
-    "spec_json": "",
-    "answer_key_json": "",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 18,
-  "fields": {
-    "section": 4,
-    "order": 17,
-    "code": "NUM-A-INTRO",
-    "prompt": "Part A: Basic Arithmetic (NQF 1–2)",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\r\n  \"layout\": \"info_only\",\r\n  \"title\": \"Part A: Basic Arithmetic (NQF 1–2)\",\r\n  \"instructions\": [\r\n    \"Work on one question at a time\",\r\n    \"You may skip and come back\",\r\n    \"No phones, dictionaries, or calculators\",\r\n    \"Ask the facilitator for help if instructions are not clear\"\r\n  ]\r\n}",
-    "answer_key_json": "",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 19,
-  "fields": {
-    "section": 4,
-    "order": 18,
-    "code": "NUM-A-1",
-    "prompt": "1) 25 + 47 =",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"72\"], \"working_keywords\": [], \"partial_marks\": 0}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 20,
-  "fields": {
-    "section": 4,
-    "order": 19,
-    "code": "NUM-A-2",
-    "prompt": "2) 100 − 38 =",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"62\"], \"working_keywords\": [], \"partial_marks\": 0}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 21,
-  "fields": {
-    "section": 4,
-    "order": 20,
-    "code": "NUM-A-3",
-    "prompt": "3) 6 × 7 =",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"42\"], \"working_keywords\": [], \"partial_marks\": 0}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 22,
-  "fields": {
-    "section": 4,
-    "order": 21,
-    "code": "NUM-A-4",
-    "prompt": "4) 84 ÷ 4 =",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"21\"]}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 23,
-  "fields": {
-    "section": 4,
-    "order": 22,
-    "code": "NUM-B-INTRO",
-    "prompt": "Part B: Fractions & Percentages (NQF 2–3)",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\r\n  \"layout\": \"info_only\",\r\n  \"title\": \"Part B: Fractions & Percentages (NQF 2–3)\",\r\n  \"instructions\": [\r\n    \"Work on one question at a time\",\r\n    \"You may skip and come back\",\r\n    \"No phones, dictionaries, or calculators\",\r\n    \"Ask the facilitator for help if instructions are not clear\"\r\n  ]\r\n}",
-    "answer_key_json": "",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 24,
-  "fields": {
-    "section": 4,
-    "order": 23,
-    "code": "NUM-B-1",
-    "prompt": "1) What is ½ of 60?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"30\"], \"working_keywords\": [], \"partial_marks\": 0}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 25,
-  "fields": {
-    "section": 4,
-    "order": 24,
-    "code": "NUM-B-2",
-    "prompt": "2) What is 25% of 200?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"50\"], \"working_keywords\": [\"200\", \"25\", \"100\"], \"partial_marks\": 0, \"flag_if_no_working\": true}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 26,
-  "fields": {
-    "section": 4,
-    "order": 25,
-    "code": "NUM-B-3",
-    "prompt": "3) A jacket costs R400. It is on special with 10% off. → How much do you pay?",
-    "kind": "text",
-    "max_marks": 2,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"360\"], \"working_keywords\": [\"40\"], \"partial_marks\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 27,
-  "fields": {
-    "section": 4,
-    "order": 26,
-    "code": "NUM-C-INTRO",
-    "prompt": "Part C: Time, Distance & Money (NQF 3)",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\r\n  \"layout\": \"info_only\",\r\n  \"title\": \"Part C: Time, Distance & Money (NQF 3)\",\r\n  \"instructions\": [\r\n    \"Work on one question at a time\",\r\n    \"You may skip and come back\",\r\n    \"No phones, dictionaries, or calculators\",\r\n    \"Ask the facilitator for help if instructions are not clear\"\r\n  ]\r\n}",
-    "answer_key_json": "",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 28,
-  "fields": {
-    "section": 4,
-    "order": 27,
-    "code": "NUM-C-1",
-    "prompt": "1) Your shift starts at 08:00 and ends at 16:30. → How many hours do you work?",
-    "kind": "text",
-    "max_marks": 2,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"8.5\", \"8,5\"], \"working_keywords\": [\"16:30\", \"08:00\"], \"partial_marks\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 29,
-  "fields": {
-    "section": 4,
-    "order": 28,
-    "code": "NUM-C-2",
-    "prompt": "2) You travel 15 km to training and 15 km back. → How far in total per day?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"30\"], \"working_keywords\": [], \"partial_marks\": 0}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 30,
-  "fields": {
-    "section": 4,
-    "order": 29,
-    "code": "NUM-C-3",
-    "prompt": "3) Your monthly stipend is R4,000.\nYou spend:\n• Transport: R800\n• Food: R1,200\n• Airtime: R300\n\n→ How much money is left?",
-    "kind": "text",
-    "max_marks": 2,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"1700\"], \"working_keywords\": [\"2300\"], \"partial_marks\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 31,
-  "fields": {
-    "section": 4,
-    "order": 30,
-    "code": "NUM-D-INTRO",
-    "prompt": "Part D: Patterns & Simple Algebra (NQF 3–4)",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\r\n  \"layout\": \"info_only\",\r\n  \"title\": \"Part D: Patterns & Simple Algebra (NQF 3–4)\",\r\n  \"instructions\": [\r\n    \"Work on one question at a time\",\r\n    \"You may skip and come back\",\r\n    \"No phones, dictionaries, or calculators\",\r\n    \"Ask the facilitator for help if instructions are not clear\"\r\n  ]\r\n}",
-    "answer_key_json": "",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 32,
-  "fields": {
-    "section": 4,
-    "order": 31,
-    "code": "NUM-D-1",
-    "prompt": "1) Complete the pattern:\n2, 4, 6, 8, ___",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"10\"], \"working_keywords\": [], \"partial_marks\": 0}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 33,
-  "fields": {
-    "section": 4,
-    "order": 32,
-    "code": "NUM-D-2",
-    "prompt": "2) Solve:\n5x + 10 = 30",
-    "kind": "text",
-    "max_marks": 2,
-    "spec_json": "",
-    "answer_key_json": "{\"auto_mark\": true, \"answers\": [\"4\"], \"working_keywords\": [\"20\"], \"partial_marks\": 1}",
-    "marking_notes": ""
-  }
-}
 ]
