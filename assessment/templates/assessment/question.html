@@ -211,6 +211,8 @@
                                     }
 
                                     function renderFromState() {
+                                        const sy = window.scrollY;
+
                                         targets.forEach(t => {
                                             t.innerHTML = '<span class="opacity-50 text-sm" style="line-height:40px;">Drop here</span>';
                                         });
@@ -235,6 +237,7 @@
                                         });
 
                                         hidden.value = JSON.stringify(state);
+                                        window.scrollTo(0, sy);
                                     }
 
                                     function onDragStart(e) {
@@ -448,6 +451,8 @@
                                     }
 
                                     function renderFromState() {
+                                        const sy = window.scrollY;
+
                                         targets.forEach(t => {
                                             t.innerHTML = '<span class="opacity-50 text-sm" style="line-height:40px;">Drop here</span>';
                                         });
@@ -472,6 +477,7 @@
                                         });
 
                                         hidden.value = JSON.stringify(state);
+                                        window.scrollTo(0, sy);
                                     }
 
                                     function onDragStart(e) {
