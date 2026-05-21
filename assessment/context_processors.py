@@ -33,13 +33,29 @@ def assessor_nav_counts(request):
         return {}
 
     real_is_moderator = request.user.is_staff or bool(user_groups & {"moderator", "auditor"})
-    user_is_auditor = request.user.is_staff or "auditor" in user_groups
+    real_is_auditor = request.user.is_staff or "auditor" in user_groups
 
-    # Session-based role downgrade: a moderator/auditor can choose to operate as assessor.
-    active_role = request.session.get("active_role", "moderator" if real_is_moderator else "assessor")
+    # Determine the user's true role label (highest level)
+    if request.user.is_staff:
+        real_role = "admin"
+    elif real_is_auditor:
+        real_role = "auditor"
+    elif real_is_moderator:
+        real_role = "moderator"
+    else:
+        real_role = "assessor"
+
+    # Session-based role downgrade. Defaults to real role (no session key = full access).
+    active_role = request.session.get("active_role", real_role)
+
+    # Clamp: prevent upward self-assignment via tampered session values.
     if not real_is_moderator:
-        active_role = "assessor"  # can't self-assign upwards
+        active_role = "assessor"
+    elif not real_is_auditor and active_role in ("admin", "auditor"):
+        active_role = "moderator"
+
     user_is_moderator = real_is_moderator and active_role != "assessor"
+    user_is_auditor = real_is_auditor and active_role not in ("assessor", "moderator")
 
     has_review_score = Score.objects.filter(
         response__attempt_id=OuterRef("pk"),
@@ -68,6 +84,7 @@ def assessor_nav_counts(request):
         "user_is_moderator": user_is_moderator,
         "user_is_auditor": user_is_auditor,
         "active_role": active_role,
+        "real_role": real_role,
         "can_switch_role": real_is_moderator,
         "nav_counts": {
             "in_progress":  in_progress,
