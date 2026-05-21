@@ -583,6 +583,17 @@ def assessor_dashboard(request):
 
 
 @login_required
+@user_passes_test(is_staff)
+def assessor_metrics_simulate(request):
+    if request.method != "POST":
+        return redirect("assessment:assessor_metrics")
+    from django.core.management import call_command
+    call_command("simulate_session")
+    logger.info("Simulation triggered manually by staff user: %s", request.user.username)
+    return redirect("assessment:assessor_metrics")
+
+
+@login_required
 @user_passes_test(is_assessor)
 def assessor_metrics(request):
     from django.db.models import Sum, FloatField, ExpressionWrapper, F
