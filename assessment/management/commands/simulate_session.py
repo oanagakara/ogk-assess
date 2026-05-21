@@ -14,7 +14,7 @@ Usage:
 
 import json
 import random
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -31,23 +31,24 @@ from assessment.models import (
     Score,
 )
 
-# South African names spanning demographics
+# South African names with demographics, gender, and plausible age
+# (first, last, demographic, gender, age)
 SA_LEARNERS = [
-    ("Thabo",        "Nkosi"),
-    ("Nomvula",      "Dlamini"),
-    ("Sipho",        "Mthembu"),
-    ("Zanele",       "Khumalo"),
-    ("Lungelo",      "Zulu"),
-    ("Ayanda",       "Ndlovu"),
-    ("Bongani",      "Sithole"),
-    ("Nompumelelo",  "Maharaj"),
-    ("Kefilwe",      "Mokoena"),
-    ("Jacques",      "van der Merwe"),
-    ("Priya",        "Govender"),
-    ("Luyanda",      "Ntuli"),
-    ("Amahle",       "Cele"),
-    ("Riaan",        "Botha"),
-    ("Thandeka",     "Mkhize"),
+    ("Thabo",        "Nkosi",          "African",  "male",   34),
+    ("Nomvula",      "Dlamini",        "African",  "female", 28),
+    ("Sipho",        "Mthembu",        "African",  "male",   42),
+    ("Zanele",       "Khumalo",        "African",  "female", 31),
+    ("Lungelo",      "Zulu",           "African",  "male",   23),
+    ("Ayanda",       "Ndlovu",         "African",  "female", 19),
+    ("Bongani",      "Sithole",        "African",  "male",   38),
+    ("Nompumelelo",  "Maharaj",        "Indian",   "female", 27),
+    ("Kefilwe",      "Mokoena",        "African",  "female", 45),
+    ("Jacques",      "van der Merwe",  "White",    "male",   52),
+    ("Priya",        "Govender",       "Indian",   "female", 33),
+    ("Luyanda",      "Ntuli",          "African",  "male",   29),
+    ("Amahle",       "Cele",           "African",  "female", 22),
+    ("Riaan",        "Botha",          "White",    "male",   47),
+    ("Thandeka",     "Mkhize",         "African",  "female", 36),
 ]
 
 # (level_label, score_ratio, count)
@@ -127,14 +128,18 @@ class Command(BaseCommand):
         self.stdout.write(f"\n{'Learner':<25} {'Level':<15} {'Status':<12} {'Q':<6} {'Score'}")
         self.stdout.write("-" * 75)
 
-        for idx, ((first, last), (level, ratio)) in enumerate(zip(SA_LEARNERS, profiles), start=1):
-            # Generate a unique placeholder ID (simulation only — not a real SA ID)
+        for (first, last, demographic, gender, age), (level, ratio) in zip(SA_LEARNERS, profiles):
             import uuid as _uuid
             fake_id = f"S{_uuid.uuid4().hex[:12]}"
+            today = timezone.now().date()
+            dob = date(today.year - age, today.month, today.day)
             learner = Learner.objects.create(
                 first_names=first,
                 surname=last,
                 id_number=fake_id,
+                dob=dob,
+                gender=gender,
+                demographic=demographic,
             )
 
             started = now - timedelta(minutes=random.randint(10, 100))
@@ -172,7 +177,11 @@ class Command(BaseCommand):
                     current_q = random.randint(1, max(1, int(total_q * 0.4)))
                     submitted_at = None
 
-            last_activity = submitted_at or (started + timedelta(minutes=random.randint(5, 95)))
+            # Poor in-progress learners are set 4h stale so they appear as abandoned
+            if level == "poor" and status == Attempt.IN_PROGRESS:
+                last_activity = now - timedelta(hours=4, minutes=random.randint(0, 60))
+            else:
+                last_activity = submitted_at or (started + timedelta(minutes=random.randint(5, 95)))
 
             attempt = Attempt.objects.create(
                 template=template,
@@ -220,6 +229,11 @@ class Command(BaseCommand):
                 )
                 total_awarded += points
                 total_available += max_marks
+
+            # Finalise above_average submitted attempts (simulates completed marking)
+            if level == "above_average" and status == Attempt.SUBMITTED and submitted_at:
+                attempt.finalised_at = submitted_at + timedelta(minutes=random.randint(10, 30))
+                attempt.save(update_fields=["finalised_at"])
 
             pct = (total_awarded / total_available * 100) if total_available else 0
             self.stdout.write(
