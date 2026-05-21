@@ -44,6 +44,17 @@ for name in ['moderator', 'auditor']:
 "
 
 
+# Seed simulation data if no attempts exist yet
+uv run python manage.py shell -c "
+from assessment.models import Attempt
+if not Attempt.objects.exists():
+    from django.core.management import call_command
+    call_command('simulate_session')
+    print('Simulation complete.')
+else:
+    print('Attempts already exist, skipping simulation.')
+"
+
 # Create or update superuser from env vars
 uv run python manage.py shell -c "
 from django.contrib.auth import get_user_model
