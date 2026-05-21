@@ -583,7 +583,7 @@ def assessor_dashboard(request):
 
 
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_moderator)
 def assessor_metrics_simulate(request):
     if request.method != "POST":
         return redirect("assessment:assessor_metrics")
