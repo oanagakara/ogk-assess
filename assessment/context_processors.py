@@ -31,8 +31,15 @@ def assessor_nav_counts(request):
     user_groups = set(request.user.groups.values_list("name", flat=True)) if not request.user.is_staff else set()
     if not (request.user.is_staff or user_groups & {"assessor", "moderator", "auditor"}):
         return {}
-    user_is_moderator = request.user.is_staff or bool(user_groups & {"moderator", "auditor"})
+
+    real_is_moderator = request.user.is_staff or bool(user_groups & {"moderator", "auditor"})
     user_is_auditor = request.user.is_staff or "auditor" in user_groups
+
+    # Session-based role downgrade: a moderator/auditor can choose to operate as assessor.
+    active_role = request.session.get("active_role", "moderator" if real_is_moderator else "assessor")
+    if not real_is_moderator:
+        active_role = "assessor"  # can't self-assign upwards
+    user_is_moderator = real_is_moderator and active_role != "assessor"
 
     has_review_score = Score.objects.filter(
         response__attempt_id=OuterRef("pk"),
@@ -60,6 +67,8 @@ def assessor_nav_counts(request):
     return {
         "user_is_moderator": user_is_moderator,
         "user_is_auditor": user_is_auditor,
+        "active_role": active_role,
+        "can_switch_role": real_is_moderator,
         "nav_counts": {
             "in_progress":  in_progress,
             "submitted":    submitted,
