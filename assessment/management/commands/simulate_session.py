@@ -129,7 +129,8 @@ class Command(BaseCommand):
 
         for idx, ((first, last), (level, ratio)) in enumerate(zip(SA_LEARNERS, profiles), start=1):
             # Generate a unique placeholder ID (simulation only — not a real SA ID)
-            fake_id = f"SIM{str(idx).zfill(10)}"[:13]
+            import uuid as _uuid
+            fake_id = f"S{_uuid.uuid4().hex[:12]}"
             learner = Learner.objects.create(
                 first_names=first,
                 surname=last,
