@@ -90,6 +90,12 @@
 {% load static %}
 <script src="{% static 'js/chart.umd.min.js' %}"></script>
 <script>
+if (typeof Chart === 'undefined') {
+  document.querySelectorAll('canvas').forEach(function(c) {
+    c.insertAdjacentHTML('afterend', '<p class="text-error text-xs mt-1">Chart.js failed to load.</p>');
+  });
+}
+
 const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
   || window.matchMedia('(prefers-color-scheme: dark)').matches;
 const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
