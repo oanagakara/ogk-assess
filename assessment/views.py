@@ -827,22 +827,10 @@ def assessor_mark_attempt(request, code: str):
     questions_by_pk = {q.pk: q for q in markable_questions}
 
     # Resolve which question to show from ?qid=, falling back to first pending.
-    # Audit-only questions (auto_done) are restricted to staff.
     try:
         requested_qid = int(request.GET.get("qid", 0))
     except (TypeError, ValueError):
         requested_qid = 0
-
-    def _is_audit_only(q) -> bool:
-        score = _score_for_response(responses_by_qid.get(q.pk))
-        if score is None or _requires_assessor_attention(score):
-            return False
-        rubric = score.rubric_json if isinstance(score.rubric_json, dict) else {}
-        return bool(rubric.get("auto_marked"))
-
-    requested_question = questions_by_pk.get(requested_qid)
-    if requested_question and _is_audit_only(requested_question) and not request.user.is_staff:
-        requested_qid = 0  # silently drop the request — fall through to first pending
 
     current_question = (
         questions_by_pk.get(requested_qid)
@@ -881,7 +869,12 @@ def assessor_mark_attempt(request, code: str):
         return redirect(f"{url}?summary=1")
 
     totals = _compute_marking_totals(markable_questions, responses_by_qid)
-    show_summary = request.GET.get("summary") == "1" or (not pending_questions and not current_question)
+    # An explicit ?qid= that resolved to a real question always wins over auto-summary.
+    explicit_qid = requested_qid and current_question and questions_by_pk.get(requested_qid) == current_question
+    show_summary = (
+        (request.GET.get("summary") == "1" or (not pending_questions and not current_question))
+        and not explicit_qid
+    )
 
     summary_rows = None
     if show_summary:
