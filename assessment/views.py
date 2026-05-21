@@ -2369,8 +2369,11 @@ def handler403(request, exception=None):
     }, status=403)
 
 
+_SILENT_404_PATHS = {"/favicon.ico", "/robots.txt", "/apple-touch-icon.png"}
+
 def handler404(request, exception=None):
-    _notify("NotFound", request.path, url=request.build_absolute_uri(), method=request.method)
+    if request.path not in _SILENT_404_PATHS:
+        _notify("NotFound", request.path, url=request.build_absolute_uri(), method=request.method)
     return render(request, "404.html", {
         "error_type": "Page Not Found",
         "error_msg": request.path,
