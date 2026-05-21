@@ -433,15 +433,19 @@ def start(request):
             ok, msg = claim_seat(attempt)
             if ok:
                 _bind_attempt_to_session(request, attempt.code)
+                logger.info("Learner claimed seat: code=%s ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
                 return redirect("assessment:attempt_details", code=attempt.code)
+            logger.warning("Seat claim failed: code=%s reason=%r ip=%s", code, msg, request.META.get("REMOTE_ADDR", "-"))
             form.add_error("code", msg)
             return render(request, "assessment/start.html", {"form": form})
 
         # Session flow
         session = ExamSession.objects.filter(code=code).select_related("template").first()
         if session is not None:
+            logger.info("Learner joining session: code=%s ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
             return redirect("assessment:session_join", code=session.code)
 
+        logger.warning("Invalid code entered: code=%r ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
         form.add_error("code", "Invalid code. Please check and try again.")
 
     return render(request, "assessment/start.html", {"form": form})
@@ -490,6 +494,7 @@ def set_active_role(request):
         request.session["active_role"] = "moderator"
     elif is_moderator(request.user):
         request.session.pop("active_role", None)
+    logger.info("Role switched: user=%s active_role=%s", request.user.username, request.session.get("active_role", "full"))
     next_url = request.POST.get("next") or reverse("assessment:assessor_dashboard")
     return redirect(next_url)
 
@@ -872,6 +877,7 @@ def assessor_mark_attempt(request, code: str):
             attempt.finalised_at = timezone.now()
             attempt.finalised_by = request.user
             attempt.save(update_fields=["finalised_at", "finalised_by"])
+            logger.info("Attempt finalised: code=%s assessor=%s", code, request.user.username)
             return redirect(reverse("assessment:assessor_attempts") + "?tab=marked")
 
     if request.method == "POST" and current_question:
@@ -987,6 +993,7 @@ def assessor_unlock_attempt(request, code: str):
     attempt.finalised_at = None
     attempt.finalised_by = None
     attempt.save(update_fields=["finalised_at", "finalised_by"])
+    logger.warning("Attempt unlocked: code=%s moderator=%s", code, request.user.username)
     return redirect(reverse("assessment:assessor_mark_attempt", kwargs={"code": code}))
 
 
@@ -1112,6 +1119,10 @@ def assessor_new_attempt(request):
             attempt.learner = learner
             attempt.save()
 
+            logger.info(
+                "Attempt code created: code=%s template=%r assessor=%s",
+                attempt.code, attempt.template.name, request.user.username,
+            )
             return render(
                 request,
                 "assessment/assessor_new_attempt.html",
@@ -1336,6 +1347,7 @@ def attempt_submit(request, code: str):
 
     if request.method == "POST":
         _finalize_attempt(attempt)
+        logger.info("Attempt submitted: code=%s", code)
         return redirect("assessment:attempt_submitted", code=code)
 
     answered = Response.objects.filter(attempt=attempt).exclude(response_json="").count()
@@ -1390,6 +1402,7 @@ def attempt_consent(request, code: str):
         return redirect("assessment:attempt_question", code=code, n=1)
     full_name = f"{attempt.learner.first_names} {attempt.learner.surname}".strip()
     attempt.accept_consent(name=full_name)
+    logger.info("Consent signed: code=%s learner=%r", code, full_name)
     return redirect("assessment:attempt_instructions", code=code)
 
 
@@ -1403,6 +1416,7 @@ def attempt_instructions(request, code: str):
 
     if request.method == "POST":
         attempt.start()
+        logger.info("Attempt started: code=%s", code)
         return redirect("assessment:attempt_question", code=code, n=1)
 
     return render(request, "assessment/instructions.html", {"attempt": attempt})
@@ -2444,6 +2458,10 @@ def register(request, token):
             invite.used_at = timezone.now()
             invite.used_by = user
             invite.save(update_fields=["used_at", "used_by"])
+            logger.info(
+                "User registered via invite: username=%s role=%s invited_by=%s",
+                username, invite.role, invite.created_by.username,
+            )
             from django.contrib.auth import login as auth_login
             auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             return redirect("assessment:assessor_dashboard")
@@ -2469,6 +2487,7 @@ def generate_invite(request):
             role=role,
             expires_at=timezone.now() + timedelta(hours=48),
         )
+        logger.info("Invite generated: role=%s created_by=%s token=%s", role, request.user.username, invite.token)
     return render(request, "assessment/generate_invite.html", {
         "invite": invite,
         "can_invite_moderator": can_invite_moderator,
