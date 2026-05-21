@@ -584,6 +584,73 @@ def assessor_dashboard(request):
 
 @login_required
 @user_passes_test(is_assessor)
+def assessor_metrics(request):
+    from django.db.models import Sum, FloatField, ExpressionWrapper, F
+    from django.db.models.functions import TruncDate
+
+    # --- Status counts ---
+    status_qs = Attempt.objects.values("status").annotate(count=Count("id"))
+    status_map = {row["status"]: row["count"] for row in status_qs}
+    in_progress  = status_map.get(Attempt.IN_PROGRESS, 0)
+    submitted    = status_map.get(Attempt.SUBMITTED, 0)
+    incomplete   = status_map.get(Attempt.INCOMPLETE, 0)
+    finalised    = Attempt.objects.filter(finalised_at__isnull=False).count()
+    total        = in_progress + submitted + incomplete
+
+    # --- Submissions per day (last 30 days) ---
+    thirty_ago = timezone.now() - timedelta(days=30)
+    daily_qs = (
+        Attempt.objects
+        .filter(submitted_at__gte=thirty_ago)
+        .annotate(day=TruncDate("submitted_at"))
+        .values("day")
+        .annotate(count=Count("id"))
+        .order_by("day")
+    )
+    daily_labels = [str(row["day"]) for row in daily_qs]
+    daily_counts = [row["count"] for row in daily_qs]
+
+    # --- Score distribution (submitted attempts with scores) ---
+    score_qs = (
+        Score.objects
+        .filter(response__attempt__status=Attempt.SUBMITTED, max_points__gt=0)
+        .values("response__attempt_id")
+        .annotate(
+            awarded=Sum("points"),
+            available=Sum("max_points"),
+        )
+    )
+    bands = [0] * 5  # 0-20, 20-40, 40-60, 60-80, 80-100
+    scored_count = 0
+    total_pct_sum = 0.0
+    for row in score_qs:
+        if row["available"]:
+            pct = row["awarded"] / row["available"] * 100
+            total_pct_sum += pct
+            scored_count += 1
+            idx = min(int(pct // 20), 4)
+            bands[idx] += 1
+    avg_score = round(total_pct_sum / scored_count, 1) if scored_count else None
+
+    # --- Unique learners ---
+    unique_learners = Attempt.objects.values("learner_id").distinct().count()
+
+    return render(request, "assessment/assessor_metrics.html", {
+        "total": total,
+        "in_progress": in_progress,
+        "submitted": submitted,
+        "incomplete": incomplete,
+        "finalised": finalised,
+        "unique_learners": unique_learners,
+        "avg_score": avg_score,
+        "daily_labels": json.dumps(daily_labels),
+        "daily_counts": json.dumps(daily_counts),
+        "score_bands": json.dumps(bands),
+    })
+
+
+@login_required
+@user_passes_test(is_assessor)
 def assessor_guide(request):
     return render(request, "assessment/assessor_guide.html")
 
