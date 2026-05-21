@@ -150,44 +150,31 @@
         </a>
       {% endfor %}
 
-      {# Audit log: auto-verified questions — not part of the marking workflow #}
+      {# Audit log: auto-verified questions — viewable by all assessors, read-only for non-staff #}
       {% if sidebar_spot %}
         <div class="mt-3 border-t border-base-300 pt-2">
-          {% if request.user.is_staff %}
-            {# Staff: functional audit log #}
-            <details class="group"
-                     {% for item in sidebar_spot %}{% if item.active %}open{% endif %}{% endfor %}>
-              <summary class="flex items-center gap-1.5 px-1 py-1 cursor-pointer
-                              text-xs opacity-40 hover:opacity-60 select-none list-none uppercase tracking-wider">
-                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                     class="shrink-0 transition-transform group-open:rotate-90">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"/>
-                </svg>
-                Audit log
-              </summary>
-              <div class="mt-1 flex flex-col gap-0.5">
-                {% for item in sidebar_spot %}
-                  <a href="{{ item.url }}"
-                     {% if item.active %}data-sidebar-active{% endif %}
-                     class="flex items-center gap-2 px-3 py-1 rounded text-sm transition-colors
-                            {% if item.active %}bg-base-300 text-base-content{% else %}hover:bg-base-200 opacity-30 hover:opacity-60{% endif %}">
-                    <span class="font-mono text-xs truncate">{{ item.question.code }}</span>
-                  </a>
-                {% endfor %}
-              </div>
-            </details>
-          {% else %}
-            {# Non-staff: locked — visible, not accessible #}
-            <div class="flex items-center gap-1.5 px-1 py-1 opacity-30 cursor-default select-none">
+          <details class="group"
+                   {% for item in sidebar_spot %}{% if item.active %}open{% endif %}{% endfor %}>
+            <summary class="flex items-center gap-1.5 px-1 py-1 cursor-pointer
+                            text-xs opacity-40 hover:opacity-60 select-none list-none uppercase tracking-wider">
               <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                   class="shrink-0 transition-transform group-open:rotate-90">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"/>
               </svg>
-              <span class="text-xs uppercase tracking-wider">Audit log</span>
+              Auto-marked
+            </summary>
+            <div class="mt-1 flex flex-col gap-0.5">
+              {% for item in sidebar_spot %}
+                <a href="{{ item.url }}"
+                   {% if item.active %}data-sidebar-active{% endif %}
+                   class="flex items-center gap-2 px-3 py-1 rounded text-sm transition-colors
+                          {% if item.active %}bg-base-300 text-base-content{% else %}hover:bg-base-200 opacity-30 hover:opacity-60{% endif %}">
+                  <span class="font-mono text-xs truncate">{{ item.question.code }}</span>
+                </a>
+              {% endfor %}
             </div>
-          {% endif %}
+          </details>
         </div>
       {% endif %}
 
@@ -319,12 +306,86 @@
               <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col">
                 <div class="card-body p-4 flex flex-col min-h-0">
                   <div class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Learner response</div>
-                  <div class="flex-1 overflow-y-auto text-sm">
-                    {% if row.response_text %}
-                      {{ row.response_text }}
+                  <div class="flex-1 overflow-y-auto">
+
+                    {% with d=row.response_display %}
+
+                    {% if d.kind == "match" %}
+                      {% if d.rows %}
+                        <div class="space-y-1.5">
+                          {% for r in d.rows %}
+                            <div class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm
+                              {% if r.is_correct == True %}bg-success bg-opacity-10
+                              {% elif r.is_correct == False %}bg-error bg-opacity-10
+                              {% else %}bg-base-200{% endif %}">
+                              <span class="text-xs opacity-40 w-4 shrink-0 text-right">{{ forloop.counter }}.</span>
+                              <span class="flex-1 min-w-0 opacity-70">{{ r.target }}</span>
+                              <span class="shrink-0 mx-1 opacity-30">→</span>
+                              {% if r.placed %}
+                                <span class="badge badge-sm shrink-0
+                                  {% if r.is_correct == True %}badge-success
+                                  {% elif r.is_correct == False %}badge-error
+                                  {% else %}badge-primary{% endif %}">
+                                  {{ r.placed }}
+                                </span>
+                                {% if r.is_correct == False %}
+                                  <span class="text-xs opacity-50 shrink-0">({{ r.correct }})</span>
+                                {% endif %}
+                              {% else %}
+                                <span class="text-xs opacity-30 italic shrink-0">not placed</span>
+                              {% endif %}
+                            </div>
+                          {% endfor %}
+                        </div>
+                      {% else %}
+                        <span class="text-sm opacity-40">No response submitted.</span>
+                      {% endif %}
+
+                    {% elif d.kind == "choice" %}
+                      {% if d.items %}
+                        <div class="space-y-2">
+                          {% for item in d.items %}
+                            <div class="flex items-center gap-2.5 rounded-lg border px-3 py-2 text-sm
+                              {% if item.selected %}border-primary bg-primary bg-opacity-10 font-medium
+                              {% else %}border-base-300 opacity-50{% endif %}">
+                              <div class="w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center
+                                {% if item.selected %}border-primary{% else %}border-base-300{% endif %}">
+                                {% if item.selected %}
+                                  <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                {% endif %}
+                              </div>
+                              <span class="flex-1">{{ item.label }}</span>
+                              {% if item.selected %}
+                                {% if item.is_correct_choice == True %}
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-success shrink-0">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                                  </svg>
+                                {% elif item.is_correct_choice == False %}
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-error shrink-0">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                  </svg>
+                                {% endif %}
+                              {% endif %}
+                            </div>
+                          {% endfor %}
+                        </div>
+                      {% else %}
+                        <span class="text-sm opacity-40">No response submitted.</span>
+                      {% endif %}
+
+                    {% elif d.kind == "text" %}
+                      {% if d.text %}
+                        <div class="text-sm whitespace-pre-wrap">{{ d.text }}</div>
+                      {% else %}
+                        <span class="text-sm opacity-40">No response submitted.</span>
+                      {% endif %}
+
                     {% else %}
-                      <span class="opacity-40">No response submitted.</span>
+                      <span class="text-sm opacity-40">No response submitted.</span>
                     {% endif %}
+
+                    {% endwith %}
+
                   </div>
                 </div>
               </div>
@@ -346,8 +407,8 @@
               <div class="card-body p-4 flex flex-col gap-4 min-h-0 overflow-y-auto">
 
                 {% if row.question.marking_notes %}
-                  <div class="rounded-lg bg-info bg-opacity-10 border border-info border-opacity-30 px-3 py-2.5">
-                    <div class="flex items-center gap-1.5 mb-1">
+                  <div class="rounded-lg bg-info bg-opacity-10 border border-info border-opacity-30 p-4">
+                    <div class="flex items-center gap-1.5 mb-2">
                       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-info shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -462,21 +523,56 @@
           </div>
 
           {# Navigation #}
-          <div class="flex justify-between shrink-0">
-            <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}?summary=1"
-               class="btn btn-sm btn-ghost">Summary</a>
+          <div class="flex items-center justify-between shrink-0 gap-2">
+
+            {# Left: summary + prev/next browse #}
+            <div class="flex items-center gap-1">
+              <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}?summary=1"
+                 class="btn btn-sm btn-ghost">Summary</a>
+              <div class="w-px h-5 bg-base-300 mx-1"></div>
+              {% if prev_url %}
+                <a href="{{ prev_url }}" class="btn btn-sm btn-ghost btn-square" title="Previous question">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+                  </svg>
+                </a>
+              {% else %}
+                <span class="btn btn-sm btn-ghost btn-square opacity-20 cursor-not-allowed">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+                  </svg>
+                </span>
+              {% endif %}
+              <span class="text-xs opacity-40 tabular-nums">{{ row.index }} / {{ total_questions }}</span>
+              {% if next_url %}
+                <a href="{{ next_url }}" class="btn btn-sm btn-ghost btn-square" title="Next question">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                  </svg>
+                </a>
+              {% else %}
+                <span class="btn btn-sm btn-ghost btn-square opacity-20 cursor-not-allowed">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                  </svg>
+                </span>
+              {% endif %}
+            </div>
+
+            {# Right: save actions #}
             <div class="flex gap-2">
               {% if can_mark %}
                 <button class="btn btn-sm" type="submit" name="action" value="save">Save</button>
                 {% if pending_count == 1 %}
                   <button class="btn btn-sm btn-primary" type="submit" name="action" value="summary">Save & Review Summary</button>
                 {% else %}
-                  <button class="btn btn-sm btn-primary" type="submit" name="action" value="next">Save & Continue →</button>
+                  <button class="btn btn-sm btn-primary" type="submit" name="action" value="next">Save & Next →</button>
                 {% endif %}
               {% else %}
                 <span class="btn btn-sm btn-disabled">Read-only</span>
               {% endif %}
             </div>
+
           </div>
 
         </form>

@@ -1,555 +1,555 @@
 [
-{
-  "model": "assessment.assessmenttemplate",
-  "pk": 5,
-  "fields": {
-    "name": "NQF Literacy Placement Assessment \u2014 General",
-    "version": "v1",
-    "created_by": null,
-    "created_at": "2026-04-19T08:00:00.000Z"
+  {
+    "model": "assessment.assessmenttemplate",
+    "pk": 5,
+    "fields": {
+      "name": "NQF Literacy Placement Assessment — General",
+      "version": "v1",
+      "created_by": null,
+      "created_at": "2026-04-19T08:00:00.000Z"
+    }
+  },
+  {
+    "model": "assessment.section",
+    "pk": 5,
+    "fields": {
+      "template": 5,
+      "title": "SECTION 1: LITERACY — NQF LEVEL 1–2 (45 MINUTES)",
+      "order": 1
+    }
+  },
+  {
+    "model": "assessment.section",
+    "pk": 6,
+    "fields": {
+      "template": 5,
+      "title": "SECTION 2: LITERACY — NQF LEVEL 3–4 (45 MINUTES)",
+      "order": 2
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 34,
+    "fields": {
+      "section": 5,
+      "order": 1,
+      "code": "GEN-A-1",
+      "prompt": "PART A: VOCABULARY",
+      "kind": "match",
+      "max_marks": 5,
+      "spec_json": "{\"prompt\": \"Match each word to its correct meaning.\", \"bank\": [\"brave\", \"ancient\", \"donate\", \"swift\", \"thrive\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Very old\"}, {\"id\": \"t2\", \"text\": \"To give to others freely\"}, {\"id\": \"t3\", \"text\": \"Quick and fast\"}, {\"id\": \"t4\", \"text\": \"Willing to face danger or difficulty\"}, {\"id\": \"t5\", \"text\": \"To grow strong and do well\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"ancient\", \"t2\": \"donate\", \"t3\": \"swift\", \"t4\": \"brave\", \"t5\": \"thrive\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 35,
+    "fields": {
+      "section": 5,
+      "order": 2,
+      "code": "GEN-A-2",
+      "prompt": "PART A: VOCABULARY",
+      "kind": "match",
+      "max_marks": 6,
+      "spec_json": "{\"prompt\": \"Match each word to its correct meaning.\", \"bank\": [\"determined\", \"exceptional\", \"campaign\", \"amputate\", \"permanent\", \"stipend\"], \"targets\": [{\"id\": \"t1\", \"text\": \"To surgically remove a limb\"}, {\"id\": \"t2\", \"text\": \"A regular allowance or payment\"}, {\"id\": \"t3\", \"text\": \"Lasting forever; not temporary\"}, {\"id\": \"t4\", \"text\": \"Decided and focused on reaching a goal\"}, {\"id\": \"t5\", \"text\": \"Outstanding or remarkably good\"}, {\"id\": \"t6\", \"text\": \"An organised effort to achieve a goal\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"amputate\", \"t2\": \"stipend\", \"t3\": \"permanent\", \"t4\": \"determined\", \"t5\": \"exceptional\", \"t6\": \"campaign\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 36,
+    "fields": {
+      "section": 5,
+      "order": 3,
+      "code": "GEN-B-READ",
+      "prompt": "PART B: READING COMPREHENSION — Read the passage carefully before answering the questions.",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\"layout\": \"passage_only\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\"}",
+      "answer_key_json": "{\"auto_mark\": false}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 37,
+    "fields": {
+      "section": 5,
+      "order": 4,
+      "code": "GEN-B-1",
+      "prompt": "Where did Yvonne Chaka Chaka grow up?",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Dobsonville, Soweto\", \"Cape Town\", \"Durban\", \"Alexandra\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"Dobsonville\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 38,
+    "fields": {
+      "section": 5,
+      "order": 5,
+      "code": "GEN-B-2",
+      "prompt": "In which year did Yvonne Chaka Chaka release her first album?",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"1975\", \"1980\", \"1985\", \"1990\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"1985\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 39,
+    "fields": {
+      "section": 5,
+      "order": 6,
+      "code": "GEN-B-3",
+      "prompt": "What title did people give Yvonne Chaka Chaka?",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Queen of Africa\", \"Princess of Africa\", \"Mother of Africa\", \"Star of Africa\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"Princess\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 40,
+    "fields": {
+      "section": 5,
+      "order": 7,
+      "code": "GEN-B-4",
+      "prompt": "What cause does Yvonne Chaka Chaka champion as a UNICEF Goodwill Ambassador?",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Fighting HIV\", \"Fighting malaria\", \"Promoting education\", \"Building schools\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"malaria\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 41,
+    "fields": {
+      "section": 5,
+      "order": 8,
+      "code": "GEN-B-5",
+      "prompt": "PART B: CONNECTIVES — Choose the correct connective word for each sentence.",
+      "kind": "match",
+      "max_marks": 6,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"prompt\": \"Drag the correct connective to complete each sentence.\", \"bank\": [\"when\", \"because\", \"and\", \"but\", \"so\", \"while\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She became famous _____ her voice was powerful.\"}, {\"id\": \"t2\", \"text\": \"She was already performing _____ she was still a teenager.\"}, {\"id\": \"t3\", \"text\": \"She received many awards _____ continued to inspire others.\"}, {\"id\": \"t4\", \"text\": \"She wanted to rest, _____ she kept performing for her fans.\"}, {\"id\": \"t5\", \"text\": \"She cared deeply about health, _____ she became a UNICEF Ambassador.\"}, {\"id\": \"t6\", \"text\": \"She was singing on stage _____ her fans cheered loudly.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"because\", \"t2\": \"when\", \"t3\": \"and\", \"t4\": \"but\", \"t5\": \"so\", \"t6\": \"while\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 42,
+    "fields": {
+      "section": 5,
+      "order": 9,
+      "code": "GEN-C-READ",
+      "prompt": "PART C: NOTICE — Read the following notice carefully before answering the questions.",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\"layout\": \"passage_only\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\"}",
+      "answer_key_json": "{\"auto_mark\": false}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 43,
+    "fields": {
+      "section": 5,
+      "order": 10,
+      "code": "GEN-C-1",
+      "prompt": "PART C: CLOZE TEST — Complete each sentence using the correct word from the box.",
+      "kind": "match",
+      "max_marks": 6,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"certificate\", \"stipend\", \"closing\", \"shortlisted\", \"permanent\", \"qualify\"], \"targets\": [{\"id\": \"t1\", \"text\": \"The programme is not _____ employment.\"}, {\"id\": \"t2\", \"text\": \"Learners who _____ will develop valuable retail skills.\"}, {\"id\": \"t3\", \"text\": \"Learners receive a monthly _____  throughout the programme.\"}, {\"id\": \"t4\", \"text\": \"A _____ of competence is awarded on completion.\"}, {\"id\": \"t5\", \"text\": \"The _____ date for applications is 31 May 2026.\"}, {\"id\": \"t6\", \"text\": \"Only _____ candidates will be contacted.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"permanent\", \"t2\": \"qualify\", \"t3\": \"stipend\", \"t4\": \"certificate\", \"t5\": \"closing\", \"t6\": \"shortlisted\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 44,
+    "fields": {
+      "section": 5,
+      "order": 11,
+      "code": "GEN-C-2",
+      "prompt": "You must pay a fee to join the Pick n Pay Learnership.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"False\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 45,
+    "fields": {
+      "section": 5,
+      "order": 12,
+      "code": "GEN-C-3",
+      "prompt": "The Pick n Pay Learnership Programme lasts 12 months.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"True\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 46,
+    "fields": {
+      "section": 5,
+      "order": 13,
+      "code": "GEN-C-4",
+      "prompt": "Every person who applies will receive a response.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"False\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 47,
+    "fields": {
+      "section": 5,
+      "order": 14,
+      "code": "GEN-C-5",
+      "prompt": "Applicants need at least Grade 10 to apply.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"True\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 48,
+    "fields": {
+      "section": 5,
+      "order": 15,
+      "code": "GEN-C-6",
+      "prompt": "Applicants must be between 18 and 35 years old.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"True\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 49,
+    "fields": {
+      "section": 5,
+      "order": 16,
+      "code": "GEN-C-7",
+      "prompt": "PART C: LANGUAGE — Choose the correct word to complete each sentence.",
+      "kind": "match",
+      "max_marks": 6,
+      "spec_json": "{\"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"want\", \"flour\", \"is\", \"There\", \"where\", \"teach\"], \"targets\": [{\"id\": \"t1\", \"text\": \"_____ are many people waiting to apply for the learnership.\"}, {\"id\": \"t2\", \"text\": \"She will _____ the learners how to serve customers.\"}, {\"id\": \"t3\", \"text\": \"Add the _____ to make the dough for the bread rolls.\"}, {\"id\": \"t4\", \"text\": \"I _____ to complete this programme and find a job.\"}, {\"id\": \"t5\", \"text\": \"Do you know _____ the training centre is located?\"}, {\"id\": \"t6\", \"text\": \"The office _____ open every weekday from 8 am.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"There\", \"t2\": \"teach\", \"t3\": \"flour\", \"t4\": \"want\", \"t5\": \"where\", \"t6\": \"is\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 50,
+    "fields": {
+      "section": 5,
+      "order": 17,
+      "code": "GEN-D-1",
+      "prompt": "PART D: SENTENCE ORDER — Number the sentences in the correct order to form a paragraph about the Shoprite Learnership Programme.",
+      "kind": "match",
+      "max_marks": 6,
+      "spec_json": "{\"prompt\": \"Drag the number that shows where each sentence belongs in the paragraph.\", \"bank\": [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Shoprite is one of the largest retail companies in Africa.\"}, {\"id\": \"t2\", \"text\": \"The company offers a learnership programme for young South Africans.\"}, {\"id\": \"t3\", \"text\": \"Applicants must have completed Grade 10 and be between 18 and 35 years old.\"}, {\"id\": \"t4\", \"text\": \"Successful candidates receive training in customer service and stock management.\"}, {\"id\": \"t5\", \"text\": \"At the end of the programme, learners write a final assessment.\"}, {\"id\": \"t6\", \"text\": \"Those who pass may be offered permanent employment at Shoprite.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"1\", \"t2\": \"2\", \"t3\": \"3\", \"t4\": \"4\", \"t5\": \"5\", \"t6\": \"6\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 51,
+    "fields": {
+      "section": 5,
+      "order": 18,
+      "code": "GEN-D-2",
+      "prompt": "PART D: TIME — Match each digital time to its written description.",
+      "kind": "match",
+      "max_marks": 6,
+      "spec_json": "{\"prompt\": \"Drag the digital time that matches each written description.\", \"bank\": [\"07h30\", \"14h45\", \"21h20\", \"12h00\", \"05h55\", \"16h10\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Half past seven in the morning\"}, {\"id\": \"t2\", \"text\": \"Quarter to three in the afternoon\"}, {\"id\": \"t3\", \"text\": \"Twenty minutes past nine at night\"}, {\"id\": \"t4\", \"text\": \"Midday\"}, {\"id\": \"t5\", \"text\": \"Five minutes to six in the morning\"}, {\"id\": \"t6\", \"text\": \"Ten minutes past four in the afternoon\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"07h30\", \"t2\": \"14h45\", \"t3\": \"21h20\", \"t4\": \"12h00\", \"t5\": \"05h55\", \"t6\": \"16h10\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 52,
+    "fields": {
+      "section": 6,
+      "order": 1,
+      "code": "GEN-E-READ",
+      "prompt": "PART E: READING COMPREHENSION — Read the passage carefully before answering the questions.",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\"layout\": \"passage_only\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\"}",
+      "answer_key_json": "{\"auto_mark\": false}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 53,
+    "fields": {
+      "section": 6,
+      "order": 2,
+      "code": "GEN-E-1",
+      "prompt": "PART E: VOCABULARY — Match each word from the passage to its meaning.",
+      "kind": "match",
+      "max_marks": 8,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag each word to its correct definition.\", \"bank\": [\"exceptional\", \"compelled\", \"surrender\", \"dedication\", \"prosthetic\", \"competitive\", \"subsequently\", \"disabilities\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Outstanding or remarkably good\"}, {\"id\": \"t2\", \"text\": \"Driven or strongly motivated to do something\"}, {\"id\": \"t3\", \"text\": \"To give up or stop trying\"}, {\"id\": \"t4\", \"text\": \"Commitment and hard work towards a goal\"}, {\"id\": \"t5\", \"text\": \"An artificial replacement for a body part\"}, {\"id\": \"t6\", \"text\": \"Having a strong desire to win or succeed\"}, {\"id\": \"t7\", \"text\": \"Happening later, as a result\"}, {\"id\": \"t8\", \"text\": \"Physical or mental conditions that limit a person's activities\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"exceptional\", \"t2\": \"compelled\", \"t3\": \"surrender\", \"t4\": \"dedication\", \"t5\": \"prosthetic\", \"t6\": \"competitive\", \"t7\": \"subsequently\", \"t8\": \"disabilities\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 54,
+    "fields": {
+      "section": 6,
+      "order": 3,
+      "code": "GEN-E-2",
+      "prompt": "PART E: CAUSE AND EFFECT — Match each cause to its effect.",
+      "kind": "match",
+      "max_marks": 5,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the cause that matches each effect.\", \"bank\": [\"Her leg was amputated\", \"She refused to give up\", \"She trained every day\", \"She qualified for the Olympics\", \"She inspired many people\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She could not compete in the same way at first.\"}, {\"id\": \"t2\", \"text\": \"She returned to the pool after her accident.\"}, {\"id\": \"t3\", \"text\": \"She improved enough to compete with able-bodied swimmers.\"}, {\"id\": \"t4\", \"text\": \"She became the first amputee at the Olympic Games.\"}, {\"id\": \"t5\", \"text\": \"Others with disabilities believed they could also achieve great things.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"Her leg was amputated\", \"t2\": \"She refused to give up\", \"t3\": \"She trained every day\", \"t4\": \"She qualified for the Olympics\", \"t5\": \"She inspired many people\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 55,
+    "fields": {
+      "section": 6,
+      "order": 4,
+      "code": "GEN-E-3",
+      "prompt": "PART E: MAIN IDEAS — Match each paragraph to its main idea.",
+      "kind": "match",
+      "max_marks": 4,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the main idea that best describes each paragraph.\", \"bank\": [\"Natalie's early swimming talent\", \"The accident and its aftermath\", \"Return to competitive swimming\", \"Olympic and Paralympic achievement\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Paragraph 1\"}, {\"id\": \"t2\", \"text\": \"Paragraph 2\"}, {\"id\": \"t3\", \"text\": \"Paragraph 3\"}, {\"id\": \"t4\", \"text\": \"Paragraph 4\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"Natalie's early swimming talent\", \"t2\": \"The accident and its aftermath\", \"t3\": \"Return to competitive swimming\", \"t4\": \"Olympic and Paralympic achievement\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 56,
+    "fields": {
+      "section": 6,
+      "order": 5,
+      "code": "GEN-E-4",
+      "prompt": "PART E: MODAL VERBS — Complete each sentence using the correct modal verb phrase.",
+      "kind": "match",
+      "max_marks": 6,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct modal verb phrase to complete each sentence about Natalie.\", \"bank\": [\"had to\", \"refused to\", \"was able to\", \"managed to\", \"wanted to\", \"chose to\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie _____ give up swimming, so she kept training.\"}, {\"id\": \"t2\", \"text\": \"After losing her leg, she _____ learn to swim in a completely new way.\"}, {\"id\": \"t3\", \"text\": \"Through years of training, she _____ compete against swimmers without disabilities.\"}, {\"id\": \"t4\", \"text\": \"She _____ qualify for the 2008 Olympic Games, becoming the first amputee to do so.\"}, {\"id\": \"t5\", \"text\": \"She always _____ represent South Africa on the world stage.\"}, {\"id\": \"t6\", \"text\": \"After the Olympics, she _____ compete in the Paralympic Games as well.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"refused to\", \"t2\": \"had to\", \"t3\": \"was able to\", \"t4\": \"managed to\", \"t5\": \"wanted to\", \"t6\": \"chose to\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 57,
+    "fields": {
+      "section": 6,
+      "order": 6,
+      "code": "GEN-E-5",
+      "prompt": "PART E: PREPOSITIONS — Complete each phrase with the correct preposition.",
+      "kind": "match",
+      "max_marks": 7,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct preposition to complete each phrase.\", \"bank\": [\"at\", \"for\", \"in\", \"against\", \"from\", \"through\", \"with\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie was born _____ Cape Town.\"}, {\"id\": \"t2\", \"text\": \"She trained _____ years to reach her goals.\"}, {\"id\": \"t3\", \"text\": \"She competed _____ able-bodied swimmers.\"}, {\"id\": \"t4\", \"text\": \"She won medals _____ the Paralympic Games.\"}, {\"id\": \"t5\", \"text\": \"She showed talent _____ a young age.\"}, {\"id\": \"t6\", \"text\": \"She achieved success _____ hard work and determination.\"}, {\"id\": \"t7\", \"text\": \"She swam _____ a prosthetic limb.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"in\", \"t2\": \"for\", \"t3\": \"against\", \"t4\": \"at\", \"t5\": \"from\", \"t6\": \"through\", \"t7\": \"with\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 58,
+    "fields": {
+      "section": 6,
+      "order": 7,
+      "code": "GEN-F-READ",
+      "prompt": "PART F: READING COMPREHENSION — Read the passage carefully before answering the questions.",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\"layout\": \"passage_only\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\"}",
+      "answer_key_json": "{\"auto_mark\": false}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 59,
+    "fields": {
+      "section": 6,
+      "order": 8,
+      "code": "GEN-F-1",
+      "prompt": "PART F: VOCABULARY — Match each word to its correct meaning.",
+      "kind": "match",
+      "max_marks": 6,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Drag each word to its correct definition.\", \"bank\": [\"organised\", \"protest\", \"petition\", \"orderly\", \"dignity\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"A formal written request signed by many people\"}, {\"id\": \"t2\", \"text\": \"To plan and coordinate an activity\"}, {\"id\": \"t3\", \"text\": \"A public expression of disagreement or disapproval\"}, {\"id\": \"t4\", \"text\": \"Calm and well-behaved\"}, {\"id\": \"t5\", \"text\": \"A feeling of pride and self-respect\"}, {\"id\": \"t6\", \"text\": \"Something that represents a bigger idea or group\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"petition\", \"t2\": \"organised\", \"t3\": \"protest\", \"t4\": \"orderly\", \"t5\": \"dignity\", \"t6\": \"symbol\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 60,
+    "fields": {
+      "section": 6,
+      "order": 9,
+      "code": "GEN-F-2",
+      "prompt": "The 1956 women's march was organised by the African National Congress (ANC).",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"False\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 61,
+    "fields": {
+      "section": 6,
+      "order": 10,
+      "code": "GEN-F-3",
+      "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-2.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"The march was organised by the Federation of South African Women (FEDSAW).\", \"More than 20 000 women marched to the Union Buildings.\", \"They carried petitions with thousands of signatures.\", \"The march became a landmark event in South African history.\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"FEDSAW\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 62,
+    "fields": {
+      "section": 6,
+      "order": 11,
+      "code": "GEN-F-4",
+      "prompt": "Prime Minister Strijdom met with the women when they arrived at the Union Buildings.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"False\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 63,
+    "fields": {
+      "section": 6,
+      "order": 12,
+      "code": "GEN-F-5",
+      "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-4.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Prime Minister J.G. Strijdom was absent and refused to meet with them.\", \"The women remained orderly and observed a moment of silence.\", \"They carried petitions with thousands of signatures.\", \"The march became a symbol of women's courage.\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"absent\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 64,
+    "fields": {
+      "section": 6,
+      "order": 13,
+      "code": "GEN-F-6",
+      "prompt": "The 1956 Women's March was a violent event.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"False\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 65,
+    "fields": {
+      "section": 6,
+      "order": 14,
+      "code": "GEN-F-7",
+      "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-6.",
+      "kind": "text",
+      "max_marks": 1,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"The women remained orderly and observed a moment of silence with dignity before leaving.\", \"More than 20 000 women marched to the Union Buildings.\", \"They carried petitions with thousands of signatures.\", \"The march became a landmark event in South African history.\"]}",
+      "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": [\"orderly\"]}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 66,
+    "fields": {
+      "section": 6,
+      "order": 15,
+      "code": "GEN-F-8",
+      "prompt": "PART F: WORD SEARCH IN PASSAGE — Find the word in the passage that matches each definition.",
+      "kind": "match",
+      "max_marks": 8,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Drag the word from the passage that matches each definition.\", \"bank\": [\"protest\", \"required\", \"determined\", \"orderly\", \"observed\", \"landmark\", \"absent\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"A public objection or expression of disapproval\"}, {\"id\": \"t2\", \"text\": \"Needed; expected by law or rule\"}, {\"id\": \"t3\", \"text\": \"Showing firm purpose; not willing to give up\"}, {\"id\": \"t4\", \"text\": \"Calm and controlled in behaviour\"}, {\"id\": \"t5\", \"text\": \"Watched solemnly or took part in a ceremony\"}, {\"id\": \"t6\", \"text\": \"Important and historically significant\"}, {\"id\": \"t7\", \"text\": \"Not present; not there\"}, {\"id\": \"t8\", \"text\": \"Something that stands for a larger idea or meaning\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"protest\", \"t2\": \"required\", \"t3\": \"determined\", \"t4\": \"orderly\", \"t5\": \"observed\", \"t6\": \"landmark\", \"t7\": \"absent\", \"t8\": \"symbol\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 67,
+    "fields": {
+      "section": 6,
+      "order": 16,
+      "code": "GEN-G-WRITE",
+      "prompt": "PART G: WRITING TASK",
+      "kind": "text",
+      "max_marks": 8,
+      "spec_json": "{\"layout\": \"writing\", \"prompt\": \"Why I want to join a learnership and what skills I want to develop.\", \"instructions\": [\"Write 6 to 8 sentences in English.\", \"Spell-check and grammar assist are disabled.\", \"Do not use notes or outside help.\"]}",
+      "answer_key_json": "{\"auto_mark\": false, \"criteria\": [{\"key\": \"motivation\", \"label\": \"MOTIVATION\", \"max_points\": 3, \"description\": \"3=clearly stated and specific, elaborated with personal context; 2=stated with some elaboration but lacking depth; 1=generic or unexplained; 0=none or off-topic\"}, {\"key\": \"skills\", \"label\": \"SKILLS\", \"max_points\": 3, \"description\": \"3=two or more specific skills named with personal relevance explanation; 2=skills named with limited elaboration; 1=vague skills; 0=none\"}, {\"key\": \"language\", \"label\": \"LANGUAGE\", \"max_points\": 2, \"description\": \"2=complete coherent sentences meeting 6 to 8 requirement; 1=some coherence issues; 0=too brief or incoherent\"}]}",
+      "marking_notes": "Score each criterion independently. MOTIVATION (0-3): motivation stated, elaborated, personal context. SKILLS (0-3): specific skills named with relevance. LANGUAGE (0-2): sentence quality and length (6-8 sentences)."
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 68,
+    "fields": {
+      "section": 6,
+      "order": 17,
+      "code": "GEN-G-HANDWRITE",
+      "prompt": "Did you write your essay on a page instead of typing it in the box?",
+      "kind": "text",
+      "max_marks": 0,
+      "spec_json": "{\"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Yes\", \"No\"]}",
+      "answer_key_json": "{\"auto_mark\": false}",
+      "marking_notes": ""
+    }
   }
-},
-{
-  "model": "assessment.section",
-  "pk": 5,
-  "fields": {
-    "template": 5,
-    "title": "SECTION 1: LITERACY \u2014 NQF LEVEL 1\u20132 (45 MINUTES)",
-    "order": 1
-  }
-},
-{
-  "model": "assessment.section",
-  "pk": 6,
-  "fields": {
-    "template": 5,
-    "title": "SECTION 2: LITERACY \u2014 NQF LEVEL 3\u20134 (45 MINUTES)",
-    "order": 2
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 34,
-  "fields": {
-    "section": 5,
-    "order": 1,
-    "code": "GEN-A-1",
-    "prompt": "PART A: VOCABULARY",
-    "kind": "match",
-    "max_marks": 5,
-    "spec_json": "{\"prompt\": \"Match each word to its correct meaning.\", \"bank\": [\"brave\", \"ancient\", \"donate\", \"swift\", \"thrive\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Very old\"}, {\"id\": \"t2\", \"text\": \"To give to others freely\"}, {\"id\": \"t3\", \"text\": \"Quick and fast\"}, {\"id\": \"t4\", \"text\": \"Willing to face danger or difficulty\"}, {\"id\": \"t5\", \"text\": \"To grow strong and do well\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"ancient\", \"t2\": \"donate\", \"t3\": \"swift\", \"t4\": \"brave\", \"t5\": \"thrive\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 35,
-  "fields": {
-    "section": 5,
-    "order": 2,
-    "code": "GEN-A-2",
-    "prompt": "PART A: VOCABULARY",
-    "kind": "match",
-    "max_marks": 6,
-    "spec_json": "{\"prompt\": \"Match each word to its correct meaning.\", \"bank\": [\"determined\", \"exceptional\", \"campaign\", \"amputate\", \"permanent\", \"stipend\"], \"targets\": [{\"id\": \"t1\", \"text\": \"To surgically remove a limb\"}, {\"id\": \"t2\", \"text\": \"A regular allowance or payment\"}, {\"id\": \"t3\", \"text\": \"Lasting forever; not temporary\"}, {\"id\": \"t4\", \"text\": \"Decided and focused on reaching a goal\"}, {\"id\": \"t5\", \"text\": \"Outstanding or remarkably good\"}, {\"id\": \"t6\", \"text\": \"An organised effort to achieve a goal\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"amputate\", \"t2\": \"stipend\", \"t3\": \"permanent\", \"t4\": \"determined\", \"t5\": \"exceptional\", \"t6\": \"campaign\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 36,
-  "fields": {
-    "section": 5,
-    "order": 3,
-    "code": "GEN-B-READ",
-    "prompt": "PART B: READING COMPREHENSION \u2014 Read the passage carefully before answering the questions.",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\"layout\": \"passage_only\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\"}",
-    "answer_key_json": "{\"auto_mark\": false}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 37,
-  "fields": {
-    "section": 5,
-    "order": 4,
-    "code": "GEN-B-1",
-    "prompt": "Where did Yvonne Chaka Chaka grow up?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Dobsonville, Soweto\", \"Cape Town\", \"Durban\", \"Alexandra\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"Dobsonville\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 38,
-  "fields": {
-    "section": 5,
-    "order": 5,
-    "code": "GEN-B-2",
-    "prompt": "In which year did Yvonne Chaka Chaka release her first album?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"1975\", \"1980\", \"1985\", \"1990\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"1985\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 39,
-  "fields": {
-    "section": 5,
-    "order": 6,
-    "code": "GEN-B-3",
-    "prompt": "What title did people give Yvonne Chaka Chaka?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Queen of Africa\", \"Princess of Africa\", \"Mother of Africa\", \"Star of Africa\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"Princess\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 40,
-  "fields": {
-    "section": 5,
-    "order": 7,
-    "code": "GEN-B-4",
-    "prompt": "What cause does Yvonne Chaka Chaka champion as a UNICEF Goodwill Ambassador?",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Fighting HIV\", \"Fighting malaria\", \"Promoting education\", \"Building schools\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"malaria\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 41,
-  "fields": {
-    "section": 5,
-    "order": 8,
-    "code": "GEN-B-5",
-    "prompt": "PART B: CONNECTIVES \u2014 Choose the correct connective word for each sentence.",
-    "kind": "match",
-    "max_marks": 6,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"prompt\": \"Drag the correct connective to complete each sentence.\", \"bank\": [\"when\", \"because\", \"and\", \"but\", \"so\", \"while\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She became famous _____ her voice was powerful.\"}, {\"id\": \"t2\", \"text\": \"She was already performing _____ she was still a teenager.\"}, {\"id\": \"t3\", \"text\": \"She received many awards _____ continued to inspire others.\"}, {\"id\": \"t4\", \"text\": \"She wanted to rest, _____ she kept performing for her fans.\"}, {\"id\": \"t5\", \"text\": \"She cared deeply about health, _____ she became a UNICEF Ambassador.\"}, {\"id\": \"t6\", \"text\": \"She was singing on stage _____ her fans cheered loudly.\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"because\", \"t2\": \"when\", \"t3\": \"and\", \"t4\": \"but\", \"t5\": \"so\", \"t6\": \"while\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 42,
-  "fields": {
-    "section": 5,
-    "order": 9,
-    "code": "GEN-C-READ",
-    "prompt": "PART C: NOTICE \u2014 Read the following notice carefully before answering the questions.",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\"layout\": \"passage_only\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\"}",
-    "answer_key_json": "{\"auto_mark\": false}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 43,
-  "fields": {
-    "section": 5,
-    "order": 10,
-    "code": "GEN-C-1",
-    "prompt": "PART C: CLOZE TEST \u2014 Complete each sentence using the correct word from the box.",
-    "kind": "match",
-    "max_marks": 6,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"certificate\", \"stipend\", \"closing\", \"shortlisted\", \"permanent\", \"qualify\"], \"targets\": [{\"id\": \"t1\", \"text\": \"The programme is not _____ employment.\"}, {\"id\": \"t2\", \"text\": \"Learners who _____ will develop valuable retail skills.\"}, {\"id\": \"t3\", \"text\": \"Learners receive a monthly _____  throughout the programme.\"}, {\"id\": \"t4\", \"text\": \"A _____ of competence is awarded on completion.\"}, {\"id\": \"t5\", \"text\": \"The _____ date for applications is 31 May 2026.\"}, {\"id\": \"t6\", \"text\": \"Only _____ candidates will be contacted.\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"permanent\", \"t2\": \"qualify\", \"t3\": \"stipend\", \"t4\": \"certificate\", \"t5\": \"closing\", \"t6\": \"shortlisted\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 44,
-  "fields": {
-    "section": 5,
-    "order": 11,
-    "code": "GEN-C-2",
-    "prompt": "You must pay a fee to join the Pick n Pay Learnership.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"False\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 45,
-  "fields": {
-    "section": 5,
-    "order": 12,
-    "code": "GEN-C-3",
-    "prompt": "The Pick n Pay Learnership Programme lasts 12 months.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"True\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 46,
-  "fields": {
-    "section": 5,
-    "order": 13,
-    "code": "GEN-C-4",
-    "prompt": "Every person who applies will receive a response.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"False\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 47,
-  "fields": {
-    "section": 5,
-    "order": 14,
-    "code": "GEN-C-5",
-    "prompt": "Applicants need at least Grade 10 to apply.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"True\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 48,
-  "fields": {
-    "section": 5,
-    "order": 15,
-    "code": "GEN-C-6",
-    "prompt": "Applicants must be between 18 and 35 years old.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"True\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 49,
-  "fields": {
-    "section": 5,
-    "order": 16,
-    "code": "GEN-C-7",
-    "prompt": "PART C: LANGUAGE \u2014 Choose the correct word to complete each sentence.",
-    "kind": "match",
-    "max_marks": 6,
-    "spec_json": "{\"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"want\", \"flour\", \"is\", \"There\", \"where\", \"teach\"], \"targets\": [{\"id\": \"t1\", \"text\": \"_____ are many people waiting to apply for the learnership.\"}, {\"id\": \"t2\", \"text\": \"She will _____ the learners how to serve customers.\"}, {\"id\": \"t3\", \"text\": \"Add the _____ to make the dough for the bread rolls.\"}, {\"id\": \"t4\", \"text\": \"I _____ to complete this programme and find a job.\"}, {\"id\": \"t5\", \"text\": \"Do you know _____ the training centre is located?\"}, {\"id\": \"t6\", \"text\": \"The office _____ open every weekday from 8 am.\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"There\", \"t2\": \"teach\", \"t3\": \"flour\", \"t4\": \"want\", \"t5\": \"where\", \"t6\": \"is\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 50,
-  "fields": {
-    "section": 5,
-    "order": 17,
-    "code": "GEN-D-1",
-    "prompt": "PART D: SENTENCE ORDER \u2014 Number the sentences in the correct order to form a paragraph about the Shoprite Learnership Programme.",
-    "kind": "match",
-    "max_marks": 6,
-    "spec_json": "{\"prompt\": \"Drag the number that shows where each sentence belongs in the paragraph.\", \"bank\": [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Shoprite is one of the largest retail companies in Africa.\"}, {\"id\": \"t2\", \"text\": \"The company offers a learnership programme for young South Africans.\"}, {\"id\": \"t3\", \"text\": \"Applicants must have completed Grade 10 and be between 18 and 35 years old.\"}, {\"id\": \"t4\", \"text\": \"Successful candidates receive training in customer service and stock management.\"}, {\"id\": \"t5\", \"text\": \"At the end of the programme, learners write a final assessment.\"}, {\"id\": \"t6\", \"text\": \"Those who pass may be offered permanent employment at Shoprite.\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"1\", \"t2\": \"2\", \"t3\": \"3\", \"t4\": \"4\", \"t5\": \"5\", \"t6\": \"6\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 51,
-  "fields": {
-    "section": 5,
-    "order": 18,
-    "code": "GEN-D-2",
-    "prompt": "PART D: TIME \u2014 Match each digital time to its written description.",
-    "kind": "match",
-    "max_marks": 6,
-    "spec_json": "{\"prompt\": \"Drag the digital time that matches each written description.\", \"bank\": [\"07h30\", \"14h45\", \"21h20\", \"12h00\", \"05h55\", \"16h10\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Half past seven in the morning\"}, {\"id\": \"t2\", \"text\": \"Quarter to three in the afternoon\"}, {\"id\": \"t3\", \"text\": \"Twenty minutes past nine at night\"}, {\"id\": \"t4\", \"text\": \"Midday\"}, {\"id\": \"t5\", \"text\": \"Five minutes to six in the morning\"}, {\"id\": \"t6\", \"text\": \"Ten minutes past four in the afternoon\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"07h30\", \"t2\": \"14h45\", \"t3\": \"21h20\", \"t4\": \"12h00\", \"t5\": \"05h55\", \"t6\": \"16h10\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 52,
-  "fields": {
-    "section": 6,
-    "order": 1,
-    "code": "GEN-E-READ",
-    "prompt": "PART E: READING COMPREHENSION \u2014 Read the passage carefully before answering the questions.",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\"layout\": \"passage_only\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\"}",
-    "answer_key_json": "{\"auto_mark\": false}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 53,
-  "fields": {
-    "section": 6,
-    "order": 2,
-    "code": "GEN-E-1",
-    "prompt": "PART E: VOCABULARY \u2014 Match each word from the passage to its meaning.",
-    "kind": "match",
-    "max_marks": 8,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag each word to its correct definition.\", \"bank\": [\"exceptional\", \"compelled\", \"surrender\", \"dedication\", \"prosthetic\", \"competitive\", \"subsequently\", \"disabilities\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Outstanding or remarkably good\"}, {\"id\": \"t2\", \"text\": \"Driven or strongly motivated to do something\"}, {\"id\": \"t3\", \"text\": \"To give up or stop trying\"}, {\"id\": \"t4\", \"text\": \"Commitment and hard work towards a goal\"}, {\"id\": \"t5\", \"text\": \"An artificial replacement for a body part\"}, {\"id\": \"t6\", \"text\": \"Having a strong desire to win or succeed\"}, {\"id\": \"t7\", \"text\": \"Happening later, as a result\"}, {\"id\": \"t8\", \"text\": \"Physical or mental conditions that limit a person's activities\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"exceptional\", \"t2\": \"compelled\", \"t3\": \"surrender\", \"t4\": \"dedication\", \"t5\": \"prosthetic\", \"t6\": \"competitive\", \"t7\": \"subsequently\", \"t8\": \"disabilities\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 54,
-  "fields": {
-    "section": 6,
-    "order": 3,
-    "code": "GEN-E-2",
-    "prompt": "PART E: CAUSE AND EFFECT \u2014 Match each cause to its effect.",
-    "kind": "match",
-    "max_marks": 5,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the cause that matches each effect.\", \"bank\": [\"Her leg was amputated\", \"She refused to give up\", \"She trained every day\", \"She qualified for the Olympics\", \"She inspired many people\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She could not compete in the same way at first.\"}, {\"id\": \"t2\", \"text\": \"She returned to the pool after her accident.\"}, {\"id\": \"t3\", \"text\": \"She improved enough to compete with able-bodied swimmers.\"}, {\"id\": \"t4\", \"text\": \"She became the first amputee at the Olympic Games.\"}, {\"id\": \"t5\", \"text\": \"Others with disabilities believed they could also achieve great things.\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"Her leg was amputated\", \"t2\": \"She refused to give up\", \"t3\": \"She trained every day\", \"t4\": \"She qualified for the Olympics\", \"t5\": \"She inspired many people\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 55,
-  "fields": {
-    "section": 6,
-    "order": 4,
-    "code": "GEN-E-3",
-    "prompt": "PART E: MAIN IDEAS \u2014 Match each paragraph to its main idea.",
-    "kind": "match",
-    "max_marks": 4,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the main idea that best describes each paragraph.\", \"bank\": [\"Natalie's early swimming talent\", \"The accident and its aftermath\", \"Return to competitive swimming\", \"Olympic and Paralympic achievement\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Paragraph 1\"}, {\"id\": \"t2\", \"text\": \"Paragraph 2\"}, {\"id\": \"t3\", \"text\": \"Paragraph 3\"}, {\"id\": \"t4\", \"text\": \"Paragraph 4\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"Natalie's early swimming talent\", \"t2\": \"The accident and its aftermath\", \"t3\": \"Return to competitive swimming\", \"t4\": \"Olympic and Paralympic achievement\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 56,
-  "fields": {
-    "section": 6,
-    "order": 5,
-    "code": "GEN-E-4",
-    "prompt": "PART E: MODAL VERBS \u2014 Complete each sentence using the correct modal verb phrase.",
-    "kind": "match",
-    "max_marks": 6,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct modal verb phrase to complete each sentence about Natalie.\", \"bank\": [\"had to\", \"refused to\", \"was able to\", \"managed to\", \"wanted to\", \"chose to\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie _____ give up swimming, so she kept training.\"}, {\"id\": \"t2\", \"text\": \"After losing her leg, she _____ learn to swim in a completely new way.\"}, {\"id\": \"t3\", \"text\": \"Through years of training, she _____ compete against swimmers without disabilities.\"}, {\"id\": \"t4\", \"text\": \"She _____ qualify for the 2008 Olympic Games, becoming the first amputee to do so.\"}, {\"id\": \"t5\", \"text\": \"She always _____ represent South Africa on the world stage.\"}, {\"id\": \"t6\", \"text\": \"After the Olympics, she _____ compete in the Paralympic Games as well.\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"refused to\", \"t2\": \"had to\", \"t3\": \"was able to\", \"t4\": \"managed to\", \"t5\": \"wanted to\", \"t6\": \"chose to\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 57,
-  "fields": {
-    "section": 6,
-    "order": 6,
-    "code": "GEN-E-5",
-    "prompt": "PART E: PREPOSITIONS \u2014 Complete each phrase with the correct preposition.",
-    "kind": "match",
-    "max_marks": 7,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct preposition to complete each phrase.\", \"bank\": [\"at\", \"for\", \"in\", \"against\", \"from\", \"through\", \"with\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie was born _____ Cape Town.\"}, {\"id\": \"t2\", \"text\": \"She trained _____ years to reach her goals.\"}, {\"id\": \"t3\", \"text\": \"She competed _____ able-bodied swimmers.\"}, {\"id\": \"t4\", \"text\": \"She won medals _____ the Paralympic Games.\"}, {\"id\": \"t5\", \"text\": \"She showed talent _____ a young age.\"}, {\"id\": \"t6\", \"text\": \"She achieved success _____ hard work and determination.\"}, {\"id\": \"t7\", \"text\": \"She swam _____ a prosthetic limb.\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"in\", \"t2\": \"for\", \"t3\": \"against\", \"t4\": \"at\", \"t5\": \"from\", \"t6\": \"through\", \"t7\": \"with\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 58,
-  "fields": {
-    "section": 6,
-    "order": 7,
-    "code": "GEN-F-READ",
-    "prompt": "PART F: READING COMPREHENSION \u2014 Read the passage carefully before answering the questions.",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\"layout\": \"passage_only\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\"}",
-    "answer_key_json": "{\"auto_mark\": false}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 59,
-  "fields": {
-    "section": 6,
-    "order": 8,
-    "code": "GEN-F-1",
-    "prompt": "PART F: VOCABULARY \u2014 Match each word to its correct meaning.",
-    "kind": "match",
-    "max_marks": 6,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Drag each word to its correct definition.\", \"bank\": [\"organised\", \"protest\", \"petition\", \"orderly\", \"dignity\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"A formal written request signed by many people\"}, {\"id\": \"t2\", \"text\": \"To plan and coordinate an activity\"}, {\"id\": \"t3\", \"text\": \"A public expression of disagreement or disapproval\"}, {\"id\": \"t4\", \"text\": \"Calm and well-behaved\"}, {\"id\": \"t5\", \"text\": \"A feeling of pride and self-respect\"}, {\"id\": \"t6\", \"text\": \"Something that represents a bigger idea or group\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"petition\", \"t2\": \"organised\", \"t3\": \"protest\", \"t4\": \"orderly\", \"t5\": \"dignity\", \"t6\": \"symbol\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 60,
-  "fields": {
-    "section": 6,
-    "order": 9,
-    "code": "GEN-F-2",
-    "prompt": "The 1956 women's march was organised by the African National Congress (ANC).",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"False\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 61,
-  "fields": {
-    "section": 6,
-    "order": 10,
-    "code": "GEN-F-3",
-    "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-2.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"The march was organised by the Federation of South African Women (FEDSAW).\", \"More than 20 000 women marched to the Union Buildings.\", \"They carried petitions with thousands of signatures.\", \"The march became a landmark event in South African history.\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"FEDSAW\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 62,
-  "fields": {
-    "section": 6,
-    "order": 11,
-    "code": "GEN-F-4",
-    "prompt": "Prime Minister Strijdom met with the women when they arrived at the Union Buildings.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"False\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 63,
-  "fields": {
-    "section": 6,
-    "order": 12,
-    "code": "GEN-F-5",
-    "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-4.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Prime Minister J.G. Strijdom was absent and refused to meet with them.\", \"The women remained orderly and observed a moment of silence.\", \"They carried petitions with thousands of signatures.\", \"The march became a symbol of women's courage.\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"absent\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 64,
-  "fields": {
-    "section": 6,
-    "order": 13,
-    "code": "GEN-F-6",
-    "prompt": "The 1956 Women's March was a violent event.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"True\", \"False\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"False\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 65,
-  "fields": {
-    "section": 6,
-    "order": 14,
-    "code": "GEN-F-7",
-    "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-6.",
-    "kind": "text",
-    "max_marks": 1,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"kind_hint\": \"mcq_or_choice\", \"choices\": [\"The women remained orderly and observed a moment of silence with dignity before leaving.\", \"More than 20 000 women marched to the Union Buildings.\", \"They carried petitions with thousands of signatures.\", \"The march became a landmark event in South African history.\"]}",
-    "answer_key_json": "{\"auto_mark\": true, \"keyword_answer\": \"orderly\"}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 66,
-  "fields": {
-    "section": 6,
-    "order": 15,
-    "code": "GEN-F-8",
-    "prompt": "PART F: WORD SEARCH IN PASSAGE \u2014 Find the word in the passage that matches each definition.",
-    "kind": "match",
-    "max_marks": 8,
-    "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Drag the word from the passage that matches each definition.\", \"bank\": [\"protest\", \"required\", \"determined\", \"orderly\", \"observed\", \"landmark\", \"absent\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"A public objection or expression of disapproval\"}, {\"id\": \"t2\", \"text\": \"Needed; expected by law or rule\"}, {\"id\": \"t3\", \"text\": \"Showing firm purpose; not willing to give up\"}, {\"id\": \"t4\", \"text\": \"Calm and controlled in behaviour\"}, {\"id\": \"t5\", \"text\": \"Watched solemnly or took part in a ceremony\"}, {\"id\": \"t6\", \"text\": \"Important and historically significant\"}, {\"id\": \"t7\", \"text\": \"Not present; not there\"}, {\"id\": \"t8\", \"text\": \"Something that stands for a larger idea or meaning\"}]}",
-    "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"protest\", \"t2\": \"required\", \"t3\": \"determined\", \"t4\": \"orderly\", \"t5\": \"observed\", \"t6\": \"landmark\", \"t7\": \"absent\", \"t8\": \"symbol\"}, \"marks_per_match\": 1}",
-    "marking_notes": ""
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 67,
-  "fields": {
-    "section": 6,
-    "order": 16,
-    "code": "GEN-G-WRITE",
-    "prompt": "PART G: WRITING TASK",
-    "kind": "text",
-    "max_marks": 8,
-    "spec_json": "{\"layout\": \"writing\", \"prompt\": \"Why I want to join a learnership and what skills I want to develop.\", \"instructions\": [\"Write 6 to 8 sentences in English.\", \"Spell-check and grammar assist are disabled.\", \"Do not use notes or outside help.\"]}",
-    "answer_key_json": "{\"auto_mark\": false, \"criteria\": [{\"key\": \"motivation\", \"label\": \"MOTIVATION\", \"max_points\": 3, \"description\": \"3=clearly stated and specific, elaborated with personal context; 2=stated with some elaboration but lacking depth; 1=generic or unexplained; 0=none or off-topic\"}, {\"key\": \"skills\", \"label\": \"SKILLS\", \"max_points\": 3, \"description\": \"3=two or more specific skills named with personal relevance explanation; 2=skills named with limited elaboration; 1=vague skills; 0=none\"}, {\"key\": \"language\", \"label\": \"LANGUAGE\", \"max_points\": 2, \"description\": \"2=complete coherent sentences meeting 6 to 8 requirement; 1=some coherence issues; 0=too brief or incoherent\"}]}",
-    "marking_notes": "Score each criterion independently. MOTIVATION (0-3): motivation stated, elaborated, personal context. SKILLS (0-3): specific skills named with relevance. LANGUAGE (0-2): sentence quality and length (6-8 sentences)."
-  }
-},
-{
-  "model": "assessment.question",
-  "pk": 68,
-  "fields": {
-    "section": 6,
-    "order": 17,
-    "code": "GEN-G-HANDWRITE",
-    "prompt": "Did you write your essay on a page instead of typing it in the box?",
-    "kind": "text",
-    "max_marks": 0,
-    "spec_json": "{\"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Yes\", \"No\"]}",
-    "answer_key_json": "{\"auto_mark\": false}",
-    "marking_notes": ""
-  }
-}
 ]

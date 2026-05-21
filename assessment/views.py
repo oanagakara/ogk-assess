@@ -351,6 +351,62 @@ def _render_response_for_marking(question, response):
     return _render_text(data)
 
 
+def _build_response_display(question, response):
+    """Return structured display data used by the marking template to render
+    a faithful visual representation of what the learner submitted."""
+    spec = _question_spec(question)
+    key = _question_answer_key(question)
+    data = _safe_json_loads(
+        response.response_json if response else None, {}
+    )
+
+    if spec.get("layout") == "form_fill":
+        return {"kind": "text", "text": _render_form_fill(spec, data)}
+
+    if question.kind == Question.MATCH:
+        targets = [
+            (str(t.get("id")), t.get("text", ""))
+            for t in spec.get("targets", [])
+            if isinstance(t, dict)
+        ]
+        correct_map = {str(k): str(v) for k, v in key.get("match", {}).items()}
+        rows = []
+        for tid, target_text in targets:
+            placed = str(data.get(tid, "")).strip()
+            correct = correct_map.get(tid, "")
+            if placed:
+                is_correct = placed.lower() == correct.lower()
+            else:
+                is_correct = None
+            rows.append({
+                "target": target_text,
+                "placed": placed,
+                "correct": correct,
+                "is_correct": is_correct,
+            })
+        return {"kind": "match", "rows": rows}
+
+    if spec.get("kind_hint") == "mcq_or_choice":
+        choices = spec.get("choices") or _extract_inline_choices(question.prompt)
+        selected = str(data.get("answer", "")).strip()
+        raw_kw = key.get("keyword_answer", [])
+        correct_answers = {
+            (k.lower() if isinstance(k, str) else str(k).lower())
+            for k in (raw_kw if isinstance(raw_kw, list) else [raw_kw])
+        }
+        items = []
+        for ch in choices:
+            items.append({
+                "label": ch,
+                "selected": ch == selected,
+                "is_correct_choice": ch.lower() in correct_answers if correct_answers else None,
+            })
+        return {"kind": "choice", "items": items, "selected": selected}
+
+    text = str(data.get("answer", "")).strip() if isinstance(data, dict) else str(data).strip()
+    return {"kind": "text", "text": text}
+
+
 def _clamped_float(value, upper_bound):
     try:
         parsed = float(value)
@@ -412,6 +468,28 @@ def is_auditor(user):
         user.is_staff
         or user.groups.filter(name="auditor").exists()
     )
+
+
+def effective_is_moderator(request) -> bool:
+    """is_moderator, but respects the user's active-role session downgrade."""
+    if not is_moderator(request.user):
+        return False
+    return request.session.get("active_role", "moderator") != "assessor"
+
+
+@login_required
+def set_active_role(request):
+    if request.method != "POST":
+        return redirect("assessment:assessor_dashboard")
+    role = request.POST.get("role", "")
+    if role == "assessor" and is_moderator(request.user):
+        request.session["active_role"] = "assessor"
+    elif role == "moderator" and is_auditor(request.user):
+        request.session["active_role"] = "moderator"
+    elif is_moderator(request.user):
+        request.session.pop("active_role", None)
+    next_url = request.POST.get("next") or reverse("assessment:assessor_dashboard")
+    return redirect(next_url)
 
 
 @login_required
@@ -610,6 +688,7 @@ def _build_marking_row(question, index, responses_by_qid):
         "question": question,
         "response": response,
         "response_text": _render_response_for_marking(question, response),
+        "response_display": _build_response_display(question, response),
         "has_rubric": bool(rubric_rows),
         "rubric": rubric_rows,
         "manual_value": awarded if score and not rubric_rows else "",
@@ -770,22 +849,10 @@ def assessor_mark_attempt(request, code: str):
     questions_by_pk = {q.pk: q for q in markable_questions}
 
     # Resolve which question to show from ?qid=, falling back to first pending.
-    # Audit-only questions (auto_done) are restricted to staff.
     try:
         requested_qid = int(request.GET.get("qid", 0))
     except (TypeError, ValueError):
         requested_qid = 0
-
-    def _is_audit_only(q) -> bool:
-        score = _score_for_response(responses_by_qid.get(q.pk))
-        if score is None or _requires_assessor_attention(score):
-            return False
-        rubric = score.rubric_json if isinstance(score.rubric_json, dict) else {}
-        return bool(rubric.get("auto_marked"))
-
-    requested_question = questions_by_pk.get(requested_qid)
-    if requested_question and _is_audit_only(requested_question) and not request.user.is_staff:
-        requested_qid = 0  # silently drop the request — fall through to first pending
 
     current_question = (
         questions_by_pk.get(requested_qid)
@@ -793,7 +860,7 @@ def assessor_mark_attempt(request, code: str):
     )
 
     finalised = bool(attempt.finalised_at)
-    can_mark = (not finalised and is_assessor(request.user)) or is_moderator(request.user)
+    can_mark = (not finalised and is_assessor(request.user)) or effective_is_moderator(request)
 
     if request.method == "POST":
         if not can_mark:
@@ -824,7 +891,12 @@ def assessor_mark_attempt(request, code: str):
         return redirect(f"{url}?summary=1")
 
     totals = _compute_marking_totals(markable_questions, responses_by_qid)
-    show_summary = request.GET.get("summary") == "1" or (not pending_questions and not current_question)
+    # An explicit ?qid= that resolved to a real question always wins over auto-summary.
+    explicit_qid = requested_qid and current_question and questions_by_pk.get(requested_qid) == current_question
+    show_summary = (
+        (request.GET.get("summary") == "1" or (not pending_questions and not current_question))
+        and not explicit_qid
+    )
 
     summary_rows = None
     if show_summary:
@@ -864,6 +936,16 @@ def assessor_mark_attempt(request, code: str):
     # Auto-marked, no review — hidden by default; accessible for spot-checking.
     sidebar_spot = [i for i in all_sidebar if i["auto_done"]]
 
+    # Prev/next navigation across all markable questions.
+    mark_url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
+    prev_url = next_url = None
+    if current_question and not show_summary:
+        idx = markable_questions.index(current_question)
+        if idx > 0:
+            prev_url = f"{mark_url}?qid={markable_questions[idx - 1].pk}"
+        if idx < len(markable_questions) - 1:
+            next_url = f"{mark_url}?qid={markable_questions[idx + 1].pk}"
+
     return render(
         request,
         "assessment/assessor_mark_attempt.html",
@@ -880,12 +962,14 @@ def assessor_mark_attempt(request, code: str):
             "summary_rows": summary_rows,
             "sidebar_questions": sidebar_questions,
             "sidebar_spot": sidebar_spot,
+            "prev_url": prev_url,
+            "next_url": next_url,
             "working_sheet": _get_working_sheet(attempt),
             "writing_submission": _get_writing_submission(attempt),
             "paper_submitted": _get_paper_submitted(attempt),
             "is_finalised": finalised,
             "can_mark": can_mark,
-            "can_unlock": finalised and is_moderator(request.user) and attempt.template.moderation_mode == AssessmentTemplate.MODERATION_FULL,
+            "can_unlock": finalised and effective_is_moderator(request) and attempt.template.moderation_mode == AssessmentTemplate.MODERATION_FULL,
         },
     )
 
@@ -2341,7 +2425,7 @@ def register(request, token):
 @user_passes_test(is_assessor)
 def generate_invite(request):
     invite = None
-    can_invite_moderator = is_moderator(request.user)
+    can_invite_moderator = effective_is_moderator(request)
     if request.method == "POST":
         role = request.POST.get("role", AssessorInvite.ROLE_ASSESSOR)
         if role == AssessorInvite.ROLE_MODERATOR and not can_invite_moderator:

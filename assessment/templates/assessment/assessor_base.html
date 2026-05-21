@@ -292,6 +292,33 @@
         </form>
       </div>
 
+      {% if can_switch_role %}
+        <div class="sl mt-1">
+          <form method="post" action="{% url 'assessment:set_active_role' %}" id="role-switch-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+            <div class="flex items-center gap-2 px-2 py-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"
+                   stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                   class="shrink-0 opacity-50">
+                <path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+              </svg>
+              <select name="role"
+                      onchange="document.getElementById('role-switch-form').submit()"
+                      class="select select-xs bg-transparent border-none text-xs w-full focus:outline-none opacity-60 hover:opacity-100 cursor-pointer">
+                <option value="" {% if active_role == real_role %}selected{% endif %}>
+                  {% if real_role == "admin" %}Administrator{% elif real_role == "auditor" %}Auditor{% else %}Moderator{% endif %}
+                </option>
+                {% if real_role == "admin" or real_role == "auditor" %}
+                  <option value="moderator" {% if active_role == "moderator" %}selected{% endif %}>Moderator</option>
+                {% endif %}
+                <option value="assessor" {% if active_role == "assessor" %}selected{% endif %}>Assessor</option>
+              </select>
+            </div>
+          </form>
+        </div>
+      {% endif %}
+
     </div>
   </aside>
 
