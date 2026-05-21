@@ -137,6 +137,19 @@
         </div>
       </details>
 
+      <details open>
+        <summary class="gnav-link cursor-pointer list-none select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" class="shrink-0 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
+          Roles &amp; Permissions
+        </summary>
+        <div class="ml-5 mt-0.5 space-y-0.5">
+          <a href="#s-roles-overview"  data-nav-s="s-roles-overview"  class="gnav-sub">Role Overview</a>
+          <a href="#s-roles-matrix"    data-nav-s="s-roles-matrix"    class="gnav-sub">Capability Matrix</a>
+          <a href="#s-roles-switching" data-nav-s="s-roles-switching" class="gnav-sub">Switching Roles</a>
+          <a href="#s-roles-inviting"  data-nav-s="s-roles-inviting"  class="gnav-sub">Inviting Users</a>
+        </div>
+      </details>
+
     </nav>
 
     {# Bottom: theme + font #}
@@ -421,6 +434,138 @@
           </div>
         </section>
 
+        {# ══════════════════════════════════════════════════════════ #}
+        {# Chapter 7 — Roles & Permissions                           #}
+        {# ══════════════════════════════════════════════════════════ #}
+        <section id="ch-roles" class="guide-chapter mb-16">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 7</p>
+              <h1 class="text-2xl font-bold">Roles &amp; Permissions</h1>
+            </div>
+            <button onclick="printChapter('ch-roles')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+              Print
+            </button>
+          </div>
+
+          <p>Every user account is assigned a role that determines which actions they can perform. When adding a new user, select the role that matches their responsibilities — they will only see the parts of the platform relevant to that role.</p>
+
+          <h2 id="s-roles-overview" class="prose-h2">Role Overview</h2>
+          <div class="space-y-3 not-prose">
+            <div class="rounded-lg border border-base-200 p-4">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="badge badge-sm badge-outline">Assessor</span>
+                <p class="text-sm font-semibold">Day-to-day assessment delivery</p>
+              </div>
+              <p class="text-sm opacity-70 leading-relaxed">Can run sessions, monitor learners, mark written responses, and view results. Cannot unlock finalised attempts, moderate scores, or export data.</p>
+            </div>
+            <div class="rounded-lg border border-base-200 p-4">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="badge badge-sm badge-outline badge-warning">Moderator</span>
+                <p class="text-sm font-semibold">Quality assurance and moderation</p>
+              </div>
+              <p class="text-sm opacity-70 leading-relaxed">All assessor capabilities, plus: unlock finalised attempts, access the moderation view, view scoring breakdowns, and invite other assessors or moderators.</p>
+            </div>
+            <div class="rounded-lg border border-base-200 p-4">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="badge badge-sm badge-outline badge-info">Auditor</span>
+                <p class="text-sm font-semibold">Oversight and reporting</p>
+              </div>
+              <p class="text-sm opacity-70 leading-relaxed">All moderator capabilities, plus: access the per-attempt score audit log and export all results to CSV. Intended for compliance and reporting roles.</p>
+            </div>
+          </div>
+          <div class="callout callout-info" style="margin-top:1.25rem;">
+            <strong>Role hierarchy</strong>
+            Each role includes all capabilities of the roles below it. Auditor &gt; Moderator &gt; Assessor.
+          </div>
+
+          <h2 id="s-roles-matrix" class="prose-h2">Capability Matrix</h2>
+          <p>Use this table when deciding which role to assign to a new user.</p>
+
+          <style>
+            .perm-table th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.55; padding: 0.5rem 0.75rem; }
+            .perm-table td { font-size: 0.8125rem; padding: 0.4rem 0.75rem; }
+            .perm-table td:not(:first-child) { text-align: center; }
+            .perm-check { color: oklch(var(--su)); font-size: 1rem; }
+            .perm-dash  { opacity: 0.2; }
+            .perm-group-header td { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.45; padding-top: 1rem; padding-bottom: 0.25rem; background: transparent; border-bottom: none; }
+          </style>
+
+          <div class="overflow-x-auto not-prose mt-4">
+            <table class="perm-table table table-sm w-full">
+              <thead>
+                <tr>
+                  <th class="w-1/2">Capability</th>
+                  <th>Assessor</th>
+                  <th>Moderator</th>
+                  <th>Auditor</th>
+                </tr>
+              </thead>
+              <tbody>
+
+                {# Account & Navigation #}
+                <tr class="perm-group-header"><td colspan="4">Account &amp; Navigation</td></tr>
+                <tr><td>Dashboard</td>                           <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Assessor guide</td>                      <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Switch active role (temporary downgrade)</td><td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+
+                {# Attempt Management #}
+                <tr class="perm-group-header"><td colspan="4">Attempt Management</td></tr>
+                <tr><td>View attempts list</td>                  <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Create new attempt</td>                  <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Mark an attempt</td>                     <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Finalise marking</td>                    <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>View review queue</td>                   <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>View auto-marked attempt</td>            <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Upload working sheet</td>                <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Upload writing submission</td>           <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+
+                {# Moderation #}
+                <tr class="perm-group-header"><td colspan="4">Moderation</td></tr>
+                <tr><td>Moderation view</td>                     <td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Unlock finalised attempt <span class="badge badge-xs badge-ghost ml-1" title="Only available when template moderation mode is Full">†</span></td><td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+
+                {# Sessions #}
+                <tr class="perm-group-header"><td colspan="4">Sessions</td></tr>
+                <tr><td>View sessions list</td>                  <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Create new session</td>                  <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Monitor session (live)</td>              <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+
+                {# Results & Reporting #}
+                <tr class="perm-group-header"><td colspan="4">Results &amp; Reporting</td></tr>
+                <tr><td>View results</td>                        <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Scoring breakdown (per attempt)</td>     <td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Score audit log (per attempt)</td>       <td><span class="perm-dash">—</span></td><td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Export results to CSV</td>               <td><span class="perm-dash">—</span></td><td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td></tr>
+
+                {# User Management #}
+                <tr class="perm-group-header"><td colspan="4">User Management</td></tr>
+                <tr><td>Invite assessor</td>                     <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Invite moderator or auditor</td>         <td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
+
+              </tbody>
+            </table>
+          </div>
+          <p class="text-xs opacity-50 mt-2">† Unlock is only available when the assessment template's moderation mode is set to Full. Audit-only templates cannot be unlocked.</p>
+
+          <h2 id="s-roles-switching" class="prose-h2">Switching Roles</h2>
+          <p>Moderators and Auditors can temporarily operate with Assessor-level access without changing their account role. This is useful when you want to mark responses without access to moderation actions.</p>
+          <p>To switch: use the role selector in the bottom of the sidebar. Select <span class="ui">Assessor</span> to downgrade, or your real role to restore full access. The change takes effect immediately and applies only to your current session.</p>
+          <div class="callout callout-info">
+            <strong>Note</strong>
+            Role switching is a session-level change only. Your account role does not change, and the switch is reversed the next time you log in.
+          </div>
+
+          <h2 id="s-roles-inviting" class="prose-h2">Inviting Users</h2>
+          <p>To add a new user, navigate to <span class="ui">Invite User</span> (accessible from the dashboard or account area). Select the role appropriate for the new user based on the matrix above, then send them the invite link.</p>
+          <div class="callout callout-warn">
+            <strong>Important</strong>
+            Invite links expire after 48 hours. If the new user does not register in time, a new invite must be generated. Only Moderators and Auditors can generate invites for Moderator-level roles.
+          </div>
+
+        </section>
+
       </div>
     </main>
 
@@ -455,6 +600,12 @@
         <p class="toc-chapter">Working Sheets</p>
         <a href="#s-ws-print"  data-toc="s-ws-print"  class="toc-link">Printing</a>
         <a href="#s-ws-upload" data-toc="s-ws-upload" class="toc-link">Uploading</a>
+
+        <p class="toc-chapter">Roles &amp; Permissions</p>
+        <a href="#s-roles-overview"  data-toc="s-roles-overview"  class="toc-link">Role Overview</a>
+        <a href="#s-roles-matrix"    data-toc="s-roles-matrix"    class="toc-link">Capability Matrix</a>
+        <a href="#s-roles-switching" data-toc="s-roles-switching" class="toc-link">Switching Roles</a>
+        <a href="#s-roles-inviting"  data-toc="s-roles-inviting"  class="toc-link">Inviting Users</a>
 
       </nav>
     </aside>
@@ -536,6 +687,11 @@
     'ch-working-sheets': null,
     's-ws-print':        null,
     's-ws-upload':       null,
+    'ch-roles':          null,
+    's-roles-overview':  null,
+    's-roles-matrix':    null,
+    's-roles-switching': null,
+    's-roles-inviting':  null,
   };
 
   function setActive(id) {
