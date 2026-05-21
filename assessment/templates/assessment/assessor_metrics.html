@@ -14,7 +14,7 @@
     {% endif %}
   </div>
 
-  <!-- Stat cards -->
+  <!-- Stat cards row 1 -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body p-5">
@@ -31,7 +31,7 @@
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body p-5">
         <div class="text-3xl font-bold">{{ finalised }}</div>
-        <div class="text-sm opacity-60 mt-1">Finalised</div>
+        <div class="text-sm opacity-60 mt-1">Marked</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
@@ -44,7 +44,35 @@
     </div>
   </div>
 
-  <!-- Charts row -->
+  <!-- Stat cards row 2 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body p-5">
+        <div class="text-3xl font-bold">{{ in_progress }}</div>
+        <div class="text-sm opacity-60 mt-1">In progress</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body p-5">
+        <div class="text-3xl font-bold">{{ submitted }}</div>
+        <div class="text-sm opacity-60 mt-1">Submitted</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body p-5">
+        <div class="text-3xl font-bold">{{ incomplete }}</div>
+        <div class="text-sm opacity-60 mt-1">Incomplete</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body p-5">
+        <div class="text-3xl font-bold text-warning">{{ abandoned }}</div>
+        <div class="text-sm opacity-60 mt-1">Abandoned (&gt;3h)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts row 1: status doughnut + score distribution -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
     <!-- Attempt status doughnut -->
@@ -57,8 +85,9 @@
         <div class="flex flex-wrap justify-center gap-3 mt-4 text-xs opacity-70">
           <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#3b82f6"></span>In progress ({{ in_progress }})</span>
           <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#22c55e"></span>Submitted ({{ submitted }})</span>
-          <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#6366f1"></span>Finalised ({{ finalised }})</span>
+          <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#6366f1"></span>Marked ({{ finalised }})</span>
           <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#f97316"></span>Incomplete ({{ incomplete }})</span>
+          <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#eab308"></span>Abandoned ({{ abandoned }})</span>
         </div>
       </div>
     </div>
@@ -73,6 +102,18 @@
 
   </div>
 
+  <!-- NQF placement -->
+  <div class="card bg-base-100 shadow border border-base-300">
+    <div class="card-body p-6">
+      <h2 class="font-semibold mb-4">NQF placement (submitted)</h2>
+      <canvas id="nqfChart" height="120"></canvas>
+      <div class="flex gap-4 mt-3 text-xs opacity-70">
+        <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#6366f1"></span>Literacy</span>
+        <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#22c55e"></span>Numeracy</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Submissions over time -->
   <div class="card bg-base-100 shadow border border-base-300">
     <div class="card-body p-6">
@@ -83,6 +124,41 @@
         <p class="text-sm opacity-50">No submissions in the last 30 days.</p>
       {% endif %}
     </div>
+  </div>
+
+  <!-- Learner demographics -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Age group distribution -->
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body p-6">
+        <h2 class="font-semibold mb-4">Age group distribution</h2>
+        {% if age_counts != "[0, 0, 0, 0, 0, 0]" %}
+          <canvas id="ageChart" height="200"></canvas>
+        {% else %}
+          <p class="text-sm opacity-50">No date-of-birth data recorded.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Age × demographic -->
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body p-6">
+        <h2 class="font-semibold mb-4">Age group by demographic</h2>
+        {% if age_counts != "[0, 0, 0, 0, 0, 0]" %}
+          <canvas id="ageDemoChart" height="200"></canvas>
+          <div class="flex flex-wrap gap-3 mt-3 text-xs opacity-70">
+            <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#3b82f6"></span>African</span>
+            <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#f97316"></span>Coloured</span>
+            <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#22c55e"></span>Indian</span>
+            <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#a855f7"></span>White</span>
+          </div>
+        {% else %}
+          <p class="text-sm opacity-50">No demographic data recorded.</p>
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 
 </div>
@@ -106,10 +182,10 @@ const labelColor = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)';
 new Chart(document.getElementById('statusChart'), {
   type: 'doughnut',
   data: {
-    labels: ['In progress', 'Submitted', 'Finalised', 'Incomplete'],
+    labels: ['In progress', 'Submitted', 'Marked', 'Incomplete', 'Abandoned'],
     datasets: [{
-      data: [{{ in_progress }}, {{ submitted }}, {{ finalised }}, {{ incomplete }}],
-      backgroundColor: ['#3b82f6', '#22c55e', '#6366f1', '#f97316'],
+      data: [{{ in_progress }}, {{ submitted }}, {{ finalised }}, {{ incomplete }}, {{ abandoned }}],
+      backgroundColor: ['#3b82f6', '#22c55e', '#6366f1', '#f97316', '#eab308'],
       borderWidth: 0,
     }]
   },
@@ -123,7 +199,7 @@ new Chart(document.getElementById('statusChart'), {
 new Chart(document.getElementById('scoreChart'), {
   type: 'bar',
   data: {
-    labels: ['0–20%', '20–40%', '40–60%', '60–80%', '80–100%'],
+    labels: ['0-20%', '20-40%', '40-60%', '60-80%', '80-100%'],
     datasets: [{
       label: 'Learners',
       data: {{ score_bands }},
@@ -131,6 +207,37 @@ new Chart(document.getElementById('scoreChart'), {
       borderRadius: 4,
       borderWidth: 0,
     }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: labelColor } },
+      y: { grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true },
+    }
+  }
+});
+
+// NQF placement grouped bar
+new Chart(document.getElementById('nqfChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ nqf_labels }},
+    datasets: [
+      {
+        label: 'Literacy',
+        data: {{ nqf_lit_data }},
+        backgroundColor: '#6366f1',
+        borderRadius: 4,
+        borderWidth: 0,
+      },
+      {
+        label: 'Numeracy',
+        data: {{ nqf_num_data }},
+        backgroundColor: '#22c55e',
+        borderRadius: 4,
+        borderWidth: 0,
+      }
+    ]
   },
   options: {
     plugins: { legend: { display: false } },
@@ -162,6 +269,46 @@ new Chart(document.getElementById('dailyChart'), {
     scales: {
       x: { grid: { color: gridColor }, ticks: { color: labelColor } },
       y: { grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true },
+    }
+  }
+});
+{% endif %}
+
+// Age group distribution
+{% if age_counts != "[0, 0, 0, 0, 0, 0]" %}
+new Chart(document.getElementById('ageChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ age_labels }},
+    datasets: [{
+      label: 'Learners',
+      data: {{ age_counts }},
+      backgroundColor: '#6366f1',
+      borderRadius: 4,
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: labelColor } },
+      y: { grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true },
+    }
+  }
+});
+
+// Age × demographic stacked bar
+new Chart(document.getElementById('ageDemoChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ age_demo_labels }},
+    datasets: {{ age_demo_datasets }},
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { stacked: true, grid: { color: gridColor }, ticks: { color: labelColor } },
+      y: { stacked: true, grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true },
     }
   }
 });

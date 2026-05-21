@@ -596,8 +596,11 @@ def assessor_metrics_simulate(request):
 @login_required
 @user_passes_test(is_assessor)
 def assessor_metrics(request):
-    from django.db.models import Sum, FloatField, ExpressionWrapper, F
+    from django.db.models import Sum
     from django.db.models.functions import TruncDate
+
+    now = timezone.now()
+    today = now.date()
 
     # --- Status counts ---
     status_qs = Attempt.objects.values("status").annotate(count=Count("id"))
@@ -608,8 +611,15 @@ def assessor_metrics(request):
     finalised    = Attempt.objects.filter(finalised_at__isnull=False).count()
     total        = in_progress + submitted + incomplete
 
+    # Abandoned: in-progress with no activity for 3+ hours
+    abandoned_cutoff = now - timedelta(hours=3)
+    abandoned = Attempt.objects.filter(
+        status=Attempt.IN_PROGRESS,
+        last_activity_at__lt=abandoned_cutoff,
+    ).count()
+
     # --- Submissions per day (last 30 days) ---
-    thirty_ago = timezone.now() - timedelta(days=30)
+    thirty_ago = now - timedelta(days=30)
     daily_qs = (
         Attempt.objects
         .filter(submitted_at__gte=thirty_ago)
@@ -646,17 +656,91 @@ def assessor_metrics(request):
     # --- Unique learners ---
     unique_learners = Attempt.objects.values("learner_id").distinct().count()
 
+    # --- NQF placement distribution (submitted attempts with scores) ---
+    nqf_attempts = (
+        Attempt.objects
+        .filter(status=Attempt.SUBMITTED)
+        .prefetch_related(
+            Prefetch("response_set", queryset=Response.objects.select_related("score"))
+        )
+    )
+    questions = Question.objects.select_related("section").filter(
+        section__template__attempt__status=Attempt.SUBMITTED
+    ).distinct()
+    q_meta = build_question_metadata(questions)
+
+    lit_level_order = ["L1", "L2", "L3", "L4", "Post L4"]
+    num_level_order = ["L1", "L2", "L3", "L4", "Post L4"]
+    nqf_lit_counts = {lv: 0 for lv in lit_level_order}
+    nqf_num_counts = {lv: 0 for lv in num_level_order}
+    for attempt in nqf_attempts:
+        placement = compute_nqf_placement(attempt, q_meta)
+        lit = str(placement.lit_level)
+        num = str(placement.num_level)
+        if lit in nqf_lit_counts:
+            nqf_lit_counts[lit] += 1
+        if num in nqf_num_counts:
+            nqf_num_counts[num] += 1
+
+    nqf_labels = lit_level_order
+    nqf_lit_data = [nqf_lit_counts[lv] for lv in lit_level_order]
+    nqf_num_data = [nqf_num_counts[lv] for lv in num_level_order]
+
+    # --- Age group distribution ---
+    age_labels = ["Under 18", "18-25", "26-35", "36-45", "46-55", "55+"]
+    age_counts = [0] * 6
+    # age × demographic (African, Coloured, Indian, White)
+    demographics = ["African", "Coloured", "Indian", "White"]
+    demo_colors = ["#3b82f6", "#f97316", "#22c55e", "#a855f7"]
+    # age_demo[demo][age_bucket]
+    age_demo_counts = {d: [0] * 6 for d in demographics}
+
+    learner_qs = Learner.objects.filter(
+        attempt__isnull=False, dob__isnull=False
+    ).values("dob", "demographic").distinct()
+
+    for row in learner_qs:
+        dob = row["dob"]
+        age = (today - dob).days // 365
+        if age < 18:
+            bucket = 0
+        elif age <= 25:
+            bucket = 1
+        elif age <= 35:
+            bucket = 2
+        elif age <= 45:
+            bucket = 3
+        elif age <= 55:
+            bucket = 4
+        else:
+            bucket = 5
+        age_counts[bucket] += 1
+        demo = row.get("demographic", "")
+        if demo in age_demo_counts:
+            age_demo_counts[demo][bucket] += 1
+
     return render(request, "assessment/assessor_metrics.html", {
         "total": total,
         "in_progress": in_progress,
         "submitted": submitted,
         "incomplete": incomplete,
         "finalised": finalised,
+        "abandoned": abandoned,
         "unique_learners": unique_learners,
         "avg_score": avg_score,
         "daily_labels": json.dumps(daily_labels),
         "daily_counts": json.dumps(daily_counts),
         "score_bands": json.dumps(bands),
+        "nqf_labels": json.dumps(nqf_labels),
+        "nqf_lit_data": json.dumps(nqf_lit_data),
+        "nqf_num_data": json.dumps(nqf_num_data),
+        "age_labels": json.dumps(age_labels),
+        "age_counts": json.dumps(age_counts),
+        "age_demo_labels": json.dumps(age_labels),
+        "age_demo_datasets": json.dumps([
+            {"label": d, "data": age_demo_counts[d], "backgroundColor": demo_colors[i]}
+            for i, d in enumerate(demographics)
+        ]),
     })
 
 
