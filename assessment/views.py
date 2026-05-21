@@ -2279,7 +2279,7 @@ def _send_error_email(error_type, error_msg, url, method, user):
     from django.core.mail import send_mail
     from django.conf import settings
     sender = getattr(settings, "EMAIL_HOST_USER", "")
-    if not sender:
+    if not sender or not getattr(settings, "EMAIL_HOST_PASSWORD", ""):
         return
     try:
         send_mail(
