@@ -30,6 +30,7 @@ _ADMIN_PATH = os.environ.get("ADMIN_URL_PREFIX", "_platform-admin") + "/"
 
 urlpatterns = [
     path("health/", lambda request: HttpResponse("ok"), name="health"),
+    path("favicon.ico", lambda request: HttpResponse(status=204), name="favicon"),
     path(_ADMIN_PATH, admin.site.urls),
     path("accounts", RedirectView.as_view(url="/accounts/login/", permanent=False)),
     path("accounts/logout", RedirectView.as_view(url="accounts/login/", permanent=False)),
