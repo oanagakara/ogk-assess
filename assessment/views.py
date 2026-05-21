@@ -738,7 +738,7 @@ def assessor_metrics(request):
         "age_counts": json.dumps(age_counts),
         "age_demo_labels": json.dumps(age_labels),
         "age_demo_datasets": json.dumps([
-            {"label": d, "data": age_demo_counts[d], "backgroundColor": demo_colors[i]}
+            {"label": d, "data": age_demo_counts[d], "backgroundColor": demo_colors[i], "borderWidth": 0}
             for i, d in enumerate(demographics)
         ]),
     })
