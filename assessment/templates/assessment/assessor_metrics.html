@@ -90,6 +90,7 @@
 {% load static %}
 <script src="{% static 'js/chart.umd.min.js' %}"></script>
 <script>
+{% autoescape off %}
 if (typeof Chart === 'undefined') {
   document.querySelectorAll('canvas').forEach(function(c) {
     c.insertAdjacentHTML('afterend', '<p class="text-error text-xs mt-1">Chart.js failed to load.</p>');
@@ -165,5 +166,6 @@ new Chart(document.getElementById('dailyChart'), {
   }
 });
 {% endif %}
+{% endautoescape %}
 </script>
 {% endblock assessor_content %}
