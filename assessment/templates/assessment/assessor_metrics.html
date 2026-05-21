@@ -15,61 +15,59 @@
   </div>
 
   <!-- Stat cards 4×2 grid -->
-  <div class="grid gap-4" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+  <div class="grid gap-2" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
-        <div class="text-3xl font-bold">{{ total }}</div>
-        <div class="text-sm opacity-60 mt-1">Total attempts</div>
+      <div class="card-body p-3">
+        <div class="text-xl font-bold">{{ total }}</div>
+        <div class="text-xs opacity-60">Total attempts</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
-        <div class="text-3xl font-bold">{{ unique_learners }}</div>
-        <div class="text-sm opacity-60 mt-1">Unique learners</div>
+      <div class="card-body p-3">
+        <div class="text-xl font-bold">{{ unique_learners }}</div>
+        <div class="text-xs opacity-60">Unique learners</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
-        <div class="text-3xl font-bold">{{ finalised }}</div>
-        <div class="text-sm opacity-60 mt-1">Marked</div>
+      <div class="card-body p-3">
+        <div class="text-xl font-bold">{{ finalised }}</div>
+        <div class="text-xs opacity-60">Marked</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
-        <div class="text-3xl font-bold">
-          {% if avg_score %}{{ avg_score }}%{% else %}—{% endif %}
-        </div>
-        <div class="text-sm opacity-60 mt-1">Avg score</div>
+      <div class="card-body p-3">
+        <div class="text-xl font-bold">{% if avg_score %}{{ avg_score }}%{% else %}—{% endif %}</div>
+        <div class="text-xs opacity-60">Avg score</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
-        <div class="text-3xl font-bold">{{ in_progress }}</div>
-        <div class="text-sm opacity-60 mt-1">In progress</div>
+      <div class="card-body p-3">
+        <div class="text-xl font-bold">{{ in_progress }}</div>
+        <div class="text-xs opacity-60">In progress</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
-        <div class="text-3xl font-bold">{{ submitted }}</div>
-        <div class="text-sm opacity-60 mt-1">Submitted</div>
+      <div class="card-body p-3">
+        <div class="text-xl font-bold">{{ submitted }}</div>
+        <div class="text-xs opacity-60">Submitted</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
-        <div class="text-3xl font-bold">{{ incomplete }}</div>
-        <div class="text-sm opacity-60 mt-1">Incomplete</div>
+      <div class="card-body p-3">
+        <div class="text-xl font-bold">{{ incomplete }}</div>
+        <div class="text-xs opacity-60">Incomplete</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
-        <div class="text-3xl font-bold text-warning">{{ abandoned }}</div>
-        <div class="text-sm opacity-60 mt-1">Abandoned (&gt;3h)</div>
+      <div class="card-body p-3">
+        <div class="text-xl font-bold text-warning">{{ abandoned }}</div>
+        <div class="text-xs opacity-60">Abandoned (&gt;3h)</div>
       </div>
     </div>
   </div>
 
-  <!-- Charts row 1: status doughnut + score distribution -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <!-- Charts 2×2 grid -->
+  <div class="grid grid-cols-2 gap-6">
 
     <!-- Attempt status doughnut -->
     <div class="card bg-base-100 shadow border border-base-300">
@@ -95,35 +93,6 @@
         <canvas id="scoreChart" height="200"></canvas>
       </div>
     </div>
-
-  </div>
-
-  <!-- NQF placement -->
-  <div class="card bg-base-100 shadow border border-base-300">
-    <div class="card-body p-6">
-      <h2 class="font-semibold mb-4">NQF placement (submitted)</h2>
-      <canvas id="nqfChart" height="120"></canvas>
-      <div class="flex gap-4 mt-3 text-xs opacity-70">
-        <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#6366f1"></span>Literacy</span>
-        <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#22c55e"></span>Numeracy</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Submissions over time -->
-  <div class="card bg-base-100 shadow border border-base-300">
-    <div class="card-body p-6">
-      <h2 class="font-semibold mb-4">Submissions — last 30 days</h2>
-      {% if daily_counts != "[]" %}
-        <canvas id="dailyChart" height="100"></canvas>
-      {% else %}
-        <p class="text-sm opacity-50">No submissions in the last 30 days.</p>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Learner demographics -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
     <!-- Age group distribution -->
     <div class="card bg-base-100 shadow border border-base-300">
@@ -155,6 +124,30 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- NQF placement -->
+  <div class="card bg-base-100 shadow border border-base-300">
+    <div class="card-body p-6">
+      <h2 class="font-semibold mb-4">NQF placement (submitted)</h2>
+      <canvas id="nqfChart" height="120"></canvas>
+      <div class="flex gap-4 mt-3 text-xs opacity-70">
+        <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#6366f1"></span>Literacy</span>
+        <span><span class="inline-block w-3 h-3 rounded mr-1" style="background:#22c55e"></span>Numeracy</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submissions over time -->
+  <div class="card bg-base-100 shadow border border-base-300">
+    <div class="card-body p-6">
+      <h2 class="font-semibold mb-4">Submissions — last 30 days</h2>
+      {% if daily_counts != "[]" %}
+        <canvas id="dailyChart" height="100"></canvas>
+      {% else %}
+        <p class="text-sm opacity-50">No submissions in the last 30 days.</p>
+      {% endif %}
+    </div>
   </div>
 
 </div>
