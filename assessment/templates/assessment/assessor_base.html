@@ -306,9 +306,12 @@
               <select name="role"
                       onchange="document.getElementById('role-switch-form').submit()"
                       class="select select-xs bg-transparent border-none text-xs w-full focus:outline-none opacity-60 hover:opacity-100 cursor-pointer">
-                <option value="moderator" {% if active_role != "assessor" %}selected{% endif %}>
-                  {% if user_is_auditor %}Auditor{% else %}Moderator{% endif %}
+                <option value="" {% if active_role == real_role %}selected{% endif %}>
+                  {% if real_role == "admin" %}Administrator{% elif real_role == "auditor" %}Auditor{% else %}Moderator{% endif %}
                 </option>
+                {% if real_role == "admin" or real_role == "auditor" %}
+                  <option value="moderator" {% if active_role == "moderator" %}selected{% endif %}>Moderator</option>
+                {% endif %}
                 <option value="assessor" {% if active_role == "assessor" %}selected{% endif %}>Assessor</option>
               </select>
             </div>

@@ -484,7 +484,9 @@ def set_active_role(request):
     role = request.POST.get("role", "")
     if role == "assessor" and is_moderator(request.user):
         request.session["active_role"] = "assessor"
-    elif role in ("", "moderator") and is_moderator(request.user):
+    elif role == "moderator" and is_auditor(request.user):
+        request.session["active_role"] = "moderator"
+    elif is_moderator(request.user):
         request.session.pop("active_role", None)
     next_url = request.POST.get("next") or reverse("assessment:assessor_dashboard")
     return redirect(next_url)
