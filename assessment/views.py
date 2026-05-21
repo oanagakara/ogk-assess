@@ -2292,10 +2292,11 @@ def _send_error_email(error_type, error_msg, url, method, user):
             ),
             from_email=sender,
             recipient_list=[_SUPPORT_EMAIL],
-            fail_silently=True,
+            fail_silently=False,
         )
-    except Exception:
-        pass
+        logger.warning("ERROR EMAIL sent to %s", _SUPPORT_EMAIL)
+    except Exception as exc:
+        logger.warning("ERROR EMAIL failed: %s", exc)
 
 
 def handler500(request):
