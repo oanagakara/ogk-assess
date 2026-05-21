@@ -139,9 +139,9 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10 MB
 SECURE_CONTENT_TYPE_NOSNIFF = True       # L-1: explicit (SecurityMiddleware default)
 SECURE_REFERRER_POLICY = "same-origin"   # M-8: prevent attempt codes leaking via Referer
 
-# ── Email (error notifications — activate once KAIgaba Google Workspace is live)
+# ── Email (error notifications)
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST = "smtp.zoho.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("NOTIFY_EMAIL_USER", "")
