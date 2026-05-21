@@ -2,7 +2,7 @@
 {% block title %}Metrics{% endblock %}
 
 {% block assessor_content %}
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="mx-auto space-y-6" style="max-width:76.8rem;">
 
   <div class="flex items-center justify-between">
     <h1 class="text-2xl font-bold">Platform Metrics</h1>
@@ -74,7 +74,7 @@
       <div class="card-body p-6">
         <h2 class="font-semibold mb-4">Attempt status</h2>
         <div class="flex justify-center">
-          <canvas id="statusChart" width="220" height="220" style="max-width:220px;max-height:220px;"></canvas>
+          <canvas id="statusChart" width="264" height="264" style="max-width:264px;max-height:264px;"></canvas>
         </div>
         <div class="flex flex-wrap justify-center gap-3 mt-4 text-xs opacity-70">
           <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#3b82f6"></span>In progress ({{ in_progress }})</span>
@@ -120,24 +120,27 @@
 
   </div>
 
-  <!-- NQF placement -->
-  <div class="card bg-base-100 shadow border border-base-300">
-    <div class="card-body p-6">
-      <h2 class="font-semibold mb-4">NQF placement (submitted)</h2>
-      <canvas id="nqfChart" height="120"></canvas>
-    </div>
-  </div>
+  <!-- NQF placement + Submissions side by side -->
+  <div class="grid gap-4" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
 
-  <!-- Submissions over time -->
-  <div class="card bg-base-100 shadow border border-base-300">
-    <div class="card-body p-6">
-      <h2 class="font-semibold mb-4">Submissions — last 30 days</h2>
-      {% if daily_counts != "[]" %}
-        <canvas id="dailyChart" height="100"></canvas>
-      {% else %}
-        <p class="text-sm opacity-50">No submissions in the last 30 days.</p>
-      {% endif %}
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body p-6">
+        <h2 class="font-semibold mb-4">NQF placement (submitted)</h2>
+        <canvas id="nqfChart" height="120"></canvas>
+      </div>
     </div>
+
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body p-6">
+        <h2 class="font-semibold mb-4">Submissions — last 30 days</h2>
+        {% if daily_counts != "[]" %}
+          <canvas id="dailyChart" height="120"></canvas>
+        {% else %}
+          <p class="text-sm opacity-50">No submissions in the last 30 days.</p>
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 
 </div>
