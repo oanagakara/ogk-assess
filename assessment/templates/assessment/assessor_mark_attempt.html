@@ -319,12 +319,86 @@
               <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col">
                 <div class="card-body p-4 flex flex-col min-h-0">
                   <div class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Learner response</div>
-                  <div class="flex-1 overflow-y-auto text-sm">
-                    {% if row.response_text %}
-                      {{ row.response_text }}
+                  <div class="flex-1 overflow-y-auto">
+
+                    {% with d=row.response_display %}
+
+                    {% if d.kind == "match" %}
+                      {% if d.rows %}
+                        <div class="space-y-1.5">
+                          {% for r in d.rows %}
+                            <div class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm
+                              {% if r.is_correct == True %}bg-success bg-opacity-10
+                              {% elif r.is_correct == False %}bg-error bg-opacity-10
+                              {% else %}bg-base-200{% endif %}">
+                              <span class="text-xs opacity-40 w-4 shrink-0 text-right">{{ forloop.counter }}.</span>
+                              <span class="flex-1 min-w-0 opacity-70">{{ r.target }}</span>
+                              <span class="shrink-0 mx-1 opacity-30">→</span>
+                              {% if r.placed %}
+                                <span class="badge badge-sm shrink-0
+                                  {% if r.is_correct == True %}badge-success
+                                  {% elif r.is_correct == False %}badge-error
+                                  {% else %}badge-primary{% endif %}">
+                                  {{ r.placed }}
+                                </span>
+                                {% if r.is_correct == False %}
+                                  <span class="text-xs opacity-50 shrink-0">({{ r.correct }})</span>
+                                {% endif %}
+                              {% else %}
+                                <span class="text-xs opacity-30 italic shrink-0">not placed</span>
+                              {% endif %}
+                            </div>
+                          {% endfor %}
+                        </div>
+                      {% else %}
+                        <span class="text-sm opacity-40">No response submitted.</span>
+                      {% endif %}
+
+                    {% elif d.kind == "choice" %}
+                      {% if d.items %}
+                        <div class="space-y-2">
+                          {% for item in d.items %}
+                            <div class="flex items-center gap-2.5 rounded-lg border px-3 py-2 text-sm
+                              {% if item.selected %}border-primary bg-primary bg-opacity-10 font-medium
+                              {% else %}border-base-300 opacity-50{% endif %}">
+                              <div class="w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center
+                                {% if item.selected %}border-primary{% else %}border-base-300{% endif %}">
+                                {% if item.selected %}
+                                  <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                {% endif %}
+                              </div>
+                              <span class="flex-1">{{ item.label }}</span>
+                              {% if item.selected %}
+                                {% if item.is_correct_choice == True %}
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-success shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                                  </svg>
+                                {% elif item.is_correct_choice == False %}
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-error shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                  </svg>
+                                {% endif %}
+                              {% endif %}
+                            </div>
+                          {% endfor %}
+                        </div>
+                      {% else %}
+                        <span class="text-sm opacity-40">No response submitted.</span>
+                      {% endif %}
+
+                    {% elif d.kind == "text" %}
+                      {% if d.text %}
+                        <div class="text-sm whitespace-pre-wrap">{{ d.text }}</div>
+                      {% else %}
+                        <span class="text-sm opacity-40">No response submitted.</span>
+                      {% endif %}
+
                     {% else %}
-                      <span class="opacity-40">No response submitted.</span>
+                      <span class="text-sm opacity-40">No response submitted.</span>
                     {% endif %}
+
+                    {% endwith %}
+
                   </div>
                 </div>
               </div>
