@@ -1,4 +1,8 @@
 {
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.13",
+  "pythonPlatform": "Linux",
   "typeCheckingMode": "basic",
   "reportAttributeAccessIssue": "none",
   "reportUnknownVariableType": "none",
