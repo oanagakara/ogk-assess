@@ -2264,15 +2264,38 @@ def assessor_score_audit_log(request, code: str):
 
 # ── Error handling ────────────────────────────────────────────────────────────
 
+_SUPPORT_EMAIL = "support@oanagakara.co.za"
+
+
 def _notify(error_type, error_msg, url="", method="", user=""):
-    """
-    Central error notification. Currently logs to Render's log stream.
-    Wire up email here once KAIgaba Google Workspace is set up.
-    """
     logger.warning(
         "PLATFORM ERROR | %s | %s | %s %s | user:%s",
         error_type, error_msg, method, url, user,
     )
+    _send_error_email(error_type, error_msg, url, method, user)
+
+
+def _send_error_email(error_type, error_msg, url, method, user):
+    from django.core.mail import send_mail
+    from django.conf import settings
+    sender = getattr(settings, "EMAIL_HOST_USER", "")
+    if not sender:
+        return
+    try:
+        send_mail(
+            subject=f"[Assessment Platform] {error_type}",
+            message=(
+                f"Error type: {error_type}\n"
+                f"Detail:     {error_msg}\n"
+                f"Request:    {method} {url}\n"
+                f"User:       {user or 'anonymous'}\n"
+            ),
+            from_email=sender,
+            recipient_list=[_SUPPORT_EMAIL],
+            fail_silently=True,
+        )
+    except Exception:
+        pass
 
 
 def handler500(request):
