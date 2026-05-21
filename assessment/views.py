@@ -914,6 +914,16 @@ def assessor_mark_attempt(request, code: str):
     # Auto-marked, no review — hidden by default; accessible for spot-checking.
     sidebar_spot = [i for i in all_sidebar if i["auto_done"]]
 
+    # Prev/next navigation across all markable questions.
+    mark_url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
+    prev_url = next_url = None
+    if current_question and not show_summary:
+        idx = markable_questions.index(current_question)
+        if idx > 0:
+            prev_url = f"{mark_url}?qid={markable_questions[idx - 1].pk}"
+        if idx < len(markable_questions) - 1:
+            next_url = f"{mark_url}?qid={markable_questions[idx + 1].pk}"
+
     return render(
         request,
         "assessment/assessor_mark_attempt.html",
@@ -930,6 +940,8 @@ def assessor_mark_attempt(request, code: str):
             "summary_rows": summary_rows,
             "sidebar_questions": sidebar_questions,
             "sidebar_spot": sidebar_spot,
+            "prev_url": prev_url,
+            "next_url": next_url,
             "working_sheet": _get_working_sheet(attempt),
             "writing_submission": _get_writing_submission(attempt),
             "paper_submitted": _get_paper_submitted(attempt),
