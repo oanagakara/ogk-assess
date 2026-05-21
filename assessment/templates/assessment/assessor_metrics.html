@@ -66,8 +66,8 @@
     </div>
   </div>
 
-  <!-- Charts 2×2 grid -->
-  <div class="grid grid-cols-2 gap-6">
+  <!-- Charts 4×1 row -->
+  <div class="grid gap-4" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
 
     <!-- Attempt status doughnut -->
     <div class="card bg-base-100 shadow border border-base-300">
@@ -155,7 +155,7 @@ if (typeof Chart === 'undefined') {
 const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
   || window.matchMedia('(prefers-color-scheme: dark)').matches;
 const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
-const labelColor = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)';
+const labelColor = isDark ? '#9ca3af' : '#374151';
 
 // Status doughnut
 new Chart(document.getElementById('statusChart'), {
