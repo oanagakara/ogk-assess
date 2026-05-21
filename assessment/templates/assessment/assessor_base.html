@@ -292,6 +292,30 @@
         </form>
       </div>
 
+      {% if can_switch_role %}
+        <div class="sl">
+          <form method="post" action="{% url 'assessment:set_active_role' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+            {% if active_role == "assessor" %}
+              <input type="hidden" name="role" value="moderator">
+              <button type="submit"
+                      class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs opacity-60 hover:opacity-100 hover:bg-base-200 transition-colors">
+                <span class="badge badge-warning badge-xs shrink-0"></span>
+                <span class="truncate">Assessor — restore Moderator</span>
+              </button>
+            {% else %}
+              <input type="hidden" name="role" value="assessor">
+              <button type="submit"
+                      class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs opacity-60 hover:opacity-100 hover:bg-base-200 transition-colors">
+                <span class="badge badge-success badge-xs shrink-0"></span>
+                <span class="truncate">Moderator — act as Assessor</span>
+              </button>
+            {% endif %}
+          </form>
+        </div>
+      {% endif %}
+
     </div>
   </aside>
 

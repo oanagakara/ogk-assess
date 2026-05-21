@@ -470,6 +470,26 @@ def is_auditor(user):
     )
 
 
+def effective_is_moderator(request) -> bool:
+    """is_moderator, but respects the user's active-role session downgrade."""
+    if not is_moderator(request.user):
+        return False
+    return request.session.get("active_role", "moderator") != "assessor"
+
+
+@login_required
+def set_active_role(request):
+    if request.method != "POST":
+        return redirect("assessment:assessor_dashboard")
+    role = request.POST.get("role", "")
+    if role == "assessor" and is_moderator(request.user):
+        request.session["active_role"] = "assessor"
+    elif role in ("", "moderator") and is_moderator(request.user):
+        request.session.pop("active_role", None)
+    next_url = request.POST.get("next") or reverse("assessment:assessor_dashboard")
+    return redirect(next_url)
+
+
 @login_required
 @user_passes_test(is_assessor)
 def assessor_dashboard(request):
@@ -838,7 +858,7 @@ def assessor_mark_attempt(request, code: str):
     )
 
     finalised = bool(attempt.finalised_at)
-    can_mark = (not finalised and is_assessor(request.user)) or is_moderator(request.user)
+    can_mark = (not finalised and is_assessor(request.user)) or effective_is_moderator(request)
 
     if request.method == "POST":
         if not can_mark:
@@ -947,7 +967,7 @@ def assessor_mark_attempt(request, code: str):
             "paper_submitted": _get_paper_submitted(attempt),
             "is_finalised": finalised,
             "can_mark": can_mark,
-            "can_unlock": finalised and is_moderator(request.user) and attempt.template.moderation_mode == AssessmentTemplate.MODERATION_FULL,
+            "can_unlock": finalised and effective_is_moderator(request) and attempt.template.moderation_mode == AssessmentTemplate.MODERATION_FULL,
         },
     )
 
@@ -2403,7 +2423,7 @@ def register(request, token):
 @user_passes_test(is_assessor)
 def generate_invite(request):
     invite = None
-    can_invite_moderator = is_moderator(request.user)
+    can_invite_moderator = effective_is_moderator(request)
     if request.method == "POST":
         role = request.POST.get("role", AssessorInvite.ROLE_ASSESSOR)
         if role == AssessorInvite.ROLE_MODERATOR and not can_invite_moderator:
