@@ -1,16 +1,36 @@
 {% extends "assessment/base.html" %}
-{% block title %}Invalid Invite{% endblock %}
+{% load static %}
+{% block title %}Invalid invite{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/portal.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4">
-  <div class="card w-full max-w-md bg-base-100 shadow-xl">
-    <div class="card-body space-y-4">
-      <h1 class="card-title text-2xl">Invite link invalid</h1>
-      <p class="text-sm opacity-70 leading-relaxed">
-        This invite link has already been used or has expired. Please ask your trainer to generate a new one.
-      </p>
-      <a href="{% url 'login' %}" class="btn btn-ghost w-full">Back to sign in</a>
+<div class="min-h-[calc(100vh-5rem)] flex items-center justify-center p-6">
+  <div class="portal-card">
+
+    <div class="portal-left">
+      {% if tenant.logo_white_url %}
+        <img src="{{ tenant.logo_white_url }}" alt="{{ tenant.name }}">
+      {% elif tenant.logo_url %}
+        <img src="{{ tenant.logo_url }}" alt="{{ tenant.name }}">
+      {% endif %}
+      <h1>{{ tenant.name|default:"Assessment Platform" }}</h1>
+      {% if tenant.tagline %}<p>{{ tenant.tagline }}</p>{% endif %}
     </div>
+
+    <div class="portal-right" style="justify-content:center;">
+      <div class="w-full space-y-4">
+        <h2 class="text-xl font-bold">Invite link invalid</h2>
+        <p class="text-sm opacity-70 leading-relaxed">
+          This invite link has already been used or has expired.
+          Ask the person who sent it to generate a new one.
+        </p>
+        <a href="{% url 'login' %}" class="btn btn-ghost w-full">Back to sign in</a>
+      </div>
+    </div>
+
   </div>
 </div>
 {% endblock %}

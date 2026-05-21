@@ -95,15 +95,17 @@
 </ul>
 
 <!-- 2. Current state -->
-<h2>2. Current state — Render free tier</h2>
+<h2>2. Current state — free tiers (app: Render / database: Neon)</h2>
 
-<p>The platform currently runs on Render's free tier. This is appropriate for development
-and demonstration but not for production cohort deployment. The known limitations:</p>
+<p>The platform currently runs on two free-tier services: <strong>Render</strong> hosts the
+application layer; <strong>Neon Inc.</strong> (neon.tech) provides the managed PostgreSQL
+database. This is appropriate for development and demonstration but not for production
+cohort deployment. The known limitations:</p>
 
 <ul>
-  <li><strong>No automated backups.</strong> Render does not provide backup services for free PostgreSQL.</li>
-  <li><strong>Database expiry.</strong> Free PostgreSQL expires 30 days after creation. A 14-day grace period follows; total = 44 days before deletion.</li>
-  <li><strong>Cold starts.</strong> Free web services spin down after 15 minutes of inactivity. First request after spin-down takes ~30 seconds.</li>
+  <li><strong>No automated database backups.</strong> Neon's free tier does not include automated snapshots or point-in-time recovery (PITR).</li>
+  <li><strong>No database expiry.</strong> Unlike Render's own free PostgreSQL (which expires after 44 days), Neon free tier databases persist indefinitely — but remain unsuitable for production due to the absence of PITR.</li>
+  <li><strong>Cold starts.</strong> Neon free tier compute suspends after a period of inactivity; the first query after suspension takes 5–10 seconds. Render free web services also spin down after 15 minutes of inactivity, adding ~30 seconds on first request.</li>
 </ul>
 
 <table class="data">
@@ -111,7 +113,7 @@ and demonstration but not for production cohort deployment. The known limitation
   <tbody>
     <tr><td>RPO (data loss tolerance)</td><td>Undefined — last manual <code>pg_dump</code> only</td></tr>
     <tr><td>RTO (recovery time)</td><td>2–8 hours from a recent dump; longer if no recent dump exists</td></tr>
-    <tr><td>Backup automation</td><td>None</td></tr>
+    <tr><td>Backup automation</td><td>None (Neon free tier)</td></tr>
     <tr><td>Suitable for</td><td>Development, demos, internal testing</td></tr>
     <tr><td>Suitable for production cohorts?</td><td><strong>No</strong></td></tr>
   </tbody>
@@ -121,27 +123,33 @@ and demonstration but not for production cohort deployment. The known limitation
 and stored encrypted in a non-cloud-synced location. This is a stopgap, not a strategy.</p>
 
 <!-- 3. Target state -->
-<h2>3. Target state — Render paid tier</h2>
+<h2>3. Target state — paid tiers (app: Render / database: Neon Launch)</h2>
 
-<p>Upgrade to Render paid tier is a condition of any production cohort deployment. The
-upgrade procedure is documented in <code>scripts/render_upgrade.sh</code> and the global
-<code>disaster-recovery</code> skill.</p>
+<p>Upgrade to paid tiers on both Render (application) and Neon (database) is a condition
+of any production cohort deployment. The upgrade procedure is documented in
+<code>scripts/render_upgrade.sh</code>.</p>
 
-<p>Render paid PostgreSQL provides:</p>
+<p><strong>Neon Launch</strong> (database) provides:</p>
 <ul>
-  <li><strong>Daily automated snapshots</strong> with retention by tier</li>
-  <li><strong>Point-in-time recovery (PITR)</strong> on all paid tiers — restoration to any point in the retention window</li>
-  <li><strong>On-demand logical exports</strong> via dashboard</li>
-  <li><strong>Always-on web service</strong> — no cold starts</li>
+  <li><strong>Daily automated snapshots</strong> with configurable retention</li>
+  <li><strong>Point-in-time recovery (PITR)</strong> — restoration to any second within the retention window via the Neon console</li>
+  <li><strong>On-demand logical exports</strong> (<code>pg_dump</code>) at any time</li>
+  <li><strong>Always-on compute</strong> — no cold starts on paid tiers</li>
+  <li><strong>Branch-based isolation</strong> — separate dev/staging branches on the same plan at no extra cost</li>
+</ul>
+
+<p><strong>Render paid tier</strong> (application) provides:</p>
+<ul>
+  <li><strong>Always-on web service</strong> — no spin-down on first request</li>
   <li><strong>Automatic Let's Encrypt SSL</strong> on custom domains, including wildcards</li>
 </ul>
 
 <table class="data">
   <thead><tr><th>Metric</th><th>Paid tier commitment</th></tr></thead>
   <tbody>
-    <tr><td>RPO (data loss tolerance)</td><td><strong>1 hour</strong> (PITR-backed; capability is finer-grained)</td></tr>
+    <tr><td>RPO (data loss tolerance)</td><td><strong>1 hour</strong> (PITR-backed; Neon's capability is finer-grained)</td></tr>
     <tr><td>RTO (recovery time)</td><td><strong>4 hours</strong> (snapshot restore + smoke test + notification)</td></tr>
-    <tr><td>Backup automation</td><td>Daily snapshots + PITR + monthly off-Render encrypted dump</td></tr>
+    <tr><td>Backup automation</td><td>Daily snapshots + PITR (Neon console) + monthly off-platform encrypted dump</td></tr>
     <tr><td>Backup verification</td><td>Quarterly restore test + annual full tabletop</td></tr>
   </tbody>
 </table>
@@ -152,35 +160,34 @@ upgrade procedure is documented in <code>scripts/render_upgrade.sh</code> and th
 <h3>4.1 Corrupted database (data integrity bug, bad migration)</h3>
 <ol>
   <li>Identify the time of corruption from application logs</li>
-  <li>Render dashboard → Databases → Backups → Restore via PITR to a point seconds before corruption</li>
-  <li>Render provisions a new database instance at that point</li>
-  <li>Update <code>DATABASE_URL</code> on the web service to the restored instance</li>
+  <li>Neon console → Project → Branches → select the main branch → Restore → choose point-in-time seconds before corruption</li>
+  <li>Neon provisions a restored branch; promote it to main or update <code>DATABASE_URL</code> on the Render web service to the restored connection string</li>
   <li>Smoke-test; verify data integrity</li>
-  <li>Delete the corrupted database after 7-day verification window</li>
+  <li>Delete the corrupted branch after 7-day verification window</li>
 </ol>
 
 <h3>4.2 Accidental data deletion (operator error)</h3>
 <ol>
   <li>Same procedure as 4.1, restoring to a point seconds before the deletion</li>
-  <li>If only specific records are missing: extract from PITR-restored instance and re-insert into live database (avoids full cutover)</li>
+  <li>If only specific records are missing: connect to the PITR-restored Neon branch, extract the affected rows, and re-insert into the live branch (avoids full cutover)</li>
 </ol>
 
-<h3>4.3 Full-region Render outage (infrastructure)</h3>
+<h3>4.3 Full-region Render or Neon outage (infrastructure)</h3>
 <ol>
-  <li>Confirm the outage at <a href="https://status.render.com">status.render.com</a></li>
+  <li>Confirm the outage: Render at <a href="https://status.render.com">status.render.com</a>; Neon at <a href="https://neonstatus.com">neonstatus.com</a></li>
   <li>If outage exceeds RTO commitment (4 hours): begin failover-to-non-Render procedure (see §7)</li>
-  <li>If outage is shorter: communicate via prepared client notification template; resume on Render restoration</li>
+  <li>If outage is shorter: communicate via prepared client notification template; resume on restoration</li>
 </ol>
 
-<h3>4.4 Account-level Render compromise (ransomware-relevant)</h3>
-<p>This is the scenario where Render-side snapshots are no longer trusted because the Render
-account itself is suspect. Procedure:</p>
+<h3>4.4 Account-level compromise — Render or Neon (ransomware-relevant)</h3>
+<p>This is the scenario where platform-side snapshots are no longer trusted because the
+Render or Neon account itself is suspect. Procedure:</p>
 <ol>
   <li>Treat as a ransomware incident — invoke the response checklist in the disaster-recovery skill</li>
-  <li>Restore from the most recent <strong>off-Render encrypted backup</strong> (see §5)</li>
-  <li>Provision a fresh Render account if necessary; do not re-use the compromised account</li>
+  <li>Restore from the most recent <strong>off-platform encrypted backup</strong> (see §5) — this backup is stored outside both the Render and Neon accounts</li>
+  <li>Provision fresh accounts if necessary; do not re-use any compromised account</li>
   <li>Redeploy from a known-clean Git commit (verify against a local clone before pushing)</li>
-  <li>Rotate all credentials per the response checklist before restoring service</li>
+  <li>Rotate all credentials — Render, Neon, GitHub, email — per the response checklist before restoring service</li>
 </ol>
 
 <h3>4.5 Source code or repository compromise (GitHub takeover)</h3>
@@ -196,16 +203,17 @@ account itself is suspect. Procedure:</p>
 <h2>5. Off-Render backup commitment</h2>
 
 <div class="commit-box">
-  <strong>The platform commits to maintaining backups outside the Render account.</strong>
-  This addresses the failure mode in which a compromised Render account renders
-  Render-side snapshots untrustworthy. Without this commitment, the snapshot story
-  collapses under an account-takeover scenario.
+  <strong>The platform commits to maintaining backups outside both the Render account and the Neon account.</strong>
+  This addresses the failure mode in which a compromised cloud account renders
+  platform-side snapshots untrustworthy. Without this commitment, the snapshot story
+  collapses under an account-takeover scenario. The off-platform backup is the last
+  line of defence against simultaneous Render + Neon account compromise.
 </div>
 
 <table class="data">
   <thead><tr><th>Aspect</th><th>Commitment</th></tr></thead>
   <tbody>
-    <tr><td>Cadence</td><td>Monthly encrypted <code>pg_dump</code> downloaded out of Render</td></tr>
+    <tr><td>Cadence</td><td>Monthly encrypted <code>pg_dump</code> taken directly from Neon (via <code>DATABASE_URL</code>), stored outside both Render and Neon accounts</td></tr>
     <tr><td>Storage</td><td>Encrypted USB in physical safe + separate-credentials cloud bucket</td></tr>
     <tr><td>Encryption</td><td>AES-256 symmetric (<code>gpg --symmetric --cipher-algo AES256</code>)</td></tr>
     <tr><td>Passphrase storage</td><td>Password manager separate from primary credentials</td></tr>
@@ -319,24 +327,25 @@ treated as P1: backup integrity is foundational; everything else stands on it.</
 <h3>9.1 Free tier (current state — honest)</h3>
 <div class="response">
   <strong>Backup &amp; Recovery — current state</strong>
-  The platform currently runs on Render's free tier. Render does not provide automated
-  backups for free PostgreSQL databases, and free databases are deleted 44 days after
-  creation if not upgraded. The current backup approach is manual encrypted
+  The application is hosted on Render's free tier; the database is managed PostgreSQL
+  hosted by Neon Inc. (neon.tech). Neon's free tier does not include automated snapshots
+  or point-in-time recovery. The current backup approach is manual encrypted
   <code>pg_dump</code> taken before any schema migration. RPO is undefined; RTO is 2–8
-  hours from the last manual dump. Upgrade to paid tier with point-in-time recovery is
-  a condition of any production cohort deployment, and a written upgrade procedure
-  exists.
+  hours from the last manual dump. Upgrade to paid tiers (Neon Launch for the database,
+  Render paid for the application) with point-in-time recovery is a condition of any
+  production cohort deployment, and a written upgrade procedure exists.
 </div>
 
 <h3>9.2 Paid tier (post-upgrade)</h3>
 <div class="response">
   <strong>Backup &amp; Recovery — paid tier</strong>
-  The platform runs on Render's paid tier with managed PostgreSQL. Daily automated
-  snapshots and point-in-time recovery (PITR) are enabled. Manual snapshots are taken
-  before any schema migration. A monthly encrypted off-Render backup is downloaded and
-  stored on a separate medium with separate credentials. RPO is 1 hour; RTO is 4 hours.
-  Backup integrity is verified quarterly via test restore and annually via full tabletop
-  exercise.
+  The application runs on Render's paid tier (always-on, no cold starts). The database
+  is Neon Launch managed PostgreSQL with daily automated snapshots and point-in-time
+  recovery (PITR) to any second within the retention window. Manual snapshots are taken
+  before any schema migration. A monthly encrypted off-platform backup (<code>pg_dump</code>
+  stored outside both the Render and Neon accounts) provides a last-resort recovery path.
+  RPO is 1 hour; RTO is 4 hours. Backup integrity is verified quarterly via test restore
+  and annually via full tabletop exercise.
 </div>
 
 <h3>9.3 Ransomware-specific</h3>
