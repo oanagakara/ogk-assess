@@ -2276,27 +2276,32 @@ def _notify(error_type, error_msg, url="", method="", user=""):
 
 
 def _send_error_email(error_type, error_msg, url, method, user):
-    from django.core.mail import send_mail
+    import threading
     from django.conf import settings
     sender = getattr(settings, "EMAIL_HOST_USER", "")
     if not sender or not getattr(settings, "EMAIL_HOST_PASSWORD", ""):
         return
-    try:
-        send_mail(
-            subject=f"[Assessment Platform] {error_type}",
-            message=(
-                f"Error type: {error_type}\n"
-                f"Detail:     {error_msg}\n"
-                f"Request:    {method} {url}\n"
-                f"User:       {user or 'anonymous'}\n"
-            ),
-            from_email=sender,
-            recipient_list=[_SUPPORT_EMAIL],
-            fail_silently=False,
-        )
-        logger.warning("ERROR EMAIL sent to %s", _SUPPORT_EMAIL)
-    except Exception as exc:
-        logger.warning("ERROR EMAIL failed: %s", exc)
+
+    def _send():
+        from django.core.mail import send_mail
+        try:
+            send_mail(
+                subject=f"[Assessment Platform] {error_type}",
+                message=(
+                    f"Error type: {error_type}\n"
+                    f"Detail:     {error_msg}\n"
+                    f"Request:    {method} {url}\n"
+                    f"User:       {user or 'anonymous'}\n"
+                ),
+                from_email=sender,
+                recipient_list=[_SUPPORT_EMAIL],
+                fail_silently=False,
+            )
+            logger.warning("ERROR EMAIL sent to %s", _SUPPORT_EMAIL)
+        except Exception as exc:
+            logger.warning("ERROR EMAIL failed: %s", exc)
+
+    threading.Thread(target=_send, daemon=True).start()
 
 
 def handler500(request):
