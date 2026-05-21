@@ -1,50 +1,73 @@
 {% extends "assessment/base.html" %}
-{% block title %}Register{% endblock %}
+{% load static %}
+{% block title %}Create account{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/portal.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4">
-  <div class="card w-full max-w-md bg-base-100 shadow-xl">
-    <div class="card-body space-y-4">
-      <h1 class="card-title text-2xl">Create assessor account</h1>
+<div class="min-h-[calc(100vh-5rem)] flex items-center justify-center p-6">
+  <div class="portal-card">
+
+    <div class="portal-left">
+      {% if tenant.logo_white_url %}
+        <img src="{{ tenant.logo_white_url }}" alt="{{ tenant.name }}">
+      {% elif tenant.logo_url %}
+        <img src="{{ tenant.logo_url }}" alt="{{ tenant.name }}">
+      {% endif %}
+      <h1>{{ tenant.name|default:"Assessment Platform" }}</h1>
+      {% if tenant.tagline %}<p>{{ tenant.tagline }}</p>{% endif %}
+    </div>
+
+    <div class="portal-right">
+
+      {% if tenant.logo_url %}
+        <img class="portal-right-logo" src="{{ tenant.logo_url }}" alt="{{ tenant.name }}">
+      {% endif %}
+
+      <h2 class="text-xl font-bold w-full mb-1">Create your account</h2>
+      <p class="text-sm opacity-60 w-full mb-4">You have been invited to join the platform as an assessor.</p>
 
       {% if errors %}
-        <div class="alert alert-error text-sm">
-          {% for error in errors %}<div>{{ error }}</div>{% endfor %}
+        <div class="alert alert-error mb-4 w-full">
+          <div>{% for error in errors %}<div>{{ error }}</div>{% endfor %}</div>
         </div>
       {% endif %}
 
-      <form method="post" class="space-y-4">
+      <form method="post" class="flex flex-col gap-3 w-full">
         {% csrf_token %}
 
-        <div class="form-control">
-          <label class="label"><span class="label-text">Username</span></label>
+        <div class="form-control w-full">
+          <label class="label py-0 mb-1"><span class="label-text">Username</span></label>
           <input class="input input-bordered w-full" type="text" name="username"
                  value="{{ form_data.username|default:'' }}" autofocus required>
         </div>
 
-        <div class="form-control">
-          <label class="label"><span class="label-text">Email address</span></label>
+        <div class="form-control w-full">
+          <label class="label py-0 mb-1"><span class="label-text">Email address</span></label>
           <input class="input input-bordered w-full" type="email" name="email"
                  value="{{ form_data.email|default:'' }}" required>
-          <label class="label"><span class="label-text-alt opacity-50">Used for password resets only</span></label>
+          <label class="label py-0 mt-1"><span class="label-text-alt opacity-50">Used for password resets only</span></label>
         </div>
 
-        <div class="form-control">
-          <label class="label"><span class="label-text">Password</span></label>
+        <div class="form-control w-full">
+          <label class="label py-0 mb-1"><span class="label-text">Password</span></label>
           <input class="input input-bordered w-full" type="password" name="password1" required>
         </div>
 
-        <div class="form-control">
-          <label class="label"><span class="label-text">Confirm password</span></label>
+        <div class="form-control w-full">
+          <label class="label py-0 mb-1"><span class="label-text">Confirm password</span></label>
           <input class="input input-bordered w-full" type="password" name="password2" required>
         </div>
 
-        <button class="btn btn-primary w-full" type="submit">Create account</button>
+        <button class="btn btn-primary w-full mt-1" type="submit">Create account</button>
       </form>
 
-      <div class="text-center text-sm opacity-60">
+      <div class="text-center text-sm opacity-50 mt-3">
         <a href="{% url 'login' %}" class="link">Back to sign in</a>
       </div>
+
     </div>
   </div>
 </div>

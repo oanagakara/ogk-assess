@@ -416,6 +416,8 @@ def _clamped_float(value, upper_bound):
 
 
 def home(request):
+    if request.user.is_authenticated:
+        return redirect("assessment:assessor_dashboard")
     return render(request, "index.html")
 
 

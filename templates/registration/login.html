@@ -1,43 +1,93 @@
 {% extends "assessment/base.html" %}
-{% block title %}Login{% endblock %}
+{% load static %}
+{% block title %}Sign in{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/portal.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4">
-  <div class="card w-full max-w-md bg-base-100 shadow-xl">
-    <div class="card-body space-y-4">
-      <h1 class="card-title text-2xl">{{ tenant.name|default:"Assessment" }}</h1>
-      <p class="text-sm opacity-60">Assessor sign in</p>
+<div class="min-h-[calc(100vh-5rem)] flex items-center justify-center p-6">
+  <div class="portal-card">
 
-      {% if form.errors %}
-        <div class="alert alert-error">
-          <span>Your username or password was incorrect.</span>
-        </div>
+    <div class="portal-left">
+      {% if tenant.logo_white_url %}
+        <img src="{{ tenant.logo_white_url }}" alt="{{ tenant.name }}">
+      {% elif tenant.logo_url %}
+        <img src="{{ tenant.logo_url }}" alt="{{ tenant.name }}">
+      {% endif %}
+      <h1>{{ tenant.name|default:"Assessment Platform" }}</h1>
+      {% if tenant.tagline %}<p>{{ tenant.tagline }}</p>{% endif %}
+    </div>
+
+    <div class="portal-right">
+
+      {% if tenant.logo_url %}
+        <img class="portal-right-logo" src="{{ tenant.logo_url }}" alt="{{ tenant.name }}">
       {% endif %}
 
-      <form method="post" class="space-y-4">
-        {% csrf_token %}
-
-        <div class="form-control">
-          <label class="label"><span class="label-text">Username</span></label>
-          <input class="input input-bordered w-full" type="text" name="username" autofocus required>
-        </div>
-
-        <div class="form-control">
-          <label class="label"><span class="label-text">Password</span></label>
-          <input class="input input-bordered w-full" type="password" name="password" required>
-        </div>
-
-        {% if next %}
-          <input type="hidden" name="next" value="{{ next }}">
-        {% endif %}
-
-        <button class="btn btn-primary w-full" type="submit">Log in</button>
-      </form>
-
-      <div class="text-center text-sm opacity-60">
-        <a href="{% url 'password_reset' %}" class="link">Forgot password?</a>
+      <div class="portal-tab-nav">
+        <button class="portal-tab-btn" data-tab="tab-learner">Learner Assessment</button>
+        <button class="portal-tab-btn active" data-tab="tab-assessor">Assessor</button>
+        <button class="portal-tab-btn" data-tab="tab-demo">Request a Demo</button>
       </div>
+
+      <div id="tab-learner" class="portal-tab-panel">
+        <p class="text-sm opacity-60 mb-3">Enter the code provided by your facilitator.</p>
+        <form method="post" action="{% url 'assessment:start' %}" class="flex flex-col gap-3 w-full">
+          {% csrf_token %}
+          <input name="code" type="text" class="input input-bordered w-full"
+                 style="text-align:center;text-transform:uppercase;letter-spacing:0.2em;font-size:1.1rem;"
+                 placeholder="AB3X7KP2" maxlength="32" autocomplete="off" spellcheck="false">
+          <button type="submit" class="btn btn-primary w-full">Start Assessment</button>
+        </form>
+      </div>
+
+      <div id="tab-assessor" class="portal-tab-panel active">
+        {% if form.errors %}
+          <div class="alert alert-error mb-3"><span>Incorrect username or password.</span></div>
+        {% else %}
+          <p class="text-sm opacity-60 mb-3">Assessor sign in.</p>
+        {% endif %}
+        <form method="post" class="flex flex-col gap-3 w-full">
+          {% csrf_token %}
+          {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+          <input class="input input-bordered w-full" type="text" name="username"
+                 placeholder="Username" required autocomplete="username" autofocus>
+          <input class="input input-bordered w-full" type="password" name="password"
+                 placeholder="Password" required autocomplete="current-password">
+          <button type="submit" class="btn btn-primary w-full">Login</button>
+        </form>
+        <div class="text-center text-sm opacity-50 mt-3">
+          <a href="{% url 'password_reset' %}" class="link">Forgot password?</a>
+          &nbsp;&middot;&nbsp;
+          <span>New? Use the invite link sent to you.</span>
+        </div>
+      </div>
+
+      <div id="tab-demo" class="portal-tab-panel">
+        <p class="text-sm opacity-60 mb-3">See the platform in action before committing.</p>
+        <div class="flex flex-col gap-3 w-full portal-scaffold">
+          <input class="input input-bordered w-full" type="text" placeholder="Your name" disabled>
+          <input class="input input-bordered w-full" type="email" placeholder="Email address" disabled>
+          <input class="input input-bordered w-full" type="text" placeholder="Organisation" disabled>
+          <button class="btn btn-outline w-full" disabled>Request Access</button>
+        </div>
+        <div class="text-center text-sm opacity-30 mt-3">Demo requests coming soon.</div>
+      </div>
+
     </div>
   </div>
 </div>
+
+<script>
+  document.querySelectorAll('.portal-tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.portal-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.portal-tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
 {% endblock %}

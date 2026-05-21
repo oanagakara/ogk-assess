@@ -1,54 +1,60 @@
 {% extends "assessment/assessor_base.html" %}
 {% block title %}Invite User{% endblock %}
 
-{% block content %}
-<div class="max-w-lg mx-auto px-6 py-10">
-  <h1 class="text-2xl font-bold mb-1">Invite a new user</h1>
-  <p class="text-sm opacity-60 mb-8">Generate a single-use registration link. Share it directly with the person you are adding. The link expires after 48 hours.</p>
-
-  {% if invite %}
-    <div class="rounded-xl border border-base-300 bg-base-100 p-6 space-y-4">
-      <p class="text-sm font-medium">Share this link <span class="badge badge-sm badge-outline">{{ invite.get_role_display }}</span>:</p>
-      <div class="flex gap-2 items-center">
-        <input id="invite-url" type="text" readonly
-               value="{{ request.scheme }}://{{ request.get_host }}{% url 'assessment:register' invite.token %}"
-               class="input input-bordered input-sm flex-1 font-mono text-xs">
-        <button onclick="copyInvite()" class="btn btn-sm btn-primary">Copy</button>
+{% block assessor_content %}
+<div class="max-w-5xl mx-auto">
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body p-6 md:p-8 space-y-4">
+      <div>
+        <h1 class="card-title text-2xl">Invite a new user</h1>
+        <p class="text-sm opacity-60 mt-1">Generate a single-use registration link. Share it directly with the person you are adding. The link expires after 48 hours.</p>
       </div>
-      <p class="text-xs opacity-50">Expires {{ invite.expires_at|date:"d M Y, H:i" }} &nbsp;·&nbsp; Single use</p>
-    </div>
 
-    <div class="mt-6">
-      <form method="post">
-        {% csrf_token %}
-        {% if can_invite_moderator %}
-          <select name="role" class="select select-bordered select-sm mr-2">
-            <option value="assessor">Assessor</option>
-            <option value="moderator">Moderator</option>
-          </select>
-        {% else %}
-          <input type="hidden" name="role" value="assessor">
-        {% endif %}
-        <button type="submit" class="btn btn-ghost btn-sm">Generate another</button>
-      </form>
-    </div>
-  {% else %}
-    <form method="post">
-      {% csrf_token %}
-      {% if can_invite_moderator %}
-        <div class="mb-4">
-          <label class="label"><span class="label-text text-sm">Role</span></label>
-          <select name="role" class="select select-bordered select-sm w-48">
-            <option value="assessor">Assessor</option>
-            <option value="moderator">Moderator</option>
-          </select>
+      {% if invite %}
+        <div class="space-y-2">
+          <p class="text-sm font-medium">Share this link <span class="badge badge-sm badge-outline">{{ invite.get_role_display }}</span>:</p>
+          <div class="flex gap-2 items-center">
+            <input id="invite-url" type="text" readonly
+                   value="{{ request.scheme }}://{{ request.get_host }}{% url 'assessment:register' invite.token %}"
+                   class="input input-bordered input-sm flex-1 font-mono text-xs">
+            <button onclick="copyInvite()" class="btn btn-sm btn-primary">Copy</button>
+          </div>
+          <p class="text-xs opacity-50">Expires {{ invite.expires_at|date:"d M Y, H:i" }} &nbsp;·&nbsp; Single use</p>
         </div>
+
+        <div class="divider my-0"></div>
+
+        <form method="post" class="flex items-center gap-2">
+          {% csrf_token %}
+          {% if can_invite_moderator %}
+            <select name="role" class="select select-bordered select-sm">
+              <option value="assessor">Assessor</option>
+              <option value="moderator">Moderator</option>
+            </select>
+          {% else %}
+            <input type="hidden" name="role" value="assessor">
+          {% endif %}
+          <button type="submit" class="btn btn-ghost btn-sm">Generate another</button>
+        </form>
       {% else %}
-        <input type="hidden" name="role" value="assessor">
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+          {% if can_invite_moderator %}
+            <div class="form-control">
+              <label class="label"><span class="label-text">Role</span></label>
+              <select name="role" class="select select-bordered select-sm w-48">
+                <option value="assessor">Assessor</option>
+                <option value="moderator">Moderator</option>
+              </select>
+            </div>
+          {% else %}
+            <input type="hidden" name="role" value="assessor">
+          {% endif %}
+          <button type="submit" class="btn btn-primary">Generate invite link</button>
+        </form>
       {% endif %}
-      <button type="submit" class="btn btn-primary">Generate invite link</button>
-    </form>
-  {% endif %}
+    </div>
+  </div>
 </div>
 
 <script>
@@ -61,4 +67,4 @@ function copyInvite() {
   setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
 }
 </script>
-{% endblock %}
+{% endblock assessor_content %}
