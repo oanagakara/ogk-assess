@@ -2,7 +2,7 @@
 {% block title %}Metrics{% endblock %}
 
 {% block assessor_content %}
-<div class="mx-auto space-y-6" style="max-width:76.8rem;">
+<div class="mx-auto space-y-6" style="max-width:65.3rem;">
 
   <div class="flex items-center justify-between">
     <h1 class="text-2xl font-bold">Platform Metrics</h1>
@@ -14,52 +14,52 @@
     {% endif %}
   </div>
 
-  <!-- Stat cards 4×2 grid -->
-  <div class="grid gap-2" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+  <!-- Stat cards 8×1 grid -->
+  <div class="grid gap-2" style="grid-template-columns: repeat(8, minmax(0, 1fr));">
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-3">
+      <div class="card-body p-2">
         <div class="text-xl font-bold">{{ total }}</div>
         <div class="text-xs opacity-60">Total attempts</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-3">
+      <div class="card-body p-2">
         <div class="text-xl font-bold">{{ unique_learners }}</div>
         <div class="text-xs opacity-60">Unique learners</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-3">
+      <div class="card-body p-2">
         <div class="text-xl font-bold">{{ finalised }}</div>
         <div class="text-xs opacity-60">Marked</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-3">
+      <div class="card-body p-2">
         <div class="text-xl font-bold">{% if avg_score %}{{ avg_score }}%{% else %}—{% endif %}</div>
         <div class="text-xs opacity-60">Avg score</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-3">
+      <div class="card-body p-2">
         <div class="text-xl font-bold">{{ in_progress }}</div>
         <div class="text-xs opacity-60">In progress</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-3">
+      <div class="card-body p-2">
         <div class="text-xl font-bold">{{ submitted }}</div>
         <div class="text-xs opacity-60">Submitted</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-3">
+      <div class="card-body p-2">
         <div class="text-xl font-bold">{{ incomplete }}</div>
         <div class="text-xs opacity-60">Incomplete</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-3">
+      <div class="card-body p-2">
         <div class="text-xl font-bold text-warning">{{ abandoned }}</div>
         <div class="text-xs opacity-60">Abandoned (&gt;3h)</div>
       </div>
@@ -71,10 +71,10 @@
 
     <!-- Attempt status doughnut -->
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-6">
+      <div class="card-body p-5">
         <h2 class="font-semibold mb-4">Attempt status</h2>
         <div class="flex justify-center">
-          <canvas id="statusChart" width="264" height="264" style="max-width:264px;max-height:264px;"></canvas>
+          <canvas id="statusChart" width="224" height="224" style="max-width:224px;max-height:224px;"></canvas>
         </div>
         <div class="flex flex-wrap justify-center gap-3 mt-4 text-xs opacity-70">
           <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#3b82f6"></span>In progress ({{ in_progress }})</span>
@@ -88,18 +88,18 @@
 
     <!-- Score distribution bar -->
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-6">
+      <div class="card-body p-5">
         <h2 class="font-semibold mb-4">Score distribution (submitted)</h2>
-        <canvas id="scoreChart" height="200"></canvas>
+        <canvas id="scoreChart" height="170"></canvas>
       </div>
     </div>
 
     <!-- Age group distribution -->
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-6">
+      <div class="card-body p-5">
         <h2 class="font-semibold mb-4">Age group distribution</h2>
         {% if age_counts != "[0, 0, 0, 0, 0, 0]" %}
-          <canvas id="ageChart" height="200"></canvas>
+          <canvas id="ageChart" height="170"></canvas>
         {% else %}
           <p class="text-sm opacity-50">No date-of-birth data recorded.</p>
         {% endif %}
@@ -108,10 +108,10 @@
 
     <!-- Age × demographic -->
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-6">
+      <div class="card-body p-5">
         <h2 class="font-semibold mb-4">Age group by demographic</h2>
         {% if age_counts != "[0, 0, 0, 0, 0, 0]" %}
-          <canvas id="ageDemoChart" height="200"></canvas>
+          <canvas id="ageDemoChart" height="170"></canvas>
         {% else %}
           <p class="text-sm opacity-50">No demographic data recorded.</p>
         {% endif %}
@@ -124,17 +124,17 @@
   <div class="grid gap-4" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
 
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-6">
+      <div class="card-body p-5">
         <h2 class="font-semibold mb-4">NQF placement (submitted)</h2>
-        <canvas id="nqfChart" height="120"></canvas>
+        <canvas id="nqfChart" height="102"></canvas>
       </div>
     </div>
 
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-6">
+      <div class="card-body p-5">
         <h2 class="font-semibold mb-4">Submissions — last 30 days</h2>
         {% if daily_counts != "[]" %}
-          <canvas id="dailyChart" height="120"></canvas>
+          <canvas id="dailyChart" height="102"></canvas>
         {% else %}
           <p class="text-sm opacity-50">No submissions in the last 30 days.</p>
         {% endif %}
