@@ -351,6 +351,62 @@ def _render_response_for_marking(question, response):
     return _render_text(data)
 
 
+def _build_response_display(question, response):
+    """Return structured display data used by the marking template to render
+    a faithful visual representation of what the learner submitted."""
+    spec = _question_spec(question)
+    key = _question_answer_key(question)
+    data = _safe_json_loads(
+        response.response_json if response else None, {}
+    )
+
+    if spec.get("layout") == "form_fill":
+        return {"kind": "text", "text": _render_form_fill(spec, data)}
+
+    if question.kind == Question.MATCH:
+        targets = [
+            (str(t.get("id")), t.get("text", ""))
+            for t in spec.get("targets", [])
+            if isinstance(t, dict)
+        ]
+        correct_map = {str(k): str(v) for k, v in key.get("match", {}).items()}
+        rows = []
+        for tid, target_text in targets:
+            placed = str(data.get(tid, "")).strip()
+            correct = correct_map.get(tid, "")
+            if placed:
+                is_correct = placed.lower() == correct.lower()
+            else:
+                is_correct = None
+            rows.append({
+                "target": target_text,
+                "placed": placed,
+                "correct": correct,
+                "is_correct": is_correct,
+            })
+        return {"kind": "match", "rows": rows}
+
+    if spec.get("kind_hint") == "mcq_or_choice":
+        choices = spec.get("choices") or _extract_inline_choices(question.prompt)
+        selected = str(data.get("answer", "")).strip()
+        raw_kw = key.get("keyword_answer", [])
+        correct_answers = {
+            (k.lower() if isinstance(k, str) else str(k).lower())
+            for k in (raw_kw if isinstance(raw_kw, list) else [raw_kw])
+        }
+        items = []
+        for ch in choices:
+            items.append({
+                "label": ch,
+                "selected": ch == selected,
+                "is_correct_choice": ch.lower() in correct_answers if correct_answers else None,
+            })
+        return {"kind": "choice", "items": items, "selected": selected}
+
+    text = str(data.get("answer", "")).strip() if isinstance(data, dict) else str(data).strip()
+    return {"kind": "text", "text": text}
+
+
 def _clamped_float(value, upper_bound):
     try:
         parsed = float(value)
@@ -610,6 +666,7 @@ def _build_marking_row(question, index, responses_by_qid):
         "question": question,
         "response": response,
         "response_text": _render_response_for_marking(question, response),
+        "response_display": _build_response_display(question, response),
         "has_rubric": bool(rubric_rows),
         "rubric": rubric_rows,
         "manual_value": awarded if score and not rubric_rows else "",
