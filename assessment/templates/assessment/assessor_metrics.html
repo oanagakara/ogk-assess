@@ -71,10 +71,10 @@
 
     <!-- Attempt status doughnut -->
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
+      <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Attempt status</h2>
         <div class="flex justify-center">
-          <canvas id="statusChart" width="224" height="224" style="max-width:224px;max-height:224px;"></canvas>
+          <canvas id="statusChart" width="202" height="202" style="max-width:202px;max-height:202px;"></canvas>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px 4px;margin-top:1rem;font-size:0.75rem;opacity:0.7;">
           <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;margin-right:5px;vertical-align:middle;"></span>In progress</div>
@@ -88,18 +88,18 @@
 
     <!-- Score distribution bar -->
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
+      <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Score distribution (submitted)</h2>
-        <canvas id="scoreChart" height="170"></canvas>
+        <canvas id="scoreChart" height="153"></canvas>
       </div>
     </div>
 
     <!-- Age group distribution -->
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
+      <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Age group distribution</h2>
         {% if age_counts != "[0, 0]" %}
-          <canvas id="ageChart" height="170"></canvas>
+          <canvas id="ageChart" height="153"></canvas>
         {% else %}
           <p class="text-sm opacity-50">No date-of-birth data recorded.</p>
         {% endif %}
@@ -108,10 +108,10 @@
 
     <!-- Age × demographic -->
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-5">
+      <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Age group by demographic</h2>
         {% if age_counts != "[0, 0]" %}
-          <canvas id="ageDemoChart" height="170"></canvas>
+          <canvas id="ageDemoChart" height="153"></canvas>
           <div style="margin-top:0.75rem;font-size:0.75rem;opacity:0.7;">
             <div style="margin-bottom:4px;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#3b82f6;margin-right:6px;vertical-align:middle;"></span>African</div>
             <div style="margin-bottom:4px;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#f97316;margin-right:6px;vertical-align:middle;"></span>Coloured</div>
