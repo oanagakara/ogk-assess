@@ -112,6 +112,12 @@
         <h2 class="font-semibold mb-4">Age group by demographic</h2>
         {% if age_counts != "[0, 0, 0, 0, 0, 0]" %}
           <canvas id="ageDemoChart" height="170"></canvas>
+          <div class="mt-3 space-y-1 text-xs opacity-70">
+            <div><span class="inline-block w-3 h-3 rounded mr-2" style="background:#3b82f6;"></span>African</div>
+            <div><span class="inline-block w-3 h-3 rounded mr-2" style="background:#f97316;"></span>Coloured</div>
+            <div><span class="inline-block w-3 h-3 rounded mr-2" style="background:#22c55e;"></span>Indian</div>
+            <div><span class="inline-block w-3 h-3 rounded mr-2" style="background:#a855f7;"></span>White</div>
+          </div>
         {% else %}
           <p class="text-sm opacity-50">No demographic data recorded.</p>
         {% endif %}
@@ -287,7 +293,7 @@ new Chart(document.getElementById('ageDemoChart'), {
     datasets: {{ age_demo_datasets }},
   },
   options: {
-    plugins: { legend: legendOpts },
+    plugins: { legend: { display: false } },
     scales: {
       x: { stacked: true, grid: { color: gridColor }, ticks: { color: labelColor }, title: { display: true, text: 'Age group', color: labelColor } },
       y: { stacked: true, grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true, title: { display: true, text: 'Learners', color: labelColor } },
