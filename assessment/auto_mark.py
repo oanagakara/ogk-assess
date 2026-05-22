@@ -309,6 +309,7 @@ def _auto_mark_ai_rubric(question, response, key) -> dict:
         msg = client.messages.create(
             model="claude-opus-4-7",
             max_tokens=512,
+            timeout=20,
             messages=[{"role": "user", "content": prompt}],
         )
 

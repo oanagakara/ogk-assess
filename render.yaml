@@ -3,7 +3,7 @@ services:
     name: ican-assessment
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application -w 3"
+    startCommand: "gunicorn config.wsgi:application -w 2 --timeout 60"
     envVars:
       - key: DJANGO_SECRET_KEY
         generateValue: true
