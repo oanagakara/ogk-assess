@@ -690,7 +690,7 @@ def assessor_metrics(request):
     age_labels = ["18-25", "26-35"]
     age_counts = [0] * 2
     demographics = ["African", "Coloured", "Indian", "White"]
-    demo_colors = ["#3b82f6", "#f97316", "#22c55e", "#a855f7"]
+    demo_colors = ["#efbbff", "#d896ff", "#be29ec", "#800080"]
     age_demo_counts = {d: [0] * 2 for d in demographics}
 
     learner_qs = Learner.objects.filter(
