@@ -772,7 +772,7 @@ def assessor_attempts(request):
     tab_qs = {
         "in_progress": base_qs.filter(status=Attempt.IN_PROGRESS),
         "submitted":   base_qs.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)),
-        "marked":      base_qs.filter(status=Attempt.SUBMITTED).filter(~Exists(has_unscored_markable)),
+        "marked":      base_qs.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)),
         "incomplete":  base_qs.filter(status=Attempt.INCOMPLETE),
     }
     current_qs = tab_qs.get(active_tab, tab_qs["in_progress"])
@@ -1156,11 +1156,38 @@ def assessor_unlock_attempt(request, code: str):
 def assessor_moderation(request):
     attempts = (
         Attempt.objects
-        .filter(finalised_at__isnull=False)
+        .filter(finalised_at__isnull=False, moderated_at__isnull=True)
         .select_related("learner", "template", "finalised_by")
         .order_by("-finalised_at")
     )
     return render(request, "assessment/assessor_moderation.html", {
+        "attempts": attempts,
+    })
+
+
+@login_required
+@user_passes_test(is_moderator)
+def assessor_approve_moderation(request, code: str):
+    if request.method != "POST":
+        return HttpResponseForbidden()
+    attempt = get_object_or_404(Attempt, code=code, finalised_at__isnull=False)
+    attempt.moderated_at = timezone.now()
+    attempt.moderated_by = request.user
+    attempt.save(update_fields=["moderated_at", "moderated_by"])
+    logger.info("Attempt moderation approved: code=%s moderator=%s", code, request.user.username)
+    return redirect("assessment:assessor_moderation")
+
+
+@login_required
+@user_passes_test(is_auditor)
+def assessor_archive(request):
+    attempts = (
+        Attempt.objects
+        .filter(moderated_at__isnull=False)
+        .select_related("learner", "template", "finalised_by", "moderated_by")
+        .order_by("-moderated_at")
+    )
+    return render(request, "assessment/assessor_archive.html", {
         "attempts": attempts,
     })
 
