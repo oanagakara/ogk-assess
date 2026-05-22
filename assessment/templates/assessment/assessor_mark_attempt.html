@@ -9,7 +9,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86C20.24 19 21 18.1 21 17a2 2 0 0 0-.29-1.03L13.71 4.97A2 2 0 0 0 12 4c-.76 0-1.47.41-1.71 1.03L3.29 15.97A2 2 0 0 0 3 17c0 1.1.76 2 2.07 2Z"/>
       </svg>
-      <span>This attempt was finalised by <strong>{{ attempt.finalised_by.get_full_name|default:attempt.finalised_by.username }}</strong> on {{ attempt.finalised_at|date:"d M Y" }} and is <strong>locked</strong>.{% if can_mark %} You are viewing as moderator.{% endif %}</span>
+      <span>This attempt was finalised{% if attempt.finalised_by %} by <strong>{{ attempt.finalised_by.get_full_name|default:attempt.finalised_by.username }}</strong>{% endif %} on {{ attempt.finalised_at|date:"d M Y" }} and is <strong>locked</strong>.{% if can_mark %} You are viewing as moderator.{% endif %}</span>
       {% if can_unlock %}
         <form method="post" action="{% url 'assessment:assessor_unlock_attempt' attempt.code %}" class="ml-auto shrink-0">
           {% csrf_token %}

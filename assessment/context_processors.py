@@ -78,7 +78,7 @@ def assessor_nav_counts(request):
         .filter(Exists(has_review_score) | Exists(has_unscored_markable))
         .count()
     )
-    finalised = Attempt.objects.filter(finalised_at__isnull=False).count()
+    pending_moderation = Attempt.objects.filter(finalised_at__isnull=False, moderated_at__isnull=True).count()
 
     return {
         "user_is_moderator": user_is_moderator,
@@ -87,12 +87,12 @@ def assessor_nav_counts(request):
         "real_role": real_role,
         "can_switch_role": real_is_moderator,
         "nav_counts": {
-            "in_progress":  in_progress,
-            "submitted":    submitted,
-            "marked":       marked,
-            "incomplete":   incomplete,
-            "needs_review": needs_review,
-            "finalised":    finalised,
-            "total":        in_progress + submitted + marked + incomplete,
+            "in_progress":        in_progress,
+            "submitted":          submitted,
+            "marked":             marked,
+            "incomplete":         incomplete,
+            "needs_review":       needs_review,
+            "pending_moderation": pending_moderation,
+            "total":              in_progress + submitted + marked + incomplete,
         }
     }

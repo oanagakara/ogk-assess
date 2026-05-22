@@ -1,13 +1,13 @@
 {% extends "assessment/assessor_base.html" %}
-{% block title %}Moderation{% endblock %}
+{% block title %}Archive{% endblock %}
 
 {% block assessor_content %}
 <div class="h-full flex flex-col gap-4">
 
   <div class="flex items-center justify-between shrink-0">
     <div>
-      <h1 class="text-xl font-semibold">Moderation</h1>
-      <p class="text-sm opacity-60">{{ attempts|length }} pending moderation</p>
+      <h1 class="text-xl font-semibold">Archive</h1>
+      <p class="text-sm opacity-60">{{ attempts|length }} moderated attempt{{ attempts|length|pluralize }}</p>
     </div>
   </div>
 
@@ -21,7 +21,8 @@
             <th>Template</th>
             <th>Mode</th>
             <th>Finalised by</th>
-            <th>Date</th>
+            <th>Moderated by</th>
+            <th>Moderated</th>
             <th></th>
           </tr>
         </thead>
@@ -46,30 +47,20 @@
               <td class="whitespace-nowrap opacity-70">
                 {% if attempt.finalised_by %}{{ attempt.finalised_by.get_full_name|default:attempt.finalised_by.username }}{% else %}—{% endif %}
               </td>
+              <td class="whitespace-nowrap opacity-70">
+                {% if attempt.moderated_by %}{{ attempt.moderated_by.get_full_name|default:attempt.moderated_by.username }}{% else %}—{% endif %}
+              </td>
               <td class="whitespace-nowrap text-xs opacity-70">
-                {{ attempt.finalised_at|date:"d M Y" }}
+                {{ attempt.moderated_at|date:"d M Y" }}
               </td>
               <td class="text-right">
-                <div class="flex items-center gap-1 justify-end">
-                  {% if attempt.template.moderation_mode == 'full' %}
-                    <form method="post" action="{% url 'assessment:assessor_unlock_attempt' attempt.code %}">
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-xs btn-outline">Unlock</button>
-                    </form>
-                  {% else %}
-                    <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}"
-                       class="btn btn-xs btn-ghost">View</a>
-                  {% endif %}
-                  <form method="post" action="{% url 'assessment:assessor_approve_moderation' attempt.code %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-xs btn-success">Approve →</button>
-                  </form>
-                </div>
+                <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}"
+                   class="btn btn-xs btn-ghost">View</a>
               </td>
             </tr>
           {% empty %}
             <tr>
-              <td colspan="7" class="text-center py-10 opacity-50">No attempts pending moderation.</td>
+              <td colspan="8" class="text-center py-10 opacity-50">No archived attempts yet.</td>
             </tr>
           {% endfor %}
         </tbody>
