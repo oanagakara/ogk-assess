@@ -2475,10 +2475,13 @@ def _send_error_email(error_type, error_msg, url, method, user):
 
 
 def handler500(request):
+    import traceback
     from django.utils.html import escape
-    exc_type, exc_value, _ = sys.exc_info()
+    exc_type, exc_value, exc_tb = sys.exc_info()
     error_type = exc_type.__name__ if exc_type else "Error"
     error_msg = str(exc_value) if exc_value else ""
+    if exc_tb:
+        print("SERVER ERROR TRACEBACK:\n" + "".join(traceback.format_exception(exc_type, exc_value, exc_tb)), file=sys.stderr, flush=True)
     _notify(
         error_type, error_msg,
         url=request.build_absolute_uri(),

@@ -3,10 +3,16 @@
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center p-4">
-  <div class="text-center space-y-4 max-w-md">
+  <div class="text-center space-y-4 max-w-lg w-full">
     <div class="text-6xl font-bold opacity-20">500</div>
     <h1 class="text-2xl font-semibold">Something went wrong</h1>
     <p class="opacity-60">An unexpected error occurred. Please try again or contact your assessor.</p>
+    {% if error_type %}
+    <div class="bg-base-200 rounded-lg p-4 font-mono text-sm text-left space-y-1">
+      <div><span class="opacity-50">Error:</span> {{ error_type }}</div>
+      {% if error_msg %}<div><span class="opacity-50">Detail:</span> <span class="break-all">{{ error_msg }}</span></div>{% endif %}
+    </div>
+    {% endif %}
     <a href="/" class="btn btn-primary btn-sm">Return to start</a>
   </div>
 </div>
