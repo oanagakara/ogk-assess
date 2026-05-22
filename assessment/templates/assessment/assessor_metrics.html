@@ -86,33 +86,33 @@
       </div>
     </div>
 
-    <!-- Score distribution bar — fills card height -->
-    <div class="card bg-base-100 shadow border border-base-300" style="display:flex;flex-direction:column;">
-      <div class="card-body" style="padding:18px;flex:1;display:flex;flex-direction:column;">
+    <!-- Score distribution bar -->
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Score distribution (submitted)</h2>
-        <canvas id="scoreChart" style="flex:1;min-height:0;"></canvas>
+        <canvas id="scoreChart" height="153"></canvas>
       </div>
     </div>
 
-    <!-- Age group distribution — fills card height -->
-    <div class="card bg-base-100 shadow border border-base-300" style="display:flex;flex-direction:column;">
-      <div class="card-body" style="padding:18px;flex:1;display:flex;flex-direction:column;">
+    <!-- Age group distribution -->
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Age group distribution</h2>
         {% if age_counts != "[0, 0]" %}
-          <canvas id="ageChart" style="flex:1;min-height:0;"></canvas>
+          <canvas id="ageChart" height="153"></canvas>
         {% else %}
           <p class="text-sm opacity-50">No date-of-birth data recorded.</p>
         {% endif %}
       </div>
     </div>
 
-    <!-- Age × demographic — legend right, fills card height -->
-    <div class="card bg-base-100 shadow border border-base-300" style="display:flex;flex-direction:column;">
-      <div class="card-body" style="padding:18px;flex:1;display:flex;flex-direction:column;">
+    <!-- Age × demographic — legend right -->
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Age group by demographic</h2>
         {% if age_counts != "[0, 0]" %}
-          <div style="display:flex;align-items:center;gap:12px;flex:1;min-height:0;">
-            <canvas id="ageDemoChart" style="flex:1;min-height:0;"></canvas>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <canvas id="ageDemoChart" height="153" style="flex:1;"></canvas>
             <div style="font-size:0.75rem;opacity:0.7;display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
               <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#3b82f6;margin-right:5px;vertical-align:middle;"></span>African</div>
               <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#f97316;margin-right:5px;vertical-align:middle;"></span>Coloured</div>
@@ -211,7 +211,6 @@ new Chart(document.getElementById('scoreChart'), {
     }]
   },
   options: {
-    maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
       x: { grid: { color: gridColor }, ticks: { color: labelColor }, title: { display: true, text: 'Score range', color: labelColor } },
@@ -281,7 +280,6 @@ new Chart(document.getElementById('ageChart'), {
   },
   options: {
     indexAxis: 'y',
-    maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
       x: { grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true, title: { display: true, text: 'Learners', color: labelColor } },
@@ -298,7 +296,6 @@ new Chart(document.getElementById('ageDemoChart'), {
     datasets: {{ age_demo_datasets }},
   },
   options: {
-    maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
       x: { stacked: true, grid: { color: gridColor }, ticks: { color: labelColor }, title: { display: true, text: 'Age group', color: labelColor } },
