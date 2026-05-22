@@ -17,50 +17,50 @@
   <!-- Stat cards 8×1 grid -->
   <div class="grid gap-2" style="grid-template-columns: repeat(8, minmax(0, 1fr));">
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-2">
-        <div class="text-xl font-bold">{{ total }}</div>
+      <div class="card-body" style="padding:5px 10px;">
+        <div class="text-lg font-bold">{{ total }}</div>
         <div class="text-xs opacity-60">Total attempts</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-2">
-        <div class="text-xl font-bold">{{ unique_learners }}</div>
+      <div class="card-body" style="padding:5px 10px;">
+        <div class="text-lg font-bold">{{ unique_learners }}</div>
         <div class="text-xs opacity-60">Unique learners</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-2">
-        <div class="text-xl font-bold">{{ finalised }}</div>
+      <div class="card-body" style="padding:5px 10px;">
+        <div class="text-lg font-bold">{{ finalised }}</div>
         <div class="text-xs opacity-60">Marked</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-2">
-        <div class="text-xl font-bold">{% if avg_score %}{{ avg_score }}%{% else %}—{% endif %}</div>
+      <div class="card-body" style="padding:5px 10px;">
+        <div class="text-lg font-bold">{% if avg_score %}{{ avg_score }}%{% else %}—{% endif %}</div>
         <div class="text-xs opacity-60">Avg score</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-2">
-        <div class="text-xl font-bold">{{ in_progress }}</div>
+      <div class="card-body" style="padding:5px 10px;">
+        <div class="text-lg font-bold">{{ in_progress }}</div>
         <div class="text-xs opacity-60">In progress</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-2">
-        <div class="text-xl font-bold">{{ submitted }}</div>
+      <div class="card-body" style="padding:5px 10px;">
+        <div class="text-lg font-bold">{{ submitted }}</div>
         <div class="text-xs opacity-60">Submitted</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-2">
-        <div class="text-xl font-bold">{{ incomplete }}</div>
+      <div class="card-body" style="padding:5px 10px;">
+        <div class="text-lg font-bold">{{ incomplete }}</div>
         <div class="text-xs opacity-60">Incomplete</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
-      <div class="card-body p-2">
-        <div class="text-xl font-bold text-warning">{{ abandoned }}</div>
+      <div class="card-body" style="padding:5px 10px;">
+        <div class="text-lg font-bold text-warning">{{ abandoned }}</div>
         <div class="text-xs opacity-60">Abandoned (&gt;3h)</div>
       </div>
     </div>
