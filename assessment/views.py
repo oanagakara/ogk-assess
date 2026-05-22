@@ -773,7 +773,7 @@ def assessor_attempts(request):
         "in_progress": base_qs.filter(status=Attempt.IN_PROGRESS),
         "submitted":   base_qs.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)),
         "marked":      base_qs.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)),
-        "incomplete":  base_qs.filter(status=Attempt.INCOMPLETE),
+        "incomplete":  base_qs.filter(status=Attempt.INCOMPLETE, finalised_at__isnull=True),
     }
     current_qs = tab_qs.get(active_tab, tab_qs["in_progress"])
 
@@ -1032,7 +1032,8 @@ def assessor_mark_attempt(request, code: str):
             attempt.finalised_by = request.user
             attempt.save(update_fields=["finalised_at", "finalised_by"])
             logger.info("Attempt finalised: code=%s assessor=%s", code, request.user.username)
-            return redirect(reverse("assessment:assessor_attempts") + "?tab=marked")
+            back_tab = "incomplete" if attempt.status == Attempt.INCOMPLETE else "marked"
+            return redirect(reverse("assessment:assessor_attempts") + f"?tab={back_tab}")
 
     if request.method == "POST" and current_question:
         _save_question_score(request, attempt, current_question)
