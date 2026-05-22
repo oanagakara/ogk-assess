@@ -2,7 +2,7 @@
 {% block title %}Metrics{% endblock %}
 
 {% block assessor_content %}
-<div class="mx-auto" style="max-width:80rem; display:flex; flex-direction:column; height:100%; gap:1.5rem;">
+<div class="mx-auto space-y-6" style="max-width:80rem;">
 
   <div class="flex items-center justify-between">
     <h1 class="text-2xl font-bold">Platform Metrics</h1>
@@ -141,20 +141,20 @@
   </div>
 
   <!-- NQF placement + Submissions side by side -->
-  <div class="grid gap-4" style="grid-template-columns: repeat(2, minmax(0, 1fr)); flex:1; min-height:0;">
+  <div id="bottom-grid" class="grid gap-4" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
 
-    <div class="card bg-base-100 shadow border border-base-300" style="height:100%;">
-      <div class="card-body" style="padding:18.5px; display:flex; flex-direction:column; min-height:0;">
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18.5px;">
         <h2 class="font-semibold mb-4" style="flex-shrink:0;">NQF placement (submitted)</h2>
-        <div style="flex:1; min-height:0; position:relative;"><canvas id="nqfChart"></canvas></div>
+        <div style="flex:1; position:relative;"><canvas id="nqfChart"></canvas></div>
       </div>
     </div>
 
-    <div class="card bg-base-100 shadow border border-base-300" style="height:100%;">
-      <div class="card-body" style="padding:18.5px; display:flex; flex-direction:column; min-height:0;">
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18.5px;">
         <h2 class="font-semibold mb-4" style="flex-shrink:0;">Submissions — last 30 days</h2>
         {% if daily_counts != "[]" %}
-          <div style="flex:1; min-height:0; position:relative;"><canvas id="dailyChart"></canvas></div>
+          <div style="flex:1; position:relative;"><canvas id="dailyChart"></canvas></div>
         {% else %}
           <p class="text-sm opacity-50">No submissions in the last 30 days.</p>
         {% endif %}
@@ -388,6 +388,22 @@ document.querySelectorAll('[data-palette]').forEach(function(btn) {
 });
 
 applyPalette(savedPalette);
+
+// Size bottom row to fill remaining viewport without scrolling
+function sizeBottomRow() {
+  var grid = document.getElementById('bottom-grid');
+  if (!grid) return;
+  var main = document.querySelector('main');
+  if (!main) return;
+  var padBottom = parseFloat(getComputedStyle(main).paddingBottom) || 24;
+  var available = main.getBoundingClientRect().bottom - padBottom - grid.getBoundingClientRect().top;
+  if (available < 120) return;
+  grid.style.height = available + 'px';
+  if (nqfChartInst) nqfChartInst.resize();
+  if (dailyChartInst) dailyChartInst.resize();
+}
+window.addEventListener('resize', sizeBottomRow);
+sizeBottomRow();
 {% endautoescape %}
 </script>
 {% endblock assessor_content %}
