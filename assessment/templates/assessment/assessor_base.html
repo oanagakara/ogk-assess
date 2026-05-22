@@ -440,9 +440,11 @@
 
   function showSkeleton() {
     if (document.getElementById('nav-skeleton')) return;
+    var bg = getComputedStyle(main).backgroundColor;
     var sk = document.createElement('div');
     sk.id = 'nav-skeleton';
-    sk.style.cssText = 'position:absolute;inset:0;z-index:50;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;background:var(--fallback-b2,oklch(var(--b2)));';
+    sk.style.cssText = 'position:absolute;inset:0;z-index:50;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;';
+    sk.style.backgroundColor = bg;
     sk.innerHTML =
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">' +
         '<div class="skeleton" style="height:26px;width:200px;border-radius:6px;"></div>' +
