@@ -71,7 +71,7 @@ def assessor_nav_counts(request):
     in_progress  = Attempt.objects.filter(status=Attempt.IN_PROGRESS).count()
     submitted    = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)).count()
     marked       = Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)).count()
-    incomplete   = Attempt.objects.filter(status=Attempt.INCOMPLETE).count()
+    incomplete   = Attempt.objects.filter(status=Attempt.INCOMPLETE, finalised_at__isnull=True).count()
     needs_review = (
         Attempt.objects
         .filter(status=Attempt.SUBMITTED)
