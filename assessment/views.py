@@ -1031,9 +1031,11 @@ def assessor_mark_attempt(request, code: str):
             return HttpResponseForbidden("This attempt has been finalised.")
         action = request.POST.get("action", "save")
         if action == "finalise":
+            from django.core.cache import cache
             attempt.finalised_at = timezone.now()
             attempt.finalised_by = request.user
             attempt.save(update_fields=["finalised_at", "finalised_by"])
+            cache.delete(f"nav_counts_{request.user.pk}")
             logger.info("Attempt finalised: code=%s assessor=%s", code, request.user.username)
             back_tab = "incomplete" if attempt.status == Attempt.INCOMPLETE else "marked"
             return redirect(reverse("assessment:assessor_attempts") + f"?tab={back_tab}")
