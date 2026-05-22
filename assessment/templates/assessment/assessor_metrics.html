@@ -76,12 +76,12 @@
         <div class="flex justify-center">
           <canvas id="statusChart" width="224" height="224" style="max-width:224px;max-height:224px;"></canvas>
         </div>
-        <div class="flex flex-wrap justify-center gap-3 mt-4 text-xs opacity-70">
-          <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#3b82f6"></span>In progress ({{ in_progress }})</span>
-          <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#22c55e"></span>Submitted ({{ submitted }})</span>
-          <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#6366f1"></span>Marked ({{ finalised }})</span>
-          <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#f97316"></span>Incomplete ({{ incomplete }})</span>
-          <span><span class="inline-block w-3 h-3 rounded-full mr-1" style="background:#eab308"></span>Abandoned ({{ abandoned }})</span>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px 4px;margin-top:1rem;font-size:0.75rem;opacity:0.7;">
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;margin-right:5px;vertical-align:middle;"></span>In progress ({{ in_progress }})</div>
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:5px;vertical-align:middle;"></span>Submitted ({{ submitted }})</div>
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6366f1;margin-right:5px;vertical-align:middle;"></span>Marked ({{ finalised }})</div>
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316;margin-right:5px;vertical-align:middle;"></span>Incomplete ({{ incomplete }})</div>
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#eab308;margin-right:5px;vertical-align:middle;"></span>Abandoned ({{ abandoned }})</div>
         </div>
       </div>
     </div>
