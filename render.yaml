@@ -3,7 +3,7 @@ services:
     name: ican-assessment
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application"
+    startCommand: "gunicorn config.wsgi:application -w 3"
     envVars:
       - key: DJANGO_SECRET_KEY
         generateValue: true

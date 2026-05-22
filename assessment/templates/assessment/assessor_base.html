@@ -438,30 +438,132 @@
 
   main.style.position = 'relative';
 
-  function showSkeleton() {
+  if (!document.getElementById('sk-anim')) {
+    var s = document.createElement('style');
+    s.id = 'sk-anim';
+    s.textContent = '@keyframes sk-pulse{0%,100%{opacity:1}50%{opacity:.35}}';
+    document.head.appendChild(s);
+  }
+
+  function showSkeleton(destHref) {
     if (document.getElementById('nav-skeleton')) return;
-    if (!document.getElementById('sk-anim')) {
-      var s = document.createElement('style');
-      s.id = 'sk-anim';
-      s.textContent = '@keyframes sk-pulse{0%,100%{opacity:1}50%{opacity:.35}}';
-      document.head.appendChild(s);
-    }
     var bg = getComputedStyle(main).backgroundColor;
-    var m = bg.match(/oklch\(([0-9.]+)/);
+    var lm = bg.match(/oklch\(([0-9.]+)/);
     var rgb = bg.match(/\d+/g);
-    var dark = m ? parseFloat(m[1]) < 0.5 : (rgb ? (parseInt(rgb[0])*0.299 + parseInt(rgb[1])*0.587 + parseInt(rgb[2])*0.114) < 128 : false);
-    var bone = 'border-radius:8px;animation:sk-pulse 1.4s ease-in-out infinite;background:' + (dark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.09)') + ';';
+    var dark = lm ? parseFloat(lm[1]) < 0.5 : (rgb ? (parseInt(rgb[0])*0.299 + parseInt(rgb[1])*0.587 + parseInt(rgb[2])*0.114) < 128 : false);
+    var bc = dark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.09)';
+    var bcs = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+    var anim = 'border-radius:8px;animation:sk-pulse 1.4s ease-in-out infinite;background:' + bc + ';';
+    var card = 'border-radius:10px;padding:1rem;background:' + bcs + ';';
+
     var sk = document.createElement('div');
     sk.id = 'nav-skeleton';
-    sk.style.cssText = 'position:absolute;inset:0;z-index:9999;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;';
+    sk.style.cssText = 'position:absolute;inset:0;z-index:9999;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;overflow:hidden;';
     sk.style.backgroundColor = bg;
-    sk.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">' +
-        '<div style="height:26px;width:200px;' + bone + '"></div>' +
-        '<div style="height:26px;width:90px;' + bone + 'animation-delay:.15s;"></div>' +
-      '</div>' +
-      '<div style="height:72px;' + bone + 'animation-delay:.1s;"></div>' +
-      '<div style="flex:1;min-height:140px;' + bone + 'animation-delay:.2s;"></div>';
+
+    var path = destHref ? destHref.split('?')[0].replace(/\/$/, '') : '';
+    var isMark = /\/attempts\/[^/]+\/mark$/.test(path);
+    var isList = /\/attempts$/.test(path) || /\/attempts\//.test(destHref || '') === false && /\/attempts/.test(path);
+    var isMetrics = /\/metrics$/.test(path);
+    var isModeration = /\/moderation$/.test(path);
+
+    if (isMark) {
+      // Stats strip + sidebar + two-column marking area
+      sk.innerHTML =
+        '<div style="display:flex;gap:0.75rem;height:64px;flex-shrink:0;">' +
+          '<div style="flex:1;' + card + 'display:flex;align-items:center;gap:0.75rem;">' +
+            '<div style="width:32px;height:32px;flex-shrink:0;' + anim + 'animation-delay:.05s;"></div>' +
+            '<div style="flex:1;display:flex;flex-direction:column;gap:6px;">' +
+              '<div style="height:11px;width:50px;' + anim + 'animation-delay:.1s;"></div>' +
+              '<div style="height:15px;width:90px;' + anim + 'animation-delay:.12s;"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="flex:1;' + card + 'display:flex;align-items:center;gap:0.75rem;">' +
+            '<div style="width:32px;height:32px;flex-shrink:0;' + anim + 'animation-delay:.1s;"></div>' +
+            '<div style="flex:1;display:flex;flex-direction:column;gap:6px;">' +
+              '<div style="height:11px;width:50px;' + anim + 'animation-delay:.14s;"></div>' +
+              '<div style="height:15px;width:90px;' + anim + 'animation-delay:.16s;"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="flex:1;' + card + 'display:flex;align-items:center;gap:0.75rem;">' +
+            '<div style="width:32px;height:32px;flex-shrink:0;' + anim + 'animation-delay:.15s;"></div>' +
+            '<div style="flex:1;display:flex;flex-direction:column;gap:6px;">' +
+              '<div style="height:11px;width:50px;' + anim + 'animation-delay:.18s;"></div>' +
+              '<div style="height:15px;width:90px;' + anim + 'animation-delay:.2s;"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="flex:1;' + card + 'display:flex;align-items:center;gap:0.75rem;">' +
+            '<div style="width:32px;height:32px;flex-shrink:0;' + anim + 'animation-delay:.2s;"></div>' +
+            '<div style="flex:1;display:flex;flex-direction:column;gap:6px;">' +
+              '<div style="height:11px;width:50px;' + anim + 'animation-delay:.22s;"></div>' +
+              '<div style="height:15px;width:90px;' + anim + 'animation-delay:.24s;"></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="flex:1;min-height:0;display:flex;gap:0.75rem;">' +
+          '<div style="width:176px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;">' +
+            '<div style="height:40px;' + anim + 'animation-delay:.1s;"></div>' +
+            '<div style="height:40px;' + anim + 'animation-delay:.13s;"></div>' +
+            '<div style="height:40px;' + anim + 'animation-delay:.16s;"></div>' +
+            '<div style="height:40px;' + anim + 'animation-delay:.19s;"></div>' +
+          '</div>' +
+          '<div style="flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">' +
+            '<div style="' + card + 'display:flex;flex-direction:column;gap:10px;">' +
+              '<div style="height:13px;width:70px;' + anim + 'animation-delay:.2s;"></div>' +
+              '<div style="height:13px;' + anim + 'animation-delay:.22s;"></div>' +
+              '<div style="height:13px;' + anim + 'animation-delay:.24s;"></div>' +
+              '<div style="height:13px;width:85%;' + anim + 'animation-delay:.26s;"></div>' +
+            '</div>' +
+            '<div style="' + card + 'display:flex;flex-direction:column;gap:10px;">' +
+              '<div style="height:13px;width:70px;' + anim + 'animation-delay:.22s;"></div>' +
+              '<div style="height:32px;' + anim + 'animation-delay:.25s;"></div>' +
+              '<div style="height:32px;' + anim + 'animation-delay:.28s;"></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    } else if (isMetrics) {
+      // KPI strip + 4 charts + 2 bottom charts
+      sk.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:center;height:30px;flex-shrink:0;">' +
+          '<div style="height:24px;width:160px;' + anim + '"></div>' +
+          '<div style="height:20px;width:120px;' + anim + 'animation-delay:.1s;"></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:0.5rem;flex-shrink:0;">' +
+          [0,1,2,3,4,5,6,7].map(function(i){ return '<div style="height:76px;' + anim + 'animation-delay:' + (i*0.02) + 's;"></div>'; }).join('') +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;flex-shrink:0;">' +
+          [0,1,2,3].map(function(i){ return '<div style="height:190px;' + anim + 'animation-delay:' + (0.1+i*0.03) + 's;"></div>'; }).join('') +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;flex:1;min-height:120px;">' +
+          '<div style="' + anim + 'animation-delay:.2s;"></div>' +
+          '<div style="' + anim + 'animation-delay:.23s;"></div>' +
+        '</div>';
+    } else {
+      // Table list (attempts, moderation, archive)
+      var rows = '';
+      for (var i = 0; i < 6; i++) {
+        rows +=
+          '<div style="height:44px;border-bottom:1px solid ' + bcs + ';display:flex;align-items:center;padding:0 1rem;gap:1rem;flex-shrink:0;">' +
+            '<div style="height:13px;width:72px;' + anim + 'animation-delay:' + (0.08+i*0.03) + 's;"></div>' +
+            '<div style="height:13px;width:110px;' + anim + 'animation-delay:' + (0.1+i*0.03) + 's;"></div>' +
+            '<div style="height:13px;flex:1;' + anim + 'animation-delay:' + (0.12+i*0.03) + 's;"></div>' +
+            '<div style="height:24px;width:60px;' + anim + 'animation-delay:' + (0.14+i*0.03) + 's;"></div>' +
+          '</div>';
+      }
+      sk.innerHTML =
+        '<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0;">' +
+          '<div style="display:flex;flex-direction:column;gap:6px;">' +
+            '<div style="height:24px;width:180px;' + anim + '"></div>' +
+            '<div style="height:14px;width:100px;' + anim + 'animation-delay:.1s;opacity:0.7;"></div>' +
+          '</div>' +
+          '<div style="height:28px;width:120px;' + anim + 'animation-delay:.08s;"></div>' +
+        '</div>' +
+        '<div style="flex:1;min-height:0;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;background:' + bcs + ';">' +
+          '<div style="height:40px;border-bottom:1px solid ' + bcs + ';background:' + bc + ';opacity:0.3;flex-shrink:0;"></div>' +
+          rows +
+        '</div>';
+    }
+
     main.appendChild(sk);
     main.scrollTop = 0;
   }
@@ -473,13 +575,13 @@
     if (!href || href.charAt(0) === '#' || link.target === '_blank') return;
     try {
       var url = new URL(href, location.origin);
-      if (url.origin === location.origin) showSkeleton();
+      if (url.origin === location.origin) showSkeleton(url.pathname + url.search);
     } catch (_) {}
   }, true);
 
   document.addEventListener('submit', function (e) {
     var form = e.target;
-    if (form && form.method && form.method.toLowerCase() !== 'dialog') showSkeleton();
+    if (form && form.method && form.method.toLowerCase() !== 'dialog') showSkeleton(form.action);
   }, true);
 })();
 </script>
