@@ -77,11 +77,11 @@
           <canvas id="statusChart" width="224" height="224" style="max-width:224px;max-height:224px;"></canvas>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px 4px;margin-top:1rem;font-size:0.75rem;opacity:0.7;">
-          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;margin-right:5px;vertical-align:middle;"></span>In progress ({{ in_progress }})</div>
-          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:5px;vertical-align:middle;"></span>Submitted ({{ submitted }})</div>
-          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6366f1;margin-right:5px;vertical-align:middle;"></span>Marked ({{ finalised }})</div>
-          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316;margin-right:5px;vertical-align:middle;"></span>Incomplete ({{ incomplete }})</div>
-          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#eab308;margin-right:5px;vertical-align:middle;"></span>Abandoned ({{ abandoned }})</div>
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;margin-right:5px;vertical-align:middle;"></span>In progress</div>
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:5px;vertical-align:middle;"></span>Submitted</div>
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6366f1;margin-right:5px;vertical-align:middle;"></span>Marked</div>
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316;margin-right:5px;vertical-align:middle;"></span>Incomplete</div>
+          <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#eab308;margin-right:5px;vertical-align:middle;"></span>Abandoned</div>
         </div>
       </div>
     </div>
@@ -98,7 +98,7 @@
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body p-5">
         <h2 class="font-semibold mb-4">Age group distribution</h2>
-        {% if age_counts != "[0, 0, 0, 0, 0, 0]" %}
+        {% if age_counts != "[0, 0]" %}
           <canvas id="ageChart" height="170"></canvas>
         {% else %}
           <p class="text-sm opacity-50">No date-of-birth data recorded.</p>
@@ -110,7 +110,7 @@
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body p-5">
         <h2 class="font-semibold mb-4">Age group by demographic</h2>
-        {% if age_counts != "[0, 0, 0, 0, 0, 0]" %}
+        {% if age_counts != "[0, 0]" %}
           <canvas id="ageDemoChart" height="170"></canvas>
           <div style="margin-top:0.75rem;font-size:0.75rem;opacity:0.7;">
             <div style="margin-bottom:4px;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#3b82f6;margin-right:6px;vertical-align:middle;"></span>African</div>
@@ -262,8 +262,8 @@ new Chart(document.getElementById('dailyChart'), {
 });
 {% endif %}
 
-// Age group distribution
-{% if age_counts != "[0, 0, 0, 0, 0, 0]" %}
+// Age group distribution (horizontal)
+{% if age_counts != "[0, 0]" %}
 new Chart(document.getElementById('ageChart'), {
   type: 'bar',
   data: {
@@ -277,15 +277,16 @@ new Chart(document.getElementById('ageChart'), {
     }]
   },
   options: {
+    indexAxis: 'y',
     plugins: { legend: { display: false } },
     scales: {
-      x: { grid: { color: gridColor }, ticks: { color: labelColor }, title: { display: true, text: 'Age group', color: labelColor } },
-      y: yLearners,
+      x: { grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true, title: { display: true, text: 'Learners', color: labelColor } },
+      y: { grid: { color: gridColor }, ticks: { color: labelColor } },
     }
   }
 });
 
-// Age × demographic stacked bar
+// Age × demographic stacked bar (18-35 only)
 new Chart(document.getElementById('ageDemoChart'), {
   type: 'bar',
   data: {
