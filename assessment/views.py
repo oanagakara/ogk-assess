@@ -686,14 +686,12 @@ def assessor_metrics(request):
     nqf_lit_data = [nqf_lit_counts[lv] for lv in lit_level_order]
     nqf_num_data = [nqf_num_counts[lv] for lv in num_level_order]
 
-    # --- Age group distribution ---
-    age_labels = ["Under 18", "18-25", "26-35", "36-45", "46-55", "55+"]
-    age_counts = [0] * 6
-    # age × demographic (African, Coloured, Indian, White)
+    # --- Age group distribution (18–35 only) ---
+    age_labels = ["18-25", "26-35"]
+    age_counts = [0] * 2
     demographics = ["African", "Coloured", "Indian", "White"]
     demo_colors = ["#3b82f6", "#f97316", "#22c55e", "#a855f7"]
-    # age_demo[demo][age_bucket]
-    age_demo_counts = {d: [0] * 6 for d in demographics}
+    age_demo_counts = {d: [0] * 2 for d in demographics}
 
     learner_qs = Learner.objects.filter(
         attempt__isnull=False, dob__isnull=False
@@ -702,18 +700,12 @@ def assessor_metrics(request):
     for row in learner_qs:
         dob = row["dob"]
         age = (today - dob).days // 365
-        if age < 18:
+        if 18 <= age <= 25:
             bucket = 0
-        elif age <= 25:
+        elif 26 <= age <= 35:
             bucket = 1
-        elif age <= 35:
-            bucket = 2
-        elif age <= 45:
-            bucket = 3
-        elif age <= 55:
-            bucket = 4
         else:
-            bucket = 5
+            continue
         age_counts[bucket] += 1
         demo = row.get("demographic", "")
         if demo in age_demo_counts:
