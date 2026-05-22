@@ -218,9 +218,11 @@ def _expire_attempt_if_needed(attempt, now=None):
 
 
 def _expire_overdue_attempts():
+    from django.core.cache import cache
+    if cache.get("_expire_ran"):
+        return
     now = timezone.now()
     cutoff = now - ASSESSMENT_DURATION
-
     Attempt.objects.filter(
         status=Attempt.IN_PROGRESS,
         started_at__isnull=False,
@@ -229,6 +231,7 @@ def _expire_overdue_attempts():
         status=Attempt.INCOMPLETE,
         last_activity_at=now,
     )
+    cache.set("_expire_ran", True, 60)
 
 
 def _extract_inline_choices(prompt: str) -> list[str]:

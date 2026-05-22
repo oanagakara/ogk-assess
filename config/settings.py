@@ -127,6 +127,7 @@ LOGIN_URL = "/accounts/login/"
 
 # ── Session config ────────────────────────────────────────────────────────────
 # M-3: Exam context — no persistent logins. Expire at browser close; hard cap 4 h.
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 14400
 
