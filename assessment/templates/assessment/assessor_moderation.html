@@ -44,7 +44,7 @@
                 {% endif %}
               </td>
               <td class="whitespace-nowrap opacity-70">
-                {{ attempt.finalised_by.get_full_name|default:attempt.finalised_by.username|default:"—" }}
+                {% if attempt.finalised_by %}{{ attempt.finalised_by.get_full_name|default:attempt.finalised_by.username }}{% else %}—{% endif %}
               </td>
               <td class="whitespace-nowrap text-xs opacity-70">
                 {{ attempt.finalised_at|date:"d M Y" }}
