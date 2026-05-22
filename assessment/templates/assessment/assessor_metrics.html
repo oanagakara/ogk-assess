@@ -74,7 +74,7 @@
       <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Attempt status</h2>
         <div style="display:flex;align-items:center;gap:12px;">
-          <canvas id="statusChart" width="202" height="202" style="max-width:202px;max-height:202px;flex-shrink:0;"></canvas>
+          <canvas id="statusChart" width="150" height="150" style="max-width:150px;max-height:150px;flex-shrink:0;"></canvas>
           <div style="font-size:0.75rem;opacity:0.7;display:flex;flex-direction:column;gap:6px;">
             <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;margin-right:5px;vertical-align:middle;"></span>In progress</div>
             <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:5px;vertical-align:middle;"></span>Submitted</div>
@@ -107,12 +107,12 @@
     </div>
 
     <!-- Age × demographic — legend right -->
-    <div class="card bg-base-100 shadow border border-base-300">
+    <div class="card bg-base-100 shadow border border-base-300" style="overflow:hidden;">
       <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Age group by demographic</h2>
         {% if age_counts != "[0, 0]" %}
           <div style="display:flex;align-items:center;gap:12px;">
-            <canvas id="ageDemoChart" height="153" style="flex:1;"></canvas>
+            <canvas id="ageDemoChart" height="153" style="flex:1;min-width:0;"></canvas>
             <div style="font-size:0.75rem;opacity:0.7;display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
               <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#3b82f6;margin-right:5px;vertical-align:middle;"></span>African</div>
               <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#f97316;margin-right:5px;vertical-align:middle;"></span>Coloured</div>
