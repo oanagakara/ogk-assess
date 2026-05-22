@@ -76,11 +76,11 @@
         <div style="display:flex;align-items:center;gap:12px;">
           <canvas id="statusChart" width="150" height="150" style="max-width:150px;max-height:150px;flex-shrink:0;"></canvas>
           <div style="font-size:0.75rem;opacity:0.7;display:flex;flex-direction:column;gap:6px;">
-            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;margin-right:5px;vertical-align:middle;"></span>In progress</div>
-            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:5px;vertical-align:middle;"></span>Submitted</div>
-            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6366f1;margin-right:5px;vertical-align:middle;"></span>Marked</div>
-            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316;margin-right:5px;vertical-align:middle;"></span>Incomplete</div>
-            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#eab308;margin-right:5px;vertical-align:middle;"></span>Abandoned</div>
+            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#d896ff;margin-right:5px;vertical-align:middle;"></span>In progress</div>
+            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#be29ec;margin-right:5px;vertical-align:middle;"></span>Submitted</div>
+            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#800080;margin-right:5px;vertical-align:middle;"></span>Marked</div>
+            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#efbbff;margin-right:5px;vertical-align:middle;"></span>Incomplete</div>
+            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#660066;margin-right:5px;vertical-align:middle;"></span>Abandoned</div>
           </div>
         </div>
       </div>
@@ -114,10 +114,10 @@
           <div style="display:flex;align-items:center;gap:12px;">
             <canvas id="ageDemoChart" height="153" style="flex:1;min-width:0;"></canvas>
             <div style="font-size:0.75rem;opacity:0.7;display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
-              <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#3b82f6;margin-right:5px;vertical-align:middle;"></span>African</div>
-              <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#f97316;margin-right:5px;vertical-align:middle;"></span>Coloured</div>
-              <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#22c55e;margin-right:5px;vertical-align:middle;"></span>Indian</div>
-              <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#a855f7;margin-right:5px;vertical-align:middle;"></span>White</div>
+              <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#efbbff;margin-right:5px;vertical-align:middle;"></span>African</div>
+              <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#d896ff;margin-right:5px;vertical-align:middle;"></span>Coloured</div>
+              <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#be29ec;margin-right:5px;vertical-align:middle;"></span>Indian</div>
+              <div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#800080;margin-right:5px;vertical-align:middle;"></span>White</div>
             </div>
           </div>
         {% else %}
@@ -175,7 +175,7 @@ new Chart(document.getElementById('statusChart'), {
     labels: ['In progress', 'Submitted', 'Marked', 'Incomplete', 'Abandoned'],
     datasets: [{
       data: [{{ in_progress }}, {{ submitted }}, {{ finalised }}, {{ incomplete }}, {{ abandoned }}],
-      backgroundColor: ['#3b82f6', '#22c55e', '#6366f1', '#f97316', '#eab308'],
+      backgroundColor: ['#d896ff', '#be29ec', '#800080', '#efbbff', '#660066'],
       borderWidth: 0,
     }]
   },
@@ -205,7 +205,7 @@ new Chart(document.getElementById('scoreChart'), {
     datasets: [{
       label: 'Learners',
       data: {{ score_bands }},
-      backgroundColor: ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6'],
+      backgroundColor: ['#efbbff','#d896ff','#be29ec','#800080','#660066'],
       borderRadius: 4,
       borderWidth: 0,
     }]
@@ -225,8 +225,8 @@ new Chart(document.getElementById('nqfChart'), {
   data: {
     labels: {{ nqf_labels }},
     datasets: [
-      { label: 'Literacy',  data: {{ nqf_lit_data }}, backgroundColor: '#6366f1', borderRadius: 4, borderWidth: 0 },
-      { label: 'Numeracy',  data: {{ nqf_num_data }}, backgroundColor: '#22c55e', borderRadius: 4, borderWidth: 0 },
+      { label: 'Literacy',  data: {{ nqf_lit_data }}, backgroundColor: '#be29ec', borderRadius: 4, borderWidth: 0 },
+      { label: 'Numeracy',  data: {{ nqf_num_data }}, backgroundColor: '#800080', borderRadius: 4, borderWidth: 0 },
     ]
   },
   options: {
@@ -247,8 +247,8 @@ new Chart(document.getElementById('dailyChart'), {
     datasets: [{
       label: 'Submissions',
       data: {{ daily_counts }},
-      borderColor: '#6366f1',
-      backgroundColor: 'rgba(99,102,241,0.12)',
+      borderColor: '#800080',
+      backgroundColor: 'rgba(128,0,128,0.15)',
       tension: 0.3,
       fill: true,
       pointRadius: 3,
@@ -273,7 +273,7 @@ new Chart(document.getElementById('ageChart'), {
     datasets: [{
       label: 'Learners',
       data: {{ age_counts }},
-      backgroundColor: '#6366f1',
+      backgroundColor: '#800080',
       borderRadius: 4,
       borderWidth: 0,
     }]
