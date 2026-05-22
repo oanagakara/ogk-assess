@@ -1150,9 +1150,11 @@ def assessor_unlock_attempt(request, code: str):
     attempt = get_object_or_404(Attempt, code=code)
     if attempt.template.moderation_mode != AssessmentTemplate.MODERATION_FULL:
         return HttpResponseForbidden("This template is audit-only and cannot be unlocked.")
+    from django.core.cache import cache
     attempt.finalised_at = None
     attempt.finalised_by = None
     attempt.save(update_fields=["finalised_at", "finalised_by"])
+    cache.delete(f"nav_counts_{request.user.pk}")
     logger.warning("Attempt unlocked: code=%s moderator=%s", code, request.user.username)
     return redirect(reverse("assessment:assessor_mark_attempt", kwargs={"code": code}))
 
@@ -1177,9 +1179,11 @@ def assessor_approve_moderation(request, code: str):
     if request.method != "POST":
         return HttpResponseForbidden()
     attempt = get_object_or_404(Attempt, code=code, finalised_at__isnull=False)
+    from django.core.cache import cache
     attempt.moderated_at = timezone.now()
     attempt.moderated_by = request.user
     attempt.save(update_fields=["moderated_at", "moderated_by"])
+    cache.delete(f"nav_counts_{request.user.pk}")
     logger.info("Attempt moderation approved: code=%s moderator=%s", code, request.user.username)
     return redirect("assessment:assessor_moderation")
 
