@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.db.models import Exists, OuterRef
 
 from .models import Attempt, Response, Score
@@ -57,28 +58,32 @@ def assessor_nav_counts(request):
     user_is_moderator = real_is_moderator and active_role != "assessor"
     user_is_auditor = real_is_auditor and active_role not in ("assessor", "moderator")
 
-    has_review_score = Score.objects.filter(
-        response__attempt_id=OuterRef("pk"),
-        rubric_json__needs_review=True,
-    )
-    has_unscored_markable = Response.objects.filter(
-        attempt_id=OuterRef("pk"),
-        score__isnull=True,
-        question__is_active=True,
-        question__max_marks__gt=0,
-    )
-
-    in_progress  = Attempt.objects.filter(status=Attempt.IN_PROGRESS).count()
-    submitted    = Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)).count()
-    marked       = Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)).count()
-    incomplete   = Attempt.objects.filter(status=Attempt.INCOMPLETE, finalised_at__isnull=True).count()
-    needs_review = (
-        Attempt.objects
-        .filter(status=Attempt.SUBMITTED)
-        .filter(Exists(has_review_score) | Exists(has_unscored_markable))
-        .count()
-    )
-    pending_moderation = Attempt.objects.filter(finalised_at__isnull=False, moderated_at__isnull=True).count()
+    count_cache_key = f"nav_counts_{request.user.pk}"
+    cached_counts = cache.get(count_cache_key)
+    if cached_counts is None:
+        has_review_score = Score.objects.filter(
+            response__attempt_id=OuterRef("pk"),
+            rubric_json__needs_review=True,
+        )
+        has_unscored_markable = Response.objects.filter(
+            attempt_id=OuterRef("pk"),
+            score__isnull=True,
+            question__is_active=True,
+            question__max_marks__gt=0,
+        )
+        cached_counts = {
+            "in_progress":        Attempt.objects.filter(status=Attempt.IN_PROGRESS).count(),
+            "submitted":          Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)).count(),
+            "marked":             Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)).count(),
+            "incomplete":         Attempt.objects.filter(status=Attempt.INCOMPLETE, finalised_at__isnull=True).count(),
+            "needs_review":       Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_review_score) | Exists(has_unscored_markable)).count(),
+            "pending_moderation": Attempt.objects.filter(finalised_at__isnull=False, moderated_at__isnull=True).count(),
+        }
+        cached_counts["total"] = (
+            cached_counts["in_progress"] + cached_counts["submitted"] +
+            cached_counts["marked"] + cached_counts["incomplete"]
+        )
+        cache.set(count_cache_key, cached_counts, 30)
 
     return {
         "user_is_moderator": user_is_moderator,
@@ -86,13 +91,5 @@ def assessor_nav_counts(request):
         "active_role": active_role,
         "real_role": real_role,
         "can_switch_role": real_is_moderator,
-        "nav_counts": {
-            "in_progress":        in_progress,
-            "submitted":          submitted,
-            "marked":             marked,
-            "incomplete":         incomplete,
-            "needs_review":       needs_review,
-            "pending_moderation": pending_moderation,
-            "total":              in_progress + submitted + marked + incomplete,
-        }
+        "nav_counts": cached_counts,
     }

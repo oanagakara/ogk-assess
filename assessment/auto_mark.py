@@ -486,7 +486,7 @@ def auto_mark_attempt(attempt) -> int:
     responses = (
         Response.objects
         .filter(attempt=attempt)
-        .select_related("question")
+        .select_related("question", "score")
     )
 
     count = 0
