@@ -500,10 +500,10 @@ def auto_mark_attempt(attempt) -> int:
             if result is None:
                 continue
 
-        # Don't overwrite a score the assessor already set manually
+        # Don't overwrite existing scores — manual OR already auto-marked
         try:
             existing = response.score
-            if (existing.rubric_json or {}).get("mode") == "manual":
+            if (existing.rubric_json or {}).get("mode") in ("manual", "auto", "ai"):
                 continue
         except Score.DoesNotExist:
             pass
