@@ -440,18 +440,28 @@
 
   function showSkeleton() {
     if (document.getElementById('nav-skeleton')) return;
+    if (!document.getElementById('sk-anim')) {
+      var s = document.createElement('style');
+      s.id = 'sk-anim';
+      s.textContent = '@keyframes sk-pulse{0%,100%{opacity:1}50%{opacity:.35}}';
+      document.head.appendChild(s);
+    }
     var bg = getComputedStyle(main).backgroundColor;
+    var m = bg.match(/oklch\(([0-9.]+)/);
+    var rgb = bg.match(/\d+/g);
+    var dark = m ? parseFloat(m[1]) < 0.5 : (rgb ? (parseInt(rgb[0])*0.299 + parseInt(rgb[1])*0.587 + parseInt(rgb[2])*0.114) < 128 : false);
+    var bone = 'border-radius:8px;animation:sk-pulse 1.4s ease-in-out infinite;background:' + (dark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.09)') + ';';
     var sk = document.createElement('div');
     sk.id = 'nav-skeleton';
-    sk.style.cssText = 'position:absolute;inset:0;z-index:50;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;';
+    sk.style.cssText = 'position:absolute;inset:0;z-index:9999;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;';
     sk.style.backgroundColor = bg;
     sk.innerHTML =
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">' +
-        '<div class="skeleton" style="height:26px;width:200px;border-radius:6px;"></div>' +
-        '<div class="skeleton" style="height:26px;width:90px;border-radius:6px;"></div>' +
+        '<div style="height:26px;width:200px;' + bone + '"></div>' +
+        '<div style="height:26px;width:90px;' + bone + 'animation-delay:.15s;"></div>' +
       '</div>' +
-      '<div class="skeleton" style="height:72px;border-radius:10px;"></div>' +
-      '<div class="skeleton" style="flex:1;border-radius:10px;min-height:120px;"></div>';
+      '<div style="height:72px;' + bone + 'animation-delay:.1s;"></div>' +
+      '<div style="flex:1;min-height:140px;' + bone + 'animation-delay:.2s;"></div>';
     main.appendChild(sk);
     main.scrollTop = 0;
   }
