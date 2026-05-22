@@ -146,7 +146,7 @@
     <div class="card bg-base-100 shadow border border-base-300" style="height:100%;">
       <div class="card-body" style="padding:18.5px; display:flex; flex-direction:column; min-height:0;">
         <h2 class="font-semibold mb-4" style="flex-shrink:0;">NQF placement (submitted)</h2>
-        <canvas id="nqfChart" style="flex:1; min-height:0;"></canvas>
+        <div style="flex:1; min-height:0; position:relative;"><canvas id="nqfChart"></canvas></div>
       </div>
     </div>
 
@@ -154,7 +154,7 @@
       <div class="card-body" style="padding:18.5px; display:flex; flex-direction:column; min-height:0;">
         <h2 class="font-semibold mb-4" style="flex-shrink:0;">Submissions — last 30 days</h2>
         {% if daily_counts != "[]" %}
-          <canvas id="dailyChart" style="flex:1; min-height:0;"></canvas>
+          <div style="flex:1; min-height:0; position:relative;"><canvas id="dailyChart"></canvas></div>
         {% else %}
           <p class="text-sm opacity-50">No submissions in the last 30 days.</p>
         {% endif %}
