@@ -17,6 +17,8 @@
                 };
                 var f = fontMap[localStorage.getItem("font")];
                 if (f) document.documentElement.style.setProperty("--font-body", f);
+                var z = localStorage.getItem("ui_zoom");
+                if (z) document.documentElement.style.zoom = z;
             })();
         </script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,6 +49,11 @@
                         <option value="arial">Arial</option>
                         <option value="century-gothic">Century Gothic</option>
                     </select>
+                </div>
+                <div class="flex items-center gap-0.5 opacity-60">
+                    <button id="zoom-out" class="btn btn-ghost btn-xs px-1.5 text-base leading-none" title="Zoom out">−</button>
+                    <span id="zoom-label" class="text-xs w-8 text-center select-none">100%</span>
+                    <button id="zoom-in"  class="btn btn-ghost btn-xs px-1.5 text-base leading-none" title="Zoom in">+</button>
                 </div>
                 <label class="flex cursor-pointer items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
@@ -97,6 +104,18 @@
                         localStorage.setItem("font", key);
                     });
                 }
+                var zoomLevel = parseFloat(localStorage.getItem("ui_zoom") || "1");
+                var zoomLabel = document.getElementById("zoom-label");
+                function applyZoom() {
+                    root.style.zoom = zoomLevel;
+                    if (zoomLabel) zoomLabel.textContent = Math.round(zoomLevel * 100) + "%";
+                    localStorage.setItem("ui_zoom", zoomLevel);
+                }
+                applyZoom();
+                var zIn = document.getElementById("zoom-in");
+                var zOut = document.getElementById("zoom-out");
+                if (zIn) zIn.addEventListener("click", function () { zoomLevel = Math.min(1.5, parseFloat((zoomLevel + 0.1).toFixed(1))); applyZoom(); });
+                if (zOut) zOut.addEventListener("click", function () { zoomLevel = Math.max(0.7, parseFloat((zoomLevel - 0.1).toFixed(1))); applyZoom(); });
             })();
         </script>
         {% endblock %}

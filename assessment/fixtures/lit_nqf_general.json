@@ -319,11 +319,26 @@
       "section": 6,
       "order": 2,
       "code": "GEN-E-1",
-      "prompt": "PART E: VOCABULARY — Match each word from the passage to its meaning.",
+      "prompt": "PART E: VOCABULARY — Match each word from the passage to its meaning. (Part 1 of 2)",
       "kind": "match",
-      "max_marks": 8,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag each word to its correct definition.\", \"bank\": [\"exceptional\", \"compelled\", \"surrender\", \"dedication\", \"prosthetic\", \"competitive\", \"subsequently\", \"disabilities\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Outstanding or remarkably good\"}, {\"id\": \"t2\", \"text\": \"Driven or strongly motivated to do something\"}, {\"id\": \"t3\", \"text\": \"To give up or stop trying\"}, {\"id\": \"t4\", \"text\": \"Commitment and hard work towards a goal\"}, {\"id\": \"t5\", \"text\": \"An artificial replacement for a body part\"}, {\"id\": \"t6\", \"text\": \"Having a strong desire to win or succeed\"}, {\"id\": \"t7\", \"text\": \"Happening later, as a result\"}, {\"id\": \"t8\", \"text\": \"Physical or mental conditions that limit a person's activities\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"exceptional\", \"t2\": \"compelled\", \"t3\": \"surrender\", \"t4\": \"dedication\", \"t5\": \"prosthetic\", \"t6\": \"competitive\", \"t7\": \"subsequently\", \"t8\": \"disabilities\"}, \"marks_per_match\": 1}",
+      "max_marks": 4,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag each word to its correct definition. (Part 1 of 2)\", \"bank\": [\"exceptional\", \"compelled\", \"surrender\", \"dedication\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Outstanding or remarkably good\"}, {\"id\": \"t2\", \"text\": \"Driven or strongly motivated to do something\"}, {\"id\": \"t3\", \"text\": \"To give up or stop trying\"}, {\"id\": \"t4\", \"text\": \"Commitment and hard work towards a goal\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"exceptional\", \"t2\": \"compelled\", \"t3\": \"surrender\", \"t4\": \"dedication\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 200,
+    "fields": {
+      "section": 6,
+      "order": 3,
+      "code": "GEN-E-1B",
+      "prompt": "PART E: VOCABULARY — Match each word from the passage to its meaning. (Part 2 of 2)",
+      "kind": "match",
+      "max_marks": 4,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag each word to its correct definition. (Part 2 of 2)\", \"bank\": [\"prosthetic\", \"competitive\", \"subsequently\", \"disabilities\"], \"targets\": [{\"id\": \"t5\", \"text\": \"An artificial replacement for a body part\"}, {\"id\": \"t6\", \"text\": \"Having a strong desire to win or succeed\"}, {\"id\": \"t7\", \"text\": \"Happening later, as a result\"}, {\"id\": \"t8\", \"text\": \"Physical or mental conditions that limit a person's activities\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t5\": \"prosthetic\", \"t6\": \"competitive\", \"t7\": \"subsequently\", \"t8\": \"disabilities\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -332,7 +347,7 @@
     "pk": 54,
     "fields": {
       "section": 6,
-      "order": 3,
+      "order": 4,
       "code": "GEN-E-2",
       "prompt": "PART E: CAUSE AND EFFECT — Match each cause to its effect.",
       "kind": "match",
@@ -347,7 +362,7 @@
     "pk": 55,
     "fields": {
       "section": 6,
-      "order": 4,
+      "order": 5,
       "code": "GEN-E-3",
       "prompt": "PART E: MAIN IDEAS — Match each paragraph to its main idea.",
       "kind": "match",
@@ -362,7 +377,7 @@
     "pk": 56,
     "fields": {
       "section": 6,
-      "order": 5,
+      "order": 6,
       "code": "GEN-E-4",
       "prompt": "PART E: MODAL VERBS — Complete each sentence using the correct modal verb phrase.",
       "kind": "match",
@@ -377,7 +392,7 @@
     "pk": 57,
     "fields": {
       "section": 6,
-      "order": 6,
+      "order": 7,
       "code": "GEN-E-5",
       "prompt": "PART E: PREPOSITIONS — Complete each phrase with the correct preposition.",
       "kind": "match",
@@ -392,7 +407,7 @@
     "pk": 58,
     "fields": {
       "section": 6,
-      "order": 7,
+      "order": 8,
       "code": "GEN-F-READ",
       "prompt": "PART F: READING COMPREHENSION — Read the passage carefully before answering the questions.",
       "kind": "text",
