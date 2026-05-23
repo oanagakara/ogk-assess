@@ -282,7 +282,7 @@ def test_final_mark_page_shows_save_and_done(
 def test_section_review_seconds_formula(assessment_template, section, learner):
     """min(10min, 60min − question_time) for both sections, computed from real timestamps."""
     from datetime import timedelta
-    from assessment.views import _section_review_seconds
+    from assessment.views.learner import _section_review_seconds
 
     attempt = Attempt.objects.create(
         template=assessment_template,
