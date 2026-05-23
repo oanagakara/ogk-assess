@@ -989,6 +989,78 @@ def _compute_marking_totals(markable_questions, responses_by_qid) -> MarkingTota
     return MarkingTotals(available=available, awarded=awarded, scored_count=scored_count)
 
 
+def _fetch_responses(attempt, question_ids: list[int]) -> dict:
+    return {
+        r.question_id: r
+        for r in Response.objects.filter(
+            attempt=attempt, question_id__in=question_ids
+        ).select_related("score")
+    }
+
+
+def _is_auto_done(score) -> bool:
+    return score is not None and not _requires_assessor_attention(score)
+
+
+def _build_sidebar_item(q, responses_by_qid, current_question, code) -> dict:
+    score = _score_for_response(responses_by_qid[q.pk])
+    url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
+    return {
+        "question": q,
+        "pending": _requires_assessor_attention(score),
+        "auto_done": _is_auto_done(score),
+        "active": current_question and q.pk == current_question.pk,
+        "url": f"{url}?qid={q.pk}",
+        "review_type": _review_type(score),
+    }
+
+
+def _build_sidebar(markable_questions, responses_by_qid, current_question, code) -> tuple:
+    all_items = [_build_sidebar_item(q, responses_by_qid, current_question, code) for q in markable_questions]
+    needs_review = [i for i in all_items if not i["auto_done"]]
+    spot_check = [i for i in all_items if i["auto_done"]]
+    return needs_review, spot_check
+
+
+def _prev_next_urls(markable_questions, current_question, mark_url) -> tuple:
+    if not current_question:
+        return None, None
+    idx = markable_questions.index(current_question)
+    prev_url = f"{mark_url}?qid={markable_questions[idx - 1].pk}" if idx > 0 else None
+    next_url = f"{mark_url}?qid={markable_questions[idx + 1].pk}" if idx < len(markable_questions) - 1 else None
+    return prev_url, next_url
+
+
+def _should_show_summary(request, pending_questions, current_question, user_navigated_explicitly: bool) -> bool:
+    summary_requested = request.GET.get("summary") == "1"
+    all_done = not pending_questions and not current_question
+    return (summary_requested or all_done) and not user_navigated_explicitly
+
+
+def _handle_finalise(request, attempt, code) -> HttpResponse:
+    from django.core.cache import cache
+    attempt.finalised_at = timezone.now()
+    attempt.finalised_by = request.user
+    attempt.save(update_fields=["finalised_at", "finalised_by"])
+    cache.delete(f"nav_counts_{request.user.pk}")
+    logger.info("Attempt finalised: code=%s assessor=%s", code, request.user.username)
+    back_tab = "incomplete" if attempt.status == Attempt.INCOMPLETE else "marked"
+    return redirect(reverse("assessment:assessor_attempts") + f"?tab={back_tab}")
+
+
+def _handle_save_and_redirect(request, attempt, code, current_question, markable_questions, question_ids) -> HttpResponse:
+    _save_question_score(request, attempt, current_question)
+    action = request.POST.get("action", "save")
+    if action == "done":
+        return redirect("assessment:assessor_review_queue")
+    url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
+    remaining = _build_review_queue(markable_questions, _fetch_responses(attempt, question_ids))
+    next_question = remaining[0] if remaining else None
+    if next_question and action != "summary":
+        return redirect(f"{url}?qid={next_question.pk}&saved=1")
+    return redirect(f"{url}?summary=1")
+
+
 @login_required
 @user_passes_test(is_assessor)
 def assessor_mark_attempt(request, code: str):
@@ -1012,12 +1084,7 @@ def assessor_mark_attempt(request, code: str):
         [Response(attempt=attempt, question_id=qid, response_json="") for qid in question_ids],
         ignore_conflicts=True,
     )
-    responses_by_qid = {
-        r.question_id: r
-        for r in Response.objects.filter(
-            attempt=attempt, question_id__in=question_ids
-        ).select_related("score")
-    }
+    responses_by_qid = _fetch_responses(attempt, question_ids)
 
     # Defensively auto-mark any responses the engine missed (edge cases in
     # submission flow). Keeps auto-markable questions out of the review queue.
@@ -1027,17 +1094,11 @@ def assessor_mark_attempt(request, code: str):
     )
     if has_unscored:
         auto_mark_attempt(attempt)
-        responses_by_qid = {
-            r.question_id: r
-            for r in Response.objects.filter(
-                attempt=attempt, question_id__in=question_ids
-            ).select_related("score")
-        }
+        responses_by_qid = _fetch_responses(attempt, question_ids)
 
     pending_questions = _build_review_queue(markable_questions, responses_by_qid)
     questions_by_pk = {q.pk: q for q in markable_questions}
 
-    # Resolve which question to show from ?qid=, falling back to first pending.
     try:
         requested_qid = int(request.GET.get("qid", 0))
     except (TypeError, ValueError):
@@ -1056,40 +1117,15 @@ def assessor_mark_attempt(request, code: str):
             return HttpResponseForbidden("This attempt has been finalised.")
         action = request.POST.get("action", "save")
         if action == "finalise":
-            from django.core.cache import cache
-            attempt.finalised_at = timezone.now()
-            attempt.finalised_by = request.user
-            attempt.save(update_fields=["finalised_at", "finalised_by"])
-            cache.delete(f"nav_counts_{request.user.pk}")
-            logger.info("Attempt finalised: code=%s assessor=%s", code, request.user.username)
-            back_tab = "incomplete" if attempt.status == Attempt.INCOMPLETE else "marked"
-            return redirect(reverse("assessment:assessor_attempts") + f"?tab={back_tab}")
-
-    if request.method == "POST" and current_question:
-        _save_question_score(request, attempt, current_question)
-        action = request.POST.get("action", "save")
-        if action == "done":
-            return redirect("assessment:assessor_review_queue")
-        url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
-        # After save, go to next pending question (stable by pk, not position)
-        remaining = _build_review_queue(markable_questions, {
-            r.question_id: r
-            for r in Response.objects.filter(
-                attempt=attempt, question_id__in=question_ids
-            ).select_related("score")
-        })
-        next_question = remaining[0] if remaining else None
-        if next_question and action != "summary":
-            return redirect(f"{url}?qid={next_question.pk}&saved=1")
-        return redirect(f"{url}?summary=1")
+            return _handle_finalise(request, attempt, code)
+        if current_question:
+            return _handle_save_and_redirect(request, attempt, code, current_question, markable_questions, question_ids)
 
     totals = _compute_marking_totals(markable_questions, responses_by_qid)
-    # An explicit ?qid= that resolved to a real question always wins over auto-summary.
-    explicit_qid = requested_qid and current_question and questions_by_pk.get(requested_qid) == current_question
-    show_summary = (
-        (request.GET.get("summary") == "1" or (not pending_questions and not current_question))
-        and not explicit_qid
+    user_navigated_explicitly = bool(
+        requested_qid and current_question and questions_by_pk.get(requested_qid) == current_question
     )
+    show_summary = _should_show_summary(request, pending_questions, current_question, user_navigated_explicitly)
 
     summary_rows = None
     if show_summary:
@@ -1104,40 +1140,14 @@ def assessor_mark_attempt(request, code: str):
         else None
     )
 
-    # Sidebar: all markable questions with pending/done status.
-    # auto_done — correctly auto-marked, no review required; shown in spot-check section only.
-    def _is_auto_done(score) -> bool:
-        """Scored and needs no further assessor action — goes to audit log."""
-        if score is None or _requires_assessor_attention(score):
-            return False
-        return True
+    sidebar_questions, sidebar_spot = _build_sidebar(markable_questions, responses_by_qid, current_question, code)
 
-    def _sidebar_item(q):
-        score = _score_for_response(responses_by_qid[q.pk])
-        return {
-            "question": q,
-            "pending": _requires_assessor_attention(score),
-            "auto_done": _is_auto_done(score),
-            "active": current_question and q.pk == current_question.pk,
-            "url": reverse("assessment:assessor_mark_attempt", kwargs={"code": code}) + f"?qid={q.pk}",
-            "review_type": _review_type(score),
-        }
-
-    all_sidebar = [_sidebar_item(q) for q in markable_questions]
-    # Questions needing assessor attention — shown in the main sidebar list.
-    sidebar_questions = [i for i in all_sidebar if not i["auto_done"]]
-    # Auto-marked, no review — hidden by default; accessible for spot-checking.
-    sidebar_spot = [i for i in all_sidebar if i["auto_done"]]
-
-    # Prev/next navigation across all markable questions.
     mark_url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
-    prev_url = next_url = None
-    if current_question and not show_summary:
-        idx = markable_questions.index(current_question)
-        if idx > 0:
-            prev_url = f"{mark_url}?qid={markable_questions[idx - 1].pk}"
-        if idx < len(markable_questions) - 1:
-            next_url = f"{mark_url}?qid={markable_questions[idx + 1].pk}"
+    prev_url, next_url = _prev_next_urls(
+        markable_questions,
+        current_question if not show_summary else None,
+        mark_url,
+    )
 
     return render(
         request,
