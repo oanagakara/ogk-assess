@@ -78,6 +78,15 @@ def split_gen_e1(apps, schema_editor):
 
     section_id = q.section_id
 
+    # Fixture loaddata inserts explicit PKs without advancing the auto-increment sequence.
+    # Reset it here so Question.objects.create() doesn't collide with a fixture-loaded PK.
+    if schema_editor.connection.vendor == "postgresql":
+        with schema_editor.connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT setval(pg_get_serial_sequence('assessment_question', 'id'), MAX(id), true)"
+                " FROM assessment_question"
+            )
+
     # Shift all questions at order ≥ 3 upward to create a gap at order 3
     for row in Question.objects.filter(section_id=section_id, order__gte=3).order_by("-order"):
         row.order += 1
@@ -90,18 +99,19 @@ def split_gen_e1(apps, schema_editor):
     q.answer_key_json = _KEY_PART1
     q.save()
 
-    # Insert GEN-E-1B at order 3
-    Question.objects.create(
-        section_id=section_id,
-        order=3,
-        code="GEN-E-1B",
-        prompt="PART E: VOCABULARY — Match each word from the passage to its meaning. (Part 2 of 2)",
-        kind="match",
-        max_marks=4,
-        spec_json=_SPEC_PART2,
-        answer_key_json=_KEY_PART2,
-        marking_notes="",
-    )
+    # Insert GEN-E-1B at order 3 — guard against fixture having pre-loaded it
+    if not Question.objects.filter(code="GEN-E-1B").exists():
+        Question.objects.create(
+            section_id=section_id,
+            order=3,
+            code="GEN-E-1B",
+            prompt="PART E: VOCABULARY — Match each word from the passage to its meaning. (Part 2 of 2)",
+            kind="match",
+            max_marks=4,
+            spec_json=_SPEC_PART2,
+            answer_key_json=_KEY_PART2,
+            marking_notes="",
+        )
 
 
 def unsplit_gen_e1(apps, schema_editor):
