@@ -515,3 +515,16 @@ class AssessorInvite(models.Model):
         status = "used" if self.used_at else ("expired" if not self.is_valid else "active")
         return f"Invite by {self.created_by.username} [{status}]"
 
+
+class DemoRequest(models.Model):
+    name       = models.CharField(max_length=120)
+    email      = models.EmailField()
+    org        = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} <{self.email}> — {self.org or 'no org'}"
+

@@ -11,18 +11,19 @@ from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-
 from django.db.models import Count, Prefetch, Q
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+from django.views.decorators.http import require_POST
 
 from .forms import (
     AttemptForm,
@@ -32,7 +33,7 @@ from .forms import (
     StartForm,
 )
 from .auto_mark import auto_mark_attempt
-from .models import AssessmentTemplate, AssessorInvite, Attempt, ExamSession, Learner, Question, Response, Score, ScoreAuditLog, Section, WorkingSheet, WritingSubmission
+from .models import AssessmentTemplate, AssessorInvite, Attempt, DemoRequest, ExamSession, Learner, Question, Response, Score, ScoreAuditLog, Section, WorkingSheet, WritingSubmission
 from .nqf import NQF_DISPLAY_GROUPS, build_question_metadata, compute_nqf_placement, section_kind as _nqf_section_kind
 from .renderers import get_renderer
 from .services import claim_seat, claim_session_seat
@@ -422,6 +423,30 @@ def home(request):
     if request.user.is_authenticated:
         return redirect("assessment:assessor_dashboard")
     return render(request, "index.html")
+
+
+@require_POST
+def request_demo(request):
+    from django.core.mail import send_mail
+    name  = request.POST.get("name", "").strip()
+    email = request.POST.get("email", "").strip()
+    org   = request.POST.get("org", "").strip()
+    if not name or not email:
+        return JsonResponse({"ok": False, "error": "Name and email are required."}, status=400)
+    DemoRequest.objects.create(name=name, email=email, org=org)
+    notify = getattr(settings, "NOTIFY_EMAIL", "") or settings.EMAIL_HOST_USER
+    if notify:
+        try:
+            send_mail(
+                subject=f"Demo request: {name} — {org or 'no org'}",
+                message=f"Name: {name}\nEmail: {email}\nOrganisation: {org or '—'}\n",
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[notify],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+    return JsonResponse({"ok": True})
 
 
 def start(request):
