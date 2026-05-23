@@ -109,6 +109,16 @@ def modal_level(levels: list[str]) -> NQFLevel:
     return tied[0]
 
 
+def min_level(levels: list[str]) -> NQFLevel:
+    """
+    Lowest achieved level (conservative placement).
+    Used for literacy: a weak writing score gates the overall placement.
+    """
+    if not levels:
+        return NQFLevel.L1
+    return min(levels, key=lambda lv: _LEVEL_ORDER.get(lv, 99))
+
+
 def placement_comment(lit_level: str, num_level: str) -> str:
     """Human-readable placement summary for the report."""
     return f"{_describe_level(lit_level, 'Literacy')}. {_describe_level(num_level, 'Numeracy')}."
@@ -162,7 +172,7 @@ def compute_levels_from_prefix_scores(
             num_q_levels.append(level)
             num_prefix_pcts[prefix] = pct
 
-    lit_level = modal_level(lit_q_levels) if lit_q_levels else NQFLevel.L1
+    lit_level = min_level(lit_q_levels) if lit_q_levels else NQFLevel.L1
     num_level = modal_level(num_q_levels) if num_q_levels else NQFLevel.NA
 
     if (
@@ -194,7 +204,7 @@ def compute_group_data(prefix_scores: dict[str, list[float]], groups: list[dict]
             "awarded": awarded,
             "max": maximum,
             "pct": pct,
-            "level": modal_level(g_levels) if g_levels else NQFLevel.L1,
+            "level": min_level(g_levels) if g_levels else NQFLevel.L1,
         })
     return result
 
@@ -241,7 +251,9 @@ def _accumulate_scores(
 
         try:
             pts = float(response.score.points)
-        except (AttributeError, TypeError, ValueError):
+        except AttributeError:
+            continue  # no Score record yet — exclude from placement
+        except (TypeError, ValueError):
             pts = 0.0
         mx = meta["max"]
 

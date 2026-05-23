@@ -53,9 +53,16 @@
               <td class="whitespace-nowrap text-xs opacity-70">
                 {{ attempt.moderated_at|date:"d M Y" }}
               </td>
-              <td class="text-right">
+              <td class="text-right flex gap-1 justify-end">
                 <a href="{% url 'assessment:assessor_mark_attempt' attempt.code %}"
                    class="btn btn-xs btn-ghost">View</a>
+                {% if attempt.template.moderation_mode == 'full' %}
+                <form method="post" action="{% url 'assessment:assessor_auditor_reopen' attempt.code %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-xs btn-warning"
+                          title="Return to moderation queue for re-review">Re-open</button>
+                </form>
+                {% endif %}
               </td>
             </tr>
           {% empty %}

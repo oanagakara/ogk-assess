@@ -1,0 +1,77 @@
+{% extends "assessment/assessor_base.html" %}
+{% block title %}Activity Report{% endblock %}
+
+{% block assessor_content %}
+<div class="h-full flex flex-col gap-4">
+
+  <div class="flex items-end justify-between shrink-0 flex-wrap gap-3">
+    <div>
+      <h1 class="text-xl font-semibold">Activity Report</h1>
+      <p class="text-sm opacity-60">Marking activity per assessor</p>
+    </div>
+
+    <form method="get" class="flex items-center gap-2 flex-wrap">
+      <div class="flex items-center gap-1">
+        <label class="text-xs opacity-60">From</label>
+        <input type="date" name="from" value="{{ q_from }}" class="input input-xs input-bordered">
+      </div>
+      <div class="flex items-center gap-1">
+        <label class="text-xs opacity-60">To</label>
+        <input type="date" name="to" value="{{ q_to }}" class="input input-xs input-bordered">
+      </div>
+      <button type="submit" class="btn btn-xs btn-primary">Filter</button>
+      {% if q_from or q_to %}
+        <a href="{% url 'assessment:assessor_activity_report' %}" class="btn btn-xs btn-ghost">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col">
+    <div class="overflow-auto flex-1">
+      <table class="table table-zebra table-sm w-full">
+        <thead class="sticky top-0 bg-base-100 z-10">
+          <tr>
+            <th>Assessor</th>
+            <th class="text-right">Attempts finalised</th>
+            <th>First activity</th>
+            <th>Last activity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td class="font-medium">
+                {% if row.finalised_by__first_name or row.finalised_by__last_name %}
+                  {{ row.finalised_by__first_name }} {{ row.finalised_by__last_name }}
+                  <span class="opacity-50 text-xs ml-1">({{ row.finalised_by__username }})</span>
+                {% elif row.finalised_by__username %}
+                  {{ row.finalised_by__username }}
+                {% else %}
+                  <span class="opacity-40 italic">System</span>
+                {% endif %}
+              </td>
+              <td class="text-right font-semibold tabular-nums">{{ row.count }}</td>
+              <td class="text-xs opacity-70 whitespace-nowrap">{{ row.first_on|date:"d M Y" }}</td>
+              <td class="text-xs opacity-70 whitespace-nowrap">{{ row.last_on|date:"d M Y" }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="text-center py-10 opacity-50">No finalised attempts in this period.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        {% if total %}
+          <tfoot>
+            <tr class="font-semibold border-t-2">
+              <td>Total</td>
+              <td class="text-right tabular-nums">{{ total }}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -236,7 +236,7 @@ def test_non_final_mark_page_shows_save_and_next(
     html = response.content.decode()
 
     assert response.status_code == 200
-    assert "Save & Continue" in html
+    assert "Save & Next" in html
     assert "Save & Review Summary" not in html
 
 
@@ -275,7 +275,7 @@ def test_final_mark_page_shows_save_and_done(
 
     assert response.status_code == 200
     assert "Save & Review Summary" in html
-    assert "Save & Continue" not in html
+    assert "Save & Next" not in html
 
 
 @pytest.mark.django_db

@@ -40,7 +40,7 @@ from .services import claim_seat, claim_session_seat
 
 ASSESSMENT_DURATION = timedelta(hours=2)   # safety cap; section timers enforce the real limits
 SECTION_DURATION = timedelta(minutes=60)   # fallback when title has no duration
-REVIEW_MAX_SECONDS = 900                   # review cap per subject group: ≤15 minutes
+REVIEW_MAX_SECONDS = 600                   # review cap per subject group: ≤10 minutes
 
 
 def _section_timedelta(section_pk: int) -> timedelta:
@@ -153,7 +153,7 @@ def _section_review_seconds(attempt, section_pk: int) -> int:
         return 0
     question_seconds = max(0, int((review_started - clock_start).total_seconds()))
     slot_seconds = int(_section_timedelta(section_pk).total_seconds())
-    remaining = slot_seconds + REVIEW_MAX_SECONDS - question_seconds
+    remaining = slot_seconds - question_seconds
     return max(0, min(REVIEW_MAX_SECONDS, remaining))
 
 
@@ -171,7 +171,7 @@ def _projected_section_review_seconds(attempt, section_pk: int) -> int:
         return 0
     question_seconds = max(0, int((timezone.now() - clock_start).total_seconds()))
     slot_seconds = int(_section_timedelta(section_pk).total_seconds())
-    remaining = slot_seconds + REVIEW_MAX_SECONDS - question_seconds
+    remaining = slot_seconds - question_seconds
     return max(0, min(REVIEW_MAX_SECONDS, remaining))
 
 
@@ -1200,6 +1200,64 @@ def assessor_archive(request):
     return render(request, "assessment/assessor_archive.html", {
         "attempts": attempts,
     })
+
+
+@login_required
+@user_passes_test(is_moderator)
+def assessor_activity_report(request):
+    """Per-assessor marking activity report with optional date filter."""
+    from django.db.models import Count, Min, Max
+    from django.db.models.functions import TruncDate
+    q_from = (request.GET.get("from") or "").strip()
+    q_to   = (request.GET.get("to")   or "").strip()
+
+    qs = Attempt.objects.filter(finalised_at__isnull=False)
+    if q_from:
+        try:
+            qs = qs.filter(finalised_at__date__gte=q_from)
+        except Exception:
+            pass
+    if q_to:
+        try:
+            qs = qs.filter(finalised_at__date__lte=q_to)
+        except Exception:
+            pass
+
+    rows = (
+        qs
+        .values("finalised_by__username", "finalised_by__first_name", "finalised_by__last_name")
+        .annotate(
+            count=Count("pk"),
+            first_on=Min("finalised_at"),
+            last_on=Max("finalised_at"),
+        )
+        .order_by("-count")
+    )
+    total = sum(r["count"] for r in rows)
+
+    return render(request, "assessment/assessor_activity_report.html", {
+        "rows": rows,
+        "total": total,
+        "q_from": q_from,
+        "q_to": q_to,
+    })
+
+
+@login_required
+@user_passes_test(is_auditor)
+def assessor_auditor_reopen(request, code: str):
+    if request.method != "POST":
+        return HttpResponseForbidden()
+    attempt = get_object_or_404(Attempt, code=code, moderated_at__isnull=False)
+    if attempt.template.moderation_mode != AssessmentTemplate.MODERATION_FULL:
+        return HttpResponseForbidden("Audit-only templates cannot be re-opened.")
+    from django.core.cache import cache
+    attempt.moderated_at = None
+    attempt.moderated_by = None
+    attempt.save(update_fields=["moderated_at", "moderated_by"])
+    cache.delete(f"nav_counts_{request.user.pk}")
+    logger.warning("Attempt re-opened from archive: code=%s auditor=%s", code, request.user.username)
+    return redirect("assessment:assessor_archive")
 
 
 def _get_working_sheet(attempt):

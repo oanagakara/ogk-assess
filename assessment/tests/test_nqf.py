@@ -165,7 +165,7 @@ class TestComputeLevelsFromPrefixScores:
         assert num == "L1"
 
     def test_perfect_literacy_score_returns_l4(self):
-        # 100% on all LIT prefixes → modal should be L4
+        # 100% on all LIT prefixes → minimum is L4
         scores = {
             "LIT-A": [10.0, 10.0],
             "LIT-B": [14.0, 14.0],
@@ -173,6 +173,17 @@ class TestComputeLevelsFromPrefixScores:
         }
         lit, num = compute_levels_from_prefix_scores(scores)
         assert lit == "L4"
+
+    def test_low_writing_gates_literacy_level(self):
+        # Perfect reading but poor writing → overall literacy capped at L1
+        scores = {
+            "LIT-A": [10.0, 10.0],   # 100% → L4
+            "LIT-B": [14.0, 14.0],   # 100% → L4
+            "LIT-C": [20.0, 20.0],   # 100% → L4
+            "LIT-D": [2.0,  14.0],   # 14% → L1 (fallback threshold)
+        }
+        lit, _ = compute_levels_from_prefix_scores(scores)
+        assert lit == "L1"
 
     def test_post_l4_triggered_when_all_num_prefixes_at_87_pct(self):
         # Each NUM prefix at exactly NQF_POST_L4_NUM_PCT (87%)
@@ -206,16 +217,16 @@ class TestComputeLevelsFromPrefixScores:
         _, num = compute_levels_from_prefix_scores(scores)
         assert num != "Post L4"
 
-    def test_empty_prefix_scores_returns_l1_l1(self):
+    def test_empty_prefix_scores_returns_l1_na(self):
         lit, num = compute_levels_from_prefix_scores({})
         assert lit == "L1"
-        assert num == "L1"
+        assert num == "N/A"  # no numeracy scored → N/A, not L1
 
-    def test_only_lit_prefixes_num_defaults_to_l1(self):
+    def test_only_lit_prefixes_num_defaults_to_na(self):
         scores = {"LIT-A": [8.0, 10.0]}
         lit, num = compute_levels_from_prefix_scores(scores)
         assert lit != "L1"  # 80% → L3 for LIT-A
-        assert num == "L1"
+        assert num == "N/A"  # no numeracy scored → N/A
 
     def test_unknown_prefix_uses_fallback_thresholds(self):
         # LIT-D uses NQF_PCT_THRESHOLDS fallback (not in the question table)
@@ -348,7 +359,7 @@ class TestComputeNQFPlacement:
         assert isinstance(result.comment, str)
         assert len(result.comment) > 0
 
-    def test_missing_scores_default_to_zero(self):
+    def test_unscored_responses_excluded_from_placement(self):
         from assessment.models import (
             AssessmentTemplate, Attempt, Learner,
             Question, Response, Section,
@@ -366,11 +377,11 @@ class TestComputeNQFPlacement:
         )
         attempt = Attempt.objects.create(template=template, learner=learner)
         Response.objects.create(attempt=attempt, question=q, response_json='{"answer":""}')
-        # No Score created
+        # No Score created — response must be excluded from placement
 
         q_meta = build_question_metadata(
             Question.objects.filter(section__template=template).select_related("section")
         )
         result = compute_nqf_placement(attempt, q_meta)
         assert result.num_total["awarded"] == 0.0
-        assert result.num_level == "L1"
+        assert result.num_level == "N/A"  # no scored numeracy → N/A
