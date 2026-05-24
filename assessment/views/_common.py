@@ -97,18 +97,49 @@ def _is_layout_only_question(question):
 
 # ── Attempt expiry ────────────────────────────────────────────────────────────
 
+def _template_total_duration(template) -> timedelta:
+    """
+    Total assessment time for a template, respecting shared-clock section groups.
+
+    Sections with the same subject domain (e.g. both literacy) share one clock,
+    so only the first such section's duration is counted. Sections with distinct
+    domains (literacy vs numeracy) each contribute their own clock.
+    """
+    from ..nqf import section_kind as _section_kind
+    total = timedelta()
+    seen_kinds: set[str] = set()
+    for section in template.section_set.order_by("order"):
+        m = re.search(r'\((\d+)\s+MINUTES?\)', section.title, re.IGNORECASE)
+        duration = timedelta(minutes=int(m.group(1))) if m else SECTION_DURATION
+        kind = _section_kind(section.title)
+        if kind == "other":
+            total += duration
+        elif kind not in seen_kinds:
+            total += duration
+            seen_kinds.add(kind)
+    return total or SECTION_DURATION
+
+
 def _expire_overdue_attempts():
     from django.core.cache import cache
     if cache.get("_expire_ran"):
         return
     now = timezone.now()
-    cutoff = now - ASSESSMENT_DURATION
-    Attempt.objects.filter(
-        status=Attempt.IN_PROGRESS,
-        started_at__isnull=False,
-        started_at__lte=cutoff,
-    ).update(
-        status=Attempt.INCOMPLETE,
-        last_activity_at=now,
+    overdue = (
+        Attempt.objects
+        .filter(status=Attempt.IN_PROGRESS, started_at__isnull=False)
+        .select_related("template")
+        .prefetch_related("template__section_set")
     )
+    expired_pks = [
+        a.pk for a in overdue
+        if a.started_at + _template_total_duration(a.template) <= now
+    ]
+    if expired_pks:
+        Attempt.objects.filter(pk__in=expired_pks).update(
+            status=Attempt.SUBMITTED,
+            timed_out=True,
+            submitted_at=now,
+            last_activity_at=now,
+        )
     cache.set("_expire_ran", True, 60)

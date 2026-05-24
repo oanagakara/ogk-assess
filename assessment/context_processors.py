@@ -73,10 +73,10 @@ def assessor_nav_counts(request):
         )
         cached_counts = {
             "in_progress":        Attempt.objects.filter(status=Attempt.IN_PROGRESS).count(),
-            "submitted":          Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)).count(),
+            "submitted":          Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(Exists(has_unscored_markable)).count(),
             "marked":             Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)).count(),
             "incomplete":         Attempt.objects.filter(status=Attempt.INCOMPLETE, finalised_at__isnull=True).count(),
-            "needs_review":       Attempt.objects.filter(status=Attempt.SUBMITTED).filter(Exists(has_review_score) | Exists(has_unscored_markable)).count(),
+            "needs_review":       Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(Exists(has_review_score) | Exists(has_unscored_markable)).count(),
             "pending_moderation": Attempt.objects.filter(finalised_at__isnull=False, moderated_at__isnull=True).count(),
         }
         cached_counts["total"] = (

@@ -242,6 +242,7 @@ class Attempt(models.Model):
     current_question = models.PositiveSmallIntegerField(null=True, blank=True, default=None)
     started_at = models.DateTimeField(blank=True, null=True)
     submitted_at = models.DateTimeField(blank=True, null=True)
+    timed_out = models.BooleanField(default=False)
     last_activity_at = models.DateTimeField(blank=True, null=True)
     honesty_name = models.CharField(max_length=200, blank=True, default="")
     honesty_accepted_at = models.DateTimeField(blank=True, null=True)

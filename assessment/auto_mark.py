@@ -495,6 +495,9 @@ def auto_mark_attempt(attempt) -> int:
         question = response.question
 
         if _is_blank_response(response):
+            key = json.loads(question.answer_key_json or "{}")
+            if not key.get("auto_mark", True):
+                continue  # manual question — leave unscored for assessor even when blank
             result = _zero_score(question)
         else:
             result = auto_mark_response(question, response)
