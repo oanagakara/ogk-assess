@@ -17,7 +17,7 @@
         <button data-palette="indigo" title="Indigo" style="width:16px;height:16px;border-radius:50%;background:#3949ab;border:none;cursor:pointer;padding:0;"></button>
         <button data-palette="violet" title="Violet" style="width:16px;height:16px;border-radius:50%;background:#800080;border:none;cursor:pointer;padding:0;"></button>
       </div>
-      {% if user_is_moderator or request.user.is_staff %}
+      {% if request.user.is_staff %}
         <form method="post" action="{% url 'assessment:assessor_metrics_simulate' %}">
           {% csrf_token %}
           <button type="submit" class="btn btn-sm btn-outline">Run simulation</button>
