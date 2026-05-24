@@ -154,17 +154,92 @@
       flex-shrink: 0;
     }
 
+    /* ── Essay page ── */
+    .essay-page {
+      width: 210mm;
+      height: 297mm;
+      margin: 0 auto;
+      padding: 12mm 14mm;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .essay-title {
+      font-size: 13pt;
+      font-weight: bold;
+    }
+
+    .essay-prompt-box {
+      border: 1.5px solid #333;
+      padding: 7px 10px;
+      font-size: 9.5pt;
+      flex-shrink: 0;
+    }
+    .essay-prompt-label {
+      font-size: 7pt;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #888;
+      margin-bottom: 2px;
+    }
+    .essay-prompt-text {
+      font-size: 10pt;
+      font-weight: bold;
+      line-height: 1.35;
+    }
+    .essay-instructions-list {
+      margin: 4px 0 0 14px;
+      font-size: 7.5pt;
+      color: #555;
+    }
+    .essay-instructions-list li { margin-bottom: 1px; }
+
+    .essay-lines {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .essay-line {
+      flex: 1;
+      border-bottom: 1px solid #bbb;
+    }
+
+    .essay-criteria {
+      border: 1px dashed #aaa;
+      padding: 4px 8px;
+      font-size: 7pt;
+      color: #777;
+      flex-shrink: 0;
+    }
+    .essay-criteria-title {
+      font-weight: bold;
+      font-size: 7pt;
+      margin-bottom: 2px;
+      color: #555;
+    }
+    .essay-criteria-items {
+      display: flex;
+      gap: 16px;
+    }
+    .essay-criterion {
+      white-space: nowrap;
+    }
+
     /* ── Print ── */
     @media print {
       body { background: #fff; }
       .no-print { display: none; }
-      .page {
+      .page, .essay-page {
         width: 100%;
         height: 100%;
         margin: 0;
         padding: 0;
         box-shadow: none;
       }
+      .essay-page.has-preceding { page-break-before: always; }
       @page {
         margin: 12mm 14mm;
         size: A4 portrait;
@@ -180,12 +255,13 @@
     </button>
   </div>
 
+  {% if working_questions %}
   <div class="page">
 
     <div class="header">
       <div class="header-top">
         <h1>Working Sheet — Numeracy</h1>
-        <span class="header-note">Hand to assessor on submission &bull; One page</span>
+        <span class="header-note">Hand to assessor on submission &bull; {% if essay_question %}Page 1{% else %}One page{% endif %}</span>
       </div>
       <div class="learner-row">
         <div>
@@ -269,10 +345,82 @@
     <div class="footer">
       <span>{{ attempt.template.name }}{% if attempt.template.version %} v{{ attempt.template.version }}{% endif %}</span>
       <span>Code: {{ attempt.code }}</span>
-      <span>Page 1 of 1</span>
+      <span>Page 1 of {% if essay_question %}2{% else %}1{% endif %}</span>
     </div>
 
   </div>
+  {% endif %}
+
+  {% if essay_question %}
+  <div class="essay-page{% if working_questions %} has-preceding{% endif %}">
+
+    <div class="header">
+      <div class="header-top">
+        <span class="essay-title">Essay Writing Sheet</span>
+        <span class="header-note">Hand to assessor on submission &bull; {% if working_questions %}Page 2{% else %}One page{% endif %}</span>
+      </div>
+      <div class="learner-row">
+        <div>
+          <div class="field-label">Learner name</div>
+          <div class="field-value">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</div>
+        </div>
+        <div>
+          <div class="field-label">Attempt code</div>
+          <div class="field-value">{{ attempt.code }}</div>
+        </div>
+        <div>
+          <div class="field-label">Session{% if attempt.session %} — {{ attempt.session.code }}{% endif %}</div>
+          <div class="field-value"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="essay-prompt-box">
+      <div class="essay-prompt-label">Writing task</div>
+      <div class="essay-prompt-text">{{ essay_prompt }}</div>
+      <div style="font-size:7.5pt;color:#555;margin-top:4px;">Write 6 to 8 sentences in English.</div>
+    </div>
+
+    <div class="essay-lines">
+      {% for i in "12345678901234567890123" %}
+        <div class="essay-line"></div>
+      {% endfor %}
+    </div>
+
+    {% if essay_criteria %}
+    <div class="essay-criteria">
+      <div class="essay-criteria-title">Marking criteria</div>
+      <div class="essay-criteria-items">
+        {% for c in essay_criteria %}
+          <span class="essay-criterion">{{ c.label }} [{{ c.max_points }}]</span>
+        {% endfor %}
+        <span class="essay-criterion" style="color:#aaa">Total: {{ essay_question.max_marks }} marks</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="declaration">
+      <strong>Declaration:</strong> This essay is my own work, written during the session without unauthorised assistance.
+      <div class="decl-fields">
+        <div>
+          <div class="field-label">Signature</div>
+          <div class="sig-line"></div>
+        </div>
+        <div>
+          <div class="field-label">Date</div>
+          <div class="sig-line"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>{{ attempt.template.name }}{% if attempt.template.version %} v{{ attempt.template.version }}{% endif %}</span>
+      <span>Code: {{ attempt.code }}</span>
+      <span>{% if working_questions %}Page 2 of 2{% else %}Page 1 of 1{% endif %}</span>
+    </div>
+
+  </div>
+  {% endif %}
 
 </body>
 </html>

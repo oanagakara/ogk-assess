@@ -105,7 +105,7 @@ def assessor_dashboard(request):
 
 
 @login_required
-@user_passes_test(is_moderator)
+@user_passes_test(is_staff)
 def assessor_metrics_simulate(request):
     if request.method != "POST":
         return redirect("assessment:assessor_metrics")
@@ -286,7 +286,7 @@ def assessor_attempts(request):
 
     tab_qs = {
         "in_progress": base_qs.filter(status=Attempt.IN_PROGRESS),
-        "submitted":   base_qs.filter(status=Attempt.SUBMITTED).filter(Exists(has_unscored_markable)),
+        "submitted":   base_qs.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(Exists(has_unscored_markable)),
         "marked":      base_qs.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)),
         "incomplete":  base_qs.filter(status=Attempt.INCOMPLETE, finalised_at__isnull=True),
     }

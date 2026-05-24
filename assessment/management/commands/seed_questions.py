@@ -100,7 +100,7 @@ class Command(BaseCommand):
         items.append({"section": sec_lit, "code": "LIT-B-1", "prompt": "1) How old is Thandi?", "max_marks": 1})
         items.append({"section": sec_lit, "code": "LIT-B-2", "prompt": "2) What programme does she want to join?", "max_marks": 1})
         items.append({"section": sec_lit, "code": "LIT-B-3", "prompt": "3) Why does she want to join the learnership?", "max_marks": 2})
-        items.append({"section": sec_lit, "code": "LIT-B-4", "prompt": "4) What does “support her family” mean?", "max_marks": 2})
+        items.append({"section": sec_lit, "code": "LIT-B-4", "prompt": '4) What does "support her family" mean?', "max_marks": 2})
 
         # ===== Part C =====
         items.append({
@@ -118,15 +118,28 @@ class Command(BaseCommand):
             "max_marks": 0,
             "spec": {"kind_hint": "fill_blanks"},
         })
-        items.append({"section": sec_lit, "code": "LIT-C-1", "prompt": "1) Why is this form important?", "max_marks": 2})
         items.append({
-            “section”: sec_lit,
-            “code”: “LIT-C-2”,
-            “prompt”: “2) What does “if any” mean?”,
-            “max_marks”: 1,
-            “answer_key”: {“auto_mark”: True, “keyword_answer”: [“existing”, “condition”], “partial_marks”: 0, “flag_always”: False},
+            "section": sec_lit, 
+            "code": "LIT-C-1", 
+            "prompt": "1) Why is this form important?", 
+            "max_marks": 2,
         })
-
+        items.append({
+            "section": sec_lit,
+            "code": "LIT-C-2",
+            "prompt": '2) What does "if any" mean?',
+            "max_marks": 1,
+            "answer_key": {
+                "auto_mark": True,
+                "keyword_answer": [
+                    "existing",
+                    "condition"
+                ],
+            "partial_marks": 0,
+            "flag_always": False
+            },
+        })
+        
         # ===== Part D =====
         items.append({
             "section": sec_lit,
@@ -134,7 +147,7 @@ class Command(BaseCommand):
             "prompt": (
                 "Part D: Writing Task (NQF 3–4)\n\n"
                 "Write a short paragraph (6–8 sentences):\n"
-                "“Why I want to join a learnership and what skills I want to develop.”\n"
+                '"Why I want to join a learnership and what skills I want to develop."\n'
             ),
             "max_marks": 8,
         })

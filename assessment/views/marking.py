@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from ..auto_mark import auto_mark_attempt
+from ..nqf import build_question_metadata, compute_nqf_placement
 from ..forms import AttemptForm
 from ..models import (
     AssessmentTemplate, Attempt, Learner, Question, Response,
@@ -381,12 +382,13 @@ def _build_sidebar(markable_questions, responses_by_qid, current_question, code)
     return needs_review, spot_check
 
 
-def _prev_next_urls(markable_questions, current_question, mark_url) -> tuple:
+def _prev_next_urls(markable_questions, current_question, mark_url, from_tab="submitted") -> tuple:
     if not current_question:
         return None, None
     idx = markable_questions.index(current_question)
-    prev_url = f"{mark_url}?qid={markable_questions[idx - 1].pk}" if idx > 0 else None
-    next_url = f"{mark_url}?qid={markable_questions[idx + 1].pk}" if idx < len(markable_questions) - 1 else None
+    tab_param = f"&from_tab={from_tab}" if from_tab else ""
+    prev_url = f"{mark_url}?qid={markable_questions[idx - 1].pk}{tab_param}" if idx > 0 else None
+    next_url = f"{mark_url}?qid={markable_questions[idx + 1].pk}{tab_param}" if idx < len(markable_questions) - 1 else None
     return prev_url, next_url
 
 
@@ -403,21 +405,24 @@ def _handle_finalise(request, attempt, code) -> HttpResponse:
     attempt.save(update_fields=["finalised_at", "finalised_by"])
     cache.delete(f"nav_counts_{request.user.pk}")
     logger.info("Attempt finalised: code=%s assessor=%s", code, request.user.username)
-    back_tab = "incomplete" if attempt.status == Attempt.INCOMPLETE else "marked"
-    return redirect(reverse("assessment:assessor_attempts") + f"?tab={back_tab}")
+    from_tab = request.POST.get("from_tab") or "submitted"
+    return redirect(reverse("assessment:assessor_attempts") + f"?tab={from_tab}")
 
 
 def _handle_save_and_redirect(request, attempt, code, current_question, markable_questions, question_ids) -> HttpResponse:
+    from django.core.cache import cache
     _save_question_score(request, attempt, current_question)
+    cache.delete(f"nav_counts_{request.user.pk}")
     action = request.POST.get("action", "save")
+    from_tab = request.POST.get("from_tab") or "submitted"
     if action == "done":
-        return redirect("assessment:assessor_review_queue")
+        return redirect(reverse("assessment:assessor_attempts") + f"?tab={from_tab}")
     url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
     remaining = _build_review_queue(markable_questions, _fetch_responses(attempt, question_ids))
     next_question = remaining[0] if remaining else None
     if next_question and action != "summary":
-        return redirect(f"{url}?qid={next_question.pk}&saved=1")
-    return redirect(f"{url}?summary=1")
+        return redirect(f"{url}?qid={next_question.pk}&from_tab={from_tab}&saved=1")
+    return redirect(f"{url}?summary=1&from_tab={from_tab}")
 
 
 # ── Attachment helpers ────────────────────────────────────────────────────────
@@ -575,13 +580,15 @@ def assessor_mark_attempt(request, code: str):
     )
     responses_by_qid = _fetch_responses(attempt, question_ids)
 
-    # Defensively auto-mark any responses the engine missed (edge cases in
-    # submission flow). Keeps auto-markable questions out of the review queue.
-    has_unscored = any(
+    # Defensively auto-mark any responses the auto-marker missed.
+    # Only check questions with auto_mark:true — manual questions (e.g. essays)
+    # are intentionally left unscored here so they land in the review queue.
+    has_unscored_auto = any(
         _score_for_response(responses_by_qid[q.pk]) is None
         for q in markable_questions
+        if _question_answer_key(q).get("auto_mark")
     )
-    if has_unscored:
+    if has_unscored_auto:
         auto_mark_attempt(attempt)
         responses_by_qid = _fetch_responses(attempt, question_ids)
 
@@ -631,18 +638,26 @@ def assessor_mark_attempt(request, code: str):
 
     sidebar_questions, sidebar_spot = _build_sidebar(markable_questions, responses_by_qid, current_question, code)
 
+    from_tab = request.GET.get("from_tab") or "submitted"
     mark_url = reverse("assessment:assessor_mark_attempt", kwargs={"code": code})
     prev_url, next_url = _prev_next_urls(
         markable_questions,
         current_question if not show_summary else None,
         mark_url,
+        from_tab,
     )
+
+    q_meta = build_question_metadata(
+        Question.objects.filter(section__template=attempt.template, is_active=True).select_related("section")
+    )
+    nqf = compute_nqf_placement(attempt, q_meta)
 
     return render(
         request,
         "assessment/assessor_mark_attempt.html",
         {
             "attempt": attempt,
+            "nqf": nqf,
             "row": current_row,
             "saved": request.GET.get("saved") == "1",
             "total_awarded": totals.awarded,
@@ -656,6 +671,7 @@ def assessor_mark_attempt(request, code: str):
             "sidebar_spot": sidebar_spot,
             "prev_url": prev_url,
             "next_url": next_url,
+            "from_tab": from_tab,
             "working_sheet": _get_working_sheet(attempt),
             "writing_submission": _get_writing_submission(attempt),
             "paper_submitted": _get_paper_submitted(attempt),
@@ -888,27 +904,7 @@ def assessor_new_attempt(request):
 @login_required
 @user_passes_test(is_assessor)
 def assessor_review_queue(request):
-    """Submitted attempts that still have questions flagged for assessor review."""
-    from django.db.models import Exists, OuterRef
-
-    has_review_score = Score.objects.filter(
-        response__attempt_id=OuterRef("pk"),
-        rubric_json__needs_review=True,
-    )
-    has_unscored_markable = Response.objects.filter(
-        attempt_id=OuterRef("pk"),
-        score__isnull=True,
-        question__is_active=True,
-        question__max_marks__gt=0,
-    )
-    attempts = (
-        Attempt.objects
-        .filter(status=Attempt.SUBMITTED)
-        .filter(Exists(has_review_score) | Exists(has_unscored_markable))
-        .select_related("learner", "template")
-        .order_by("-submitted_at")
-    )
-    return render(request, "assessment/assessor_review_queue.html", {"attempts": attempts})
+    return redirect(reverse("assessment:assessor_attempts") + "?tab=submitted")
 
 
 # ── Working sheet and writing submission uploads ───────────────────────────────
@@ -1030,7 +1026,7 @@ def assessor_writing_submission_image(request, code: str):
 def assessor_working_sheet_print(request, code: str):
     """Printable working sheet for a specific attempt."""
     attempt = get_object_or_404(
-        Attempt.objects.select_related("learner", "template"),
+        Attempt.objects.select_related("learner", "template", "session"),
         code=code,
     )
     _WORKING_SHEET_CODES = {
@@ -1044,9 +1040,27 @@ def assessor_working_sheet_print(request, code: str):
             code__in=_WORKING_SHEET_CODES,
         ).order_by("section__order", "order")
     )
+    essay_question = (
+        Question.objects
+        .filter(section__template=attempt.template, is_active=True, code="GEN-G-WRITE")
+        .first()
+    )
+    essay_prompt = ""
+    essay_criteria = []
+    if essay_question:
+        spec = json.loads(essay_question.spec_json or "{}")
+        key = json.loads(essay_question.answer_key_json or "{}")
+        essay_prompt = spec.get("prompt", essay_question.prompt)
+        essay_criteria = [
+            {"label": c["label"], "max_points": c["max_points"]}
+            for c in key.get("criteria", [])
+        ]
     return render(request, "assessment/working_sheet_print.html", {
         "attempt": attempt,
         "working_questions": working_questions,
+        "essay_question": essay_question,
+        "essay_prompt": essay_prompt,
+        "essay_criteria": essay_criteria,
     })
 
 
