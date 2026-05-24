@@ -72,3 +72,6 @@ staticfiles/
 
 # Local dev/demo scripts
 simulate_*.py
+
+# Perf stack — separate git repo
+perf/
