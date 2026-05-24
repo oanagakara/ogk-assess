@@ -33,6 +33,15 @@
       <div>
         <div class="text-xs opacity-50">Learner</div>
         <div class="font-semibold text-sm leading-tight">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</div>
+        <div class="flex items-center gap-1 mt-1 flex-wrap">
+          {% if attempt.timed_out %}<span class="badge badge-xs badge-error">Timed Out</span>{% endif %}
+          {% if nqf.lit_level and nqf.lit_level != "N/A" %}
+            <span class="badge badge-xs {% if nqf.lit_level == 'L4' or nqf.lit_level == 'Post L4' %}badge-success{% elif nqf.lit_level == 'L3' %}badge-info{% elif nqf.lit_level == 'L2' %}badge-warning{% else %}badge-error{% endif %}" title="Prospective NQF literacy level">NQF {{ nqf.lit_level }}</span>
+          {% endif %}
+          {% if nqf.num_level and nqf.num_level != "N/A" %}
+            <span class="badge badge-xs {% if nqf.num_level == 'L4' or nqf.num_level == 'Post L4' %}badge-success{% elif nqf.num_level == 'L3' %}badge-info{% elif nqf.num_level == 'L2' %}badge-warning{% else %}badge-error{% endif %}" title="Prospective NQF numeracy level">Num {{ nqf.num_level }}</span>
+          {% endif %}
+        </div>
       </div>
     </div>
 
@@ -256,6 +265,7 @@
                 <a href="{% url 'assessment:assessor_review_queue' %}" class="btn btn-sm btn-ghost">Review Queue</a>
                 <form method="post" action="{% url 'assessment:assessor_mark_attempt' attempt.code %}">
                   {% csrf_token %}
+                  <input type="hidden" name="from_tab" value="{{ from_tab }}">
                   <button type="submit" name="action" value="finalise"
                           class="btn btn-sm btn-primary"
                           {% if pending_count > 0 %}title="There are still pending questions"{% endif %}>
@@ -269,9 +279,10 @@
 
       {% elif row %}
         {# ── Marking form ── #}
-        <form method="post" action="?qid={{ row.question.pk }}" class="flex-1 min-h-0 flex flex-col gap-3"
+        <form method="post" action="?qid={{ row.question.pk }}&from_tab={{ from_tab }}" class="flex-1 min-h-0 flex flex-col gap-3"
               {% if not can_mark %}onsubmit="return false;"{% endif %}>
           {% csrf_token %}
+          <input type="hidden" name="from_tab" value="{{ from_tab }}">
 
           {# Question header #}
           <div class="flex items-center justify-between shrink-0">
@@ -579,7 +590,7 @@
 
       {% else %}
         {# No pending questions, not showing summary — redirect to summary #}
-        <script>window.location = "{% url 'assessment:assessor_mark_attempt' attempt.code %}?summary=1";</script>
+        <script>window.location = "{% url 'assessment:assessor_mark_attempt' attempt.code %}?summary=1&from_tab={{ from_tab }}";</script>
       {% endif %}
 
     </div>

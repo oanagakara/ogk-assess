@@ -282,7 +282,7 @@ def test_final_mark_page_shows_save_and_done(
 def test_section_review_seconds_formula(assessment_template, section, learner):
     """min(10min, 60min − question_time) for both sections, computed from real timestamps."""
     from datetime import timedelta
-    from assessment.views import _section_review_seconds
+    from assessment.views.learner import _section_review_seconds
 
     attempt = Attempt.objects.create(
         template=assessment_template,
@@ -360,7 +360,7 @@ def test_save_done_on_final_question_persists_score_and_redirects_to_attempts(
     score = Score.objects.get(response__attempt=attempt, response__question=question)
 
     assert response.status_code == 302
-    assert response.url == reverse("assessment:assessor_review_queue")
+    assert response.url == reverse("assessment:assessor_attempts") + "?tab=submitted"
     assert score.points == 3
     assert score.max_points == 3
     assert score.assessor == assessor

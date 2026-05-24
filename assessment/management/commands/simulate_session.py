@@ -17,10 +17,10 @@ import random
 from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
+from django.db.models import Count
 from django.utils import timezone
 
-from django.db.models import Count
-
+from assessment.auto_mark import auto_mark_attempt
 from assessment.models import (
     AssessmentTemplate,
     Attempt,
@@ -31,8 +31,6 @@ from assessment.models import (
     Score,
 )
 
-# South African names with demographics, gender, and plausible age
-# (first, last, demographic, gender, age)
 SA_LEARNERS = [
     ("Thabo",        "Nkosi",          "African",  "male",   34),
     ("Nomvula",      "Dlamini",        "African",  "female", 28),
@@ -64,8 +62,27 @@ WRONG_ANSWERS = {
     "text":    ["I don't know", "Not sure", "No answer", "Maybe"],
 }
 
-# Plausible wrong words for match questions
 MATCH_FILLERS = ["Apply", "Salary", "Contract", "Interview", "Training", "Leave"]
+
+ESSAY_TEXTS = {
+    "above_average": (
+        "I want to join this learnership because I am committed to building a sustainable career "
+        "in this industry. I aim to develop specific skills in communication, customer service, and "
+        "problem-solving. These skills will make me a valuable employee and open doors for advancement."
+    ),
+    "good": (
+        "I want to join the learnership to gain work experience and improve my career. "
+        "I would like to learn communication and customer service skills. "
+        "This will help me find a good job and support my family."
+    ),
+    "fair": (
+        "I want to join the learnership to learn new skills and get a job. "
+        "I will work hard and do my best every day."
+    ),
+    "poor": (
+        "I want to learn and get job. Learnership is good for me."
+    ),
+}
 
 
 class Command(BaseCommand):
@@ -80,7 +97,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Use the template with the most questions (not necessarily the latest by date)
         template = (
             AssessmentTemplate.objects
             .annotate(q_count=Count("section__question"))
@@ -91,7 +107,6 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR("No template with questions found."))
             return
 
-        # --- Session ---
         session_code = options.get("session_code")
         if session_code:
             try:
@@ -104,7 +119,6 @@ class Command(BaseCommand):
             session = ExamSession.objects.create(template=template, seat_limit=15)
             self.stdout.write(self.style.SUCCESS(f"Created session: {session.code}"))
 
-        # --- Questions ---
         questions = list(
             Question.objects.filter(section__template=template)
             .order_by("section__order", "order", "code")
@@ -112,11 +126,11 @@ class Command(BaseCommand):
         total_q = len(questions)
         layout_only = {
             q.pk for q in questions
-            if json.loads(q.spec_json or "{}").get("layout", "") in
-               {"info_only", "info-only", "passage_only"}
+            if json.loads(q.spec_json or "{}").get("layout", "")
+            in {"info_only", "info-only", "passage_only"}
         }
+        essay_q = next((q for q in questions if q.code == "GEN-G-WRITE"), None)
 
-        # --- Build learner profiles ---
         profiles = []
         for label, ratio, count in COMPETENCY_DISTRIBUTION:
             for _ in range(count):
@@ -125,7 +139,7 @@ class Command(BaseCommand):
 
         now = timezone.now()
 
-        self.stdout.write(f"\n{'Learner':<25} {'Level':<15} {'Status':<12} {'Q':<6} {'Score'}")
+        self.stdout.write(f"\n{'Learner':<25} {'Level':<15} {'Status':<12} {'Q':<6} {'Auto score'}")
         self.stdout.write("-" * 75)
 
         for (first, last, demographic, gender, age), (level, ratio) in zip(SA_LEARNERS, profiles):
@@ -144,7 +158,6 @@ class Command(BaseCommand):
 
             started = now - timedelta(minutes=random.randint(10, 100))
 
-            # Determine status and progress based on level
             if level == "above_average":
                 status = Attempt.SUBMITTED
                 current_q = total_q
@@ -167,18 +180,12 @@ class Command(BaseCommand):
                     status = Attempt.IN_PROGRESS
                     current_q = random.randint(max(1, int(total_q * 0.4)), max(1, int(total_q * 0.85)))
                     submitted_at = None
-            else:  # poor
-                if random.random() < 0.34:
-                    status = Attempt.INCOMPLETE
-                    current_q = random.randint(1, max(1, int(total_q * 0.25)))
-                    submitted_at = None
-                else:
-                    status = Attempt.IN_PROGRESS
-                    current_q = random.randint(1, max(1, int(total_q * 0.4)))
-                    submitted_at = None
+            else:  # poor — always in progress, set stale so they appear abandoned on the monitor
+                status = Attempt.IN_PROGRESS
+                current_q = random.randint(1, max(1, int(total_q * 0.4)))
+                submitted_at = None
 
-            # Poor in-progress learners are set 4h stale so they appear as abandoned
-            if level == "poor" and status == Attempt.IN_PROGRESS:
+            if level == "poor":
                 last_activity = now - timedelta(hours=4, minutes=random.randint(0, 60))
             else:
                 last_activity = submitted_at or (started + timedelta(minutes=random.randint(5, 95)))
@@ -196,70 +203,79 @@ class Command(BaseCommand):
                 honesty_accepted_at=started,
             )
 
-            # Responses: for submitted → all questions; in-progress → up to current_q - 1
             if status == Attempt.SUBMITTED:
                 qs_to_answer = questions
             else:
                 qs_to_answer = questions[: max(0, current_q - 1)]
 
-            total_awarded = 0.0
-            total_available = 0.0
-
             for question in qs_to_answer:
                 if question.pk in layout_only:
-                    continue  # no response for display-only questions
-
-                response_json = self._make_response_json(question, ratio)
-                response = Response.objects.create(
+                    continue
+                resp_json = self._make_response_json(question, ratio, level)
+                Response.objects.create(
                     attempt=attempt,
                     question=question,
-                    response_json=response_json,
+                    response_json=resp_json,
                 )
 
-                max_marks = float(question.max_marks or 0)
-                if max_marks == 0:
-                    continue
+            # Auto-mark all scoreable responses (respects auto_mark:false — skips essay)
+            auto_mark_attempt(attempt)
 
-                points, rubric_json = self._make_score(question, ratio, max_marks)
-                Score.objects.create(
-                    response=response,
-                    points=points,
-                    max_points=max_marks,
-                    rubric_json=rubric_json,
-                )
-                total_awarded += points
-                total_available += max_marks
+            # Essay: only score for above_average (simulates completed marking workflow)
+            if essay_q and level == "above_average" and status == Attempt.SUBMITTED:
+                try:
+                    essay_resp = Response.objects.get(attempt=attempt, question=essay_q)
+                    Score.objects.update_or_create(
+                        response=essay_resp,
+                        defaults={
+                            "assessor": None,
+                            "points": round(ratio * 8),
+                            "max_points": 8,
+                            "rubric_json": {
+                                "mode": "manual",
+                                "auto_marked": False,
+                                "needs_review": False,
+                                "notes": f"Simulated — {ratio * 100:.0f}% competency band.",
+                            },
+                        },
+                    )
+                except Response.DoesNotExist:
+                    pass
 
-            # Finalise above_average submitted attempts (simulates completed marking)
+            # Finalise above_average submitted attempts
             if level == "above_average" and status == Attempt.SUBMITTED and submitted_at:
                 attempt.finalised_at = submitted_at + timedelta(minutes=random.randint(10, 30))
                 attempt.save(update_fields=["finalised_at"])
 
-            pct = (total_awarded / total_available * 100) if total_available else 0
+            # Report auto-scored totals (essay excluded — pending assessor)
+            from assessment.models import Score as S
+            scores = S.objects.filter(response__attempt=attempt)
+            awarded = sum(float(s.points or 0) for s in scores)
+            available = sum(float(s.max_points or 0) for s in scores)
+            pct = (awarded / available * 100) if available else 0
+            essay_note = " +essay" if (essay_q and level == "above_average") else " essay=pending" if status == Attempt.SUBMITTED else ""
             self.stdout.write(
                 f"{first + ' ' + last:<25} {level:<15} {status:<12} "
                 f"Q{current_q}/{total_q:<4} "
-                f"{total_awarded:.1f}/{total_available:.1f} ({pct:.0f}%)"
+                f"{awarded:.1f}/{available:.1f} ({pct:.0f}%){essay_note}"
             )
 
         self.stdout.write(self.style.SUCCESS(
             f"\nDone. Monitor: /assessor/sessions/{session.code}/monitor/"
         ))
 
-    # ------------------------------------------------------------------
-    # Response generators
-    # ------------------------------------------------------------------
-
-    def _make_response_json(self, question, ratio: float) -> str:
+    def _make_response_json(self, question, ratio: float, level: str) -> str:
         spec = json.loads(question.spec_json or "{}")
         key = json.loads(question.answer_key_json or "{}")
-        layout = spec.get("layout", "")
 
         if question.kind == "match":
             return self._make_match_response(key, ratio)
 
-        if layout == "form_fill":
-            return self._make_form_fill_response(spec, question)
+        if spec.get("layout") == "form_fill":
+            return self._make_form_fill_response(spec)
+
+        if spec.get("layout") == "writing" or question.code == "GEN-G-WRITE":
+            return json.dumps({"answer": ESSAY_TEXTS.get(level, ESSAY_TEXTS["fair"])})
 
         return self._make_text_response(key, ratio)
 
@@ -267,87 +283,54 @@ class Command(BaseCommand):
         expected = key.get("match", {})
         if not expected:
             return json.dumps({})
-
         items = list(expected.items())
         n_correct = round(len(items) * ratio)
         random.shuffle(items)
         words = [w for _, w in items]
-
         data = {}
         for i, (tid, correct_word) in enumerate(items):
             if i < n_correct:
                 data[tid] = correct_word
             else:
-                # Use a wrong word from the same bank
                 wrong = [w for w in words if w != correct_word]
                 data[tid] = random.choice(wrong) if wrong else ""
         return json.dumps(data)
 
-    def _make_form_fill_response(self, spec: dict, question) -> str:
+    def _make_form_fill_response(self, spec: dict) -> str:
         fields = spec.get("fields", [])
-        data = {}
-        sample_values = {
+        sample = {
             "name": "Simulated Learner",
             "id_number": "0001010000000",
             "cell_number": "0821234567",
             "highest_grade": "Grade 11",
             "disability": "",
         }
-        for f in fields:
-            name = f.get("name", "")
-            data[name] = sample_values.get(name, "Simulated value")
-        return json.dumps(data)
+        return json.dumps({f.get("name", ""): sample.get(f.get("name", ""), "Simulated value") for f in fields})
 
     def _make_text_response(self, key: dict, ratio: float) -> str:
-        """Return correct answer at `ratio` probability, otherwise a wrong answer."""
-        # sentence_word question
         if key.get("sentence_word"):
             word = key["sentence_word"]
             if random.random() < ratio:
                 return json.dumps({"answer": f"I enjoy learning new {word}s every day at work."})
             return json.dumps({"answer": "This is a sentence."})
 
-        # keyword_answer question
         if key.get("keyword_answer"):
             keywords = key["keyword_answer"]
             if random.random() < ratio:
                 return json.dumps({"answer": " ".join(keywords) + " and more context here."})
-            # Include only some keywords
             partial = keywords[: max(1, round(len(keywords) * ratio))]
             return json.dumps({"answer": " ".join(partial)})
 
-        # Standard answer list
         answers = key.get("answers", [])
         if answers:
             if random.random() < ratio:
                 return json.dumps({"answer": str(answers[0])})
-            # Provide wrong answer with some working text
-            wrong = random.choice(WRONG_ANSWERS["numeric"])
-            return json.dumps({"answer": wrong})
+            return json.dumps({"answer": random.choice(WRONG_ANSWERS["numeric"])})
 
-        # No key — open-ended (e.g. LIT-D-WRITE)
+        # Open-ended with no key — leave a plausible answer
         if random.random() < ratio:
             return json.dumps({"answer": (
-                "In my opinion, this is an important skill because it helps people "
-                "communicate effectively in the workplace. Writing clearly shows "
-                "professionalism and makes it easier for colleagues to understand you."
+                "This skill is important because it helps people communicate effectively "
+                "in the workplace and shows professionalism."
             )})
-        return json.dumps({"answer": "I think writing is useful."})
-
-    # ------------------------------------------------------------------
-    # Score generator
-    # ------------------------------------------------------------------
-
-    def _make_score(self, question, ratio: float, max_marks: float):
-        noise = random.uniform(0.88, 1.12)
-        raw = min(1.0, max(0.0, ratio * noise))
-        # Round to nearest 0.5
-        points = round(raw * max_marks * 2) / 2
-        points = max(0.0, min(points, max_marks))
-
-        rubric_json = {
-            "mode": "manual",
-            "auto_marked": False,
-            "notes": f"Simulated — {ratio * 100:.0f}% competency band.",
-        }
-        return points, rubric_json
+        return json.dumps({"answer": "I think this is useful."})
