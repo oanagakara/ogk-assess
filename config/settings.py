@@ -173,11 +173,16 @@ LOGGING = {
             "format": "{levelname} {name}: {message}",
             "style": "{",
         },
+        # Structured JSON — consumed by the Logstash pipeline in perf/
+        "json": {
+            "()": "config.log_formatters.JSONFormatter",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            # JSON in production so Logstash can parse fields; readable in dev
+            "formatter": "verbose" if DEBUG else "json",
         },
     },
     "root": {
