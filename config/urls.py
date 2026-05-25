@@ -31,7 +31,29 @@ def _health(request):
 def _metrics(request):
     if request.META.get("REMOTE_ADDR") not in _METRICS_ALLOWED_IPS:
         return HttpResponse(status=403)
-    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    from prometheus_client import REGISTRY, generate_latest, CONTENT_TYPE_LATEST
+    if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+        from datetime import datetime, timezone
+        from django.shortcuts import render
+        groups = []
+        for metric in REGISTRY.collect():
+            samples = [
+                {
+                    "labels": ", ".join(f'{k}="{v}"' for k, v in s.labels.items()),
+                    "value": f"{s.value:g}",
+                }
+                for s in metric.samples
+            ]
+            groups.append({
+                "name": metric.name,
+                "type": metric.type,
+                "help": metric.documentation,
+                "samples": samples,
+            })
+        return render(request, "assessment/prometheus_metrics.html", {
+            "groups": groups,
+            "ts": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        })
     return HttpResponse(generate_latest(), content_type=CONTENT_TYPE_LATEST)
 
 

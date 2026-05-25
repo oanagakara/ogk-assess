@@ -1,0 +1,44 @@
+{% extends "assessment/base.html" %}
+{% block title %}Prometheus Metrics{% endblock %}
+
+{% block content %}
+<div class="p-6" style="max-width:72rem;margin:0 auto;">
+
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Prometheus Metrics</h1>
+    <span class="text-xs opacity-40 font-mono">{{ ts }}</span>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="table table-zebra w-full text-sm">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Type</th>
+          <th class="opacity-60">Description</th>
+          <th>Labels</th>
+          <th class="text-right">Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for group in groups %}
+          {% for sample in group.samples %}
+            <tr>
+              {% if forloop.first %}
+                <td class="font-mono font-semibold align-top" rowspan="{{ group.samples|length }}">{{ group.name }}</td>
+                <td class="align-top" rowspan="{{ group.samples|length }}">
+                  <span class="badge badge-ghost badge-sm font-mono">{{ group.type }}</span>
+                </td>
+                <td class="text-xs opacity-50 align-top" rowspan="{{ group.samples|length }}" style="max-width:18rem;">{{ group.help }}</td>
+              {% endif %}
+              <td class="font-mono text-xs opacity-70">{{ sample.labels|default:"—" }}</td>
+              <td class="text-right font-mono tabular-nums">{{ sample.value }}</td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
