@@ -2,6 +2,7 @@
 {% block title %}Prometheus Metrics{% endblock %}
 
 {% block content %}
+{% load static %}
 <div class="p-6 space-y-6" style="max-width:72rem;margin:0 auto;">
 
   <div class="flex items-center justify-between">
@@ -35,10 +36,18 @@
         <div class="text-xs opacity-60">Uptime</div>
       </div>
     </div>
+    <!-- FD card with utilisation bar -->
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body" style="padding:8px 12px;">
-        <div class="text-lg font-bold font-mono">{{ cards.fds|default:"—" }}</div>
-        <div class="text-xs opacity-60">Open file descriptors</div>
+        <div class="flex items-baseline gap-2">
+          <div class="text-lg font-bold font-mono">{{ cards.fds|default:"—" }}</div>
+          {% if cards.max_fds %}<div class="text-xs opacity-40 font-mono">/ {{ cards.max_fds }}</div>{% endif %}
+        </div>
+        <div class="text-xs opacity-60 mb-1">Open file descriptors</div>
+        {% if cards.fds and cards.max_fds %}
+          <progress class="progress progress-primary w-full" style="height:4px;"
+            value="{{ cards.fds }}" max="{{ cards.max_fds }}"></progress>
+        {% endif %}
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
@@ -47,6 +56,27 @@
         <div class="text-xs opacity-60">GC collected (gen 0)</div>
       </div>
     </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="grid gap-4" style="grid-template-columns:repeat(2,minmax(0,1fr));">
+
+    <!-- GC by generation -->
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18px;">
+        <h2 class="font-semibold mb-4">GC objects collected by generation</h2>
+        <canvas id="gcChart" height="160"></canvas>
+      </div>
+    </div>
+
+    <!-- Memory breakdown -->
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18px;">
+        <h2 class="font-semibold mb-4">Memory — resident vs mapped</h2>
+        <canvas id="memChart" height="160"></canvas>
+      </div>
+    </div>
+
   </div>
 
   <!-- Full metrics table -->
@@ -86,4 +116,77 @@
   </div>
 
 </div>
+
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script>
+{% autoescape off %}
+const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+  || window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+const labelColor = isDark ? '#9ca3af' : '#374151';
+
+// GC by generation — bar
+new Chart(document.getElementById('gcChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Gen 0', 'Gen 1', 'Gen 2'],
+    datasets: [{
+      label: 'Objects collected',
+      data: {{ gc_data }},
+      backgroundColor: ['#efbbff', '#be29ec', '#800080'],
+      borderRadius: 4,
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: labelColor } },
+      y: { grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true,
+           title: { display: true, text: 'Objects', color: labelColor } },
+    }
+  }
+});
+
+// Memory stacked bar: RSS (resident) + mapped-not-resident = VMS
+new Chart(document.getElementById('memChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Memory'],
+    datasets: [
+      {
+        label: 'Resident (RSS)',
+        data: [{{ rss_mb }}],
+        backgroundColor: '#be29ec',
+        borderRadius: 0,
+        borderWidth: 0,
+      },
+      {
+        label: 'Mapped, not resident',
+        data: [{{ mapped_mb }}],
+        backgroundColor: '#efbbff',
+        borderRadius: 4,
+        borderSkipped: 'bottom',
+        borderWidth: 0,
+      },
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: true, position: 'bottom',
+        labels: { color: labelColor, boxWidth: 12, padding: 14 } },
+      tooltip: {
+        callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw} MB` }
+      }
+    },
+    scales: {
+      x: { stacked: true, grid: { color: gridColor }, ticks: { color: labelColor },
+           title: { display: true, text: 'MB', color: labelColor } },
+      y: { stacked: true, grid: { display: false }, ticks: { display: false } },
+    }
+  }
+});
+{% endautoescape %}
+</script>
 {% endblock %}

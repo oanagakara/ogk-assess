@@ -38,6 +38,8 @@ def _metrics(request):
         from django.shortcuts import render
         groups = []
         cards = {}
+        rss_bytes = vms_bytes = 0
+        gc = {"0": 0, "1": 0, "2": 0}
         for metric in REGISTRY.collect():
             samples = [
                 {
@@ -52,15 +54,18 @@ def _metrics(request):
                 "help": metric.documentation,
                 "samples": samples,
             })
-            # Extract headline values for stat cards
             if metric.name == "process_resident_memory_bytes" and metric.samples:
-                cards["rss"] = f"{metric.samples[0].value / 1_048_576:.1f} MB"
+                rss_bytes = metric.samples[0].value
+                cards["rss"] = f"{rss_bytes / 1_048_576:.1f} MB"
             elif metric.name == "process_virtual_memory_bytes" and metric.samples:
-                cards["vms"] = f"{metric.samples[0].value / 1_048_576:.0f} MB"
+                vms_bytes = metric.samples[0].value
+                cards["vms"] = f"{vms_bytes / 1_048_576:.0f} MB"
             elif metric.name == "process_cpu_seconds_total" and metric.samples:
                 cards["cpu"] = f"{metric.samples[0].value:.1f} s"
             elif metric.name == "process_open_fds" and metric.samples:
                 cards["fds"] = int(metric.samples[0].value)
+            elif metric.name == "process_max_fds" and metric.samples:
+                cards["max_fds"] = int(metric.samples[0].value)
             elif metric.name == "process_start_time_seconds" and metric.samples:
                 elapsed = int(time.time() - metric.samples[0].value)
                 h, rem = divmod(elapsed, 3600)
@@ -68,11 +73,19 @@ def _metrics(request):
                 cards["uptime"] = f"{h}h {m}m" if h else f"{m}m {s}s"
             elif metric.name == "python_gc_objects_collected_total":
                 for s in metric.samples:
-                    if s.labels.get("generation") == "0":
-                        cards["gc_gen0"] = int(s.value)
+                    gen = s.labels.get("generation", "")
+                    if gen in gc:
+                        gc[gen] = int(s.value)
+        cards["gc_gen0"] = gc["0"]
+        # Memory chart: RSS (resident) + mapped-not-resident stacked → VMS total
+        rss_mb = round(rss_bytes / 1_048_576, 1)
+        mapped_mb = round((vms_bytes - rss_bytes) / 1_048_576, 1)
         return render(request, "assessment/prometheus_metrics.html", {
             "groups": groups,
             "cards": cards,
+            "gc_data": [gc["0"], gc["1"], gc["2"]],
+            "rss_mb": rss_mb,
+            "mapped_mb": mapped_mb,
             "ts": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
         })
     return HttpResponse(generate_latest(), content_type=CONTENT_TYPE_LATEST)
