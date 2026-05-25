@@ -1,22 +1,8 @@
-"""
-URL configuration for config project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 import os
+
 from django.contrib import admin
-from django.http import HttpResponse
+from django.db import connection, OperationalError
+from django.http import HttpResponse, JsonResponse
 from django.urls import path, include
 from django.views.generic import RedirectView
 from assessment import views as assessment_views
@@ -28,8 +14,30 @@ handler500 = assessment_views.handler500
 
 _ADMIN_PATH = os.environ.get("ADMIN_URL_PREFIX", "_platform-admin") + "/"
 
+# Only Prometheus (127.0.0.1) may scrape /metrics/.
+_METRICS_ALLOWED_IPS = {"127.0.0.1", "::1"}
+
+
+def _health(request):
+    try:
+        connection.ensure_connection()
+        db_ok = True
+    except OperationalError:
+        db_ok = False
+    status = 200 if db_ok else 503
+    return JsonResponse({"db": "ok" if db_ok else "error"}, status=status)
+
+
+def _metrics(request):
+    if request.META.get("REMOTE_ADDR") not in _METRICS_ALLOWED_IPS:
+        return HttpResponse(status=403)
+    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    return HttpResponse(generate_latest(), content_type=CONTENT_TYPE_LATEST)
+
+
 urlpatterns = [
-    path("health/", lambda request: HttpResponse("ok"), name="health"),
+    path("health/", _health, name="health"),
+    path("metrics/", _metrics, name="metrics"),
     path("favicon.ico", lambda request: HttpResponse(status=204), name="favicon"),
     path(_ADMIN_PATH, admin.site.urls),
     path("accounts", RedirectView.as_view(url="/accounts/login/", permanent=False)),
