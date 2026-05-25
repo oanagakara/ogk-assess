@@ -2,42 +2,87 @@
 {% block title %}Prometheus Metrics{% endblock %}
 
 {% block content %}
-<div class="p-6" style="max-width:72rem;margin:0 auto;">
+<div class="p-6 space-y-6" style="max-width:72rem;margin:0 auto;">
 
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between">
     <h1 class="text-2xl font-bold">Prometheus Metrics</h1>
     <span class="text-xs opacity-40 font-mono">{{ ts }}</span>
   </div>
 
-  <div class="overflow-x-auto">
-    <table class="table table-zebra w-full text-sm">
-      <thead>
-        <tr>
-          <th>Metric</th>
-          <th>Type</th>
-          <th class="opacity-60">Description</th>
-          <th>Labels</th>
-          <th class="text-right">Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for group in groups %}
-          {% for sample in group.samples %}
+  <!-- Stat cards -->
+  <div class="grid gap-2" style="grid-template-columns:repeat(6,minmax(0,1fr));">
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.rss|default:"—" }}</div>
+        <div class="text-xs opacity-60">Resident memory</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.vms|default:"—" }}</div>
+        <div class="text-xs opacity-60">Virtual memory</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.cpu|default:"—" }}</div>
+        <div class="text-xs opacity-60">CPU time</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.uptime|default:"—" }}</div>
+        <div class="text-xs opacity-60">Uptime</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.fds|default:"—" }}</div>
+        <div class="text-xs opacity-60">Open file descriptors</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.gc_gen0|default:"—" }}</div>
+        <div class="text-xs opacity-60">GC collected (gen 0)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full metrics table -->
+  <div class="card bg-base-100 shadow border border-base-300">
+    <div class="card-body p-0">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra w-full text-sm">
+          <thead>
             <tr>
-              {% if forloop.first %}
-                <td class="font-mono font-semibold align-top" rowspan="{{ group.samples|length }}">{{ group.name }}</td>
-                <td class="align-top" rowspan="{{ group.samples|length }}">
-                  <span class="badge badge-ghost badge-sm font-mono">{{ group.type }}</span>
-                </td>
-                <td class="text-xs opacity-50 align-top" rowspan="{{ group.samples|length }}" style="max-width:18rem;">{{ group.help }}</td>
-              {% endif %}
-              <td class="font-mono text-xs opacity-70">{{ sample.labels|default:"—" }}</td>
-              <td class="text-right font-mono tabular-nums">{{ sample.value }}</td>
+              <th>Metric</th>
+              <th>Type</th>
+              <th class="opacity-60">Description</th>
+              <th>Labels</th>
+              <th class="text-right">Value</th>
             </tr>
-          {% endfor %}
-        {% endfor %}
-      </tbody>
-    </table>
+          </thead>
+          <tbody>
+            {% for group in groups %}
+              {% for sample in group.samples %}
+                <tr>
+                  {% if forloop.first %}
+                    <td class="font-mono font-semibold align-top" rowspan="{{ group.samples|length }}">{{ group.name }}</td>
+                    <td class="align-top" rowspan="{{ group.samples|length }}">
+                      <span class="badge badge-ghost badge-sm font-mono">{{ group.type }}</span>
+                    </td>
+                    <td class="text-xs opacity-50 align-top" rowspan="{{ group.samples|length }}" style="max-width:18rem;">{{ group.help }}</td>
+                  {% endif %}
+                  <td class="font-mono text-xs opacity-70">{{ sample.labels|default:"—" }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ sample.value }}</td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 </div>
