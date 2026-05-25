@@ -10,7 +10,63 @@
     <span class="text-xs opacity-40 font-mono">{{ ts }}</span>
   </div>
 
-  <!-- Stat cards -->
+  <!-- Domain counters — scan these first -->
+  <div class="grid gap-3" style="grid-template-columns:repeat(3,minmax(0,1fr));">
+
+    <div class="card shadow border-2 {% if domain.login_failures > 10 %}border-error bg-error/10{% elif domain.login_failures > 0 %}border-warning bg-warning/10{% else %}border-base-300 bg-base-100{% endif %}">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="text-3xl font-bold font-mono {% if domain.login_failures > 10 %}text-error{% elif domain.login_failures > 0 %}text-warning{% endif %}">
+          {{ domain.login_failures }}
+        </div>
+        <div class="text-sm opacity-70">Login failures</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+    <div class="card shadow border-2 {% if domain.errors > 0 %}border-error bg-error/10{% else %}border-base-300 bg-base-100{% endif %}">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="text-3xl font-bold font-mono {% if domain.errors > 0 %}text-error{% endif %}">
+          {{ domain.errors }}
+        </div>
+        <div class="text-sm opacity-70">Platform errors</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+    <div class="card shadow border-2 border-base-300 bg-base-100">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="flex items-baseline gap-3">
+          <div class="text-3xl font-bold font-mono">{{ domain.requests }}</div>
+          {% if domain.avg_ms is not None %}
+            <div class="text-sm opacity-60 font-mono">avg {{ domain.avg_ms }} ms</div>
+          {% endif %}
+        </div>
+        <div class="text-sm opacity-70">Requests served</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+    <div class="card shadow border-2 border-base-300 bg-base-100">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="text-3xl font-bold font-mono">{{ domain.submissions }}</div>
+        <div class="text-sm opacity-70">Attempts submitted</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+    <div class="card shadow border-2 border-base-300 bg-base-100">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="text-3xl font-bold font-mono">{{ domain.score_writes }}</div>
+        <div class="text-sm opacity-70">Score writes</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="divider mb-0"></div>
+
+  <!-- Process stats -->
   <div class="grid gap-2" style="grid-template-columns:repeat(6,minmax(0,1fr));">
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body" style="padding:8px 12px;">
@@ -36,7 +92,6 @@
         <div class="text-xs opacity-60">Uptime</div>
       </div>
     </div>
-    <!-- FD card with utilisation bar -->
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body" style="padding:8px 12px;">
         <div class="flex items-baseline gap-2">
@@ -60,23 +115,18 @@
 
   <!-- Charts row -->
   <div class="grid gap-4" style="grid-template-columns:repeat(2,minmax(0,1fr));">
-
-    <!-- GC by generation -->
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">GC objects collected by generation</h2>
         <canvas id="gcChart" height="160"></canvas>
       </div>
     </div>
-
-    <!-- Memory breakdown -->
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Memory — resident vs mapped</h2>
         <canvas id="memChart" height="160"></canvas>
       </div>
     </div>
-
   </div>
 
   <!-- Full metrics table -->
@@ -125,7 +175,6 @@ const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
 const gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
 const labelColor = isDark ? '#9ca3af' : '#374151';
 
-// GC by generation — bar
 new Chart(document.getElementById('gcChart'), {
   type: 'bar',
   data: {
@@ -148,41 +197,23 @@ new Chart(document.getElementById('gcChart'), {
   }
 });
 
-// Memory stacked bar: RSS (resident) + mapped-not-resident = VMS
 new Chart(document.getElementById('memChart'), {
   type: 'bar',
   data: {
     labels: ['Memory'],
     datasets: [
-      {
-        label: 'Resident (RSS)',
-        data: [{{ rss_mb }}],
-        backgroundColor: '#be29ec',
-        borderRadius: 0,
-        borderWidth: 0,
-      },
-      {
-        label: 'Mapped, not resident',
-        data: [{{ mapped_mb }}],
-        backgroundColor: '#efbbff',
-        borderRadius: 4,
-        borderSkipped: 'bottom',
-        borderWidth: 0,
-      },
+      { label: 'Resident (RSS)', data: [{{ rss_mb }}], backgroundColor: '#be29ec', borderRadius: 0, borderWidth: 0 },
+      { label: 'Mapped, not resident', data: [{{ mapped_mb }}], backgroundColor: '#efbbff', borderRadius: 4, borderSkipped: 'bottom', borderWidth: 0 },
     ]
   },
   options: {
     indexAxis: 'y',
     plugins: {
-      legend: { display: true, position: 'bottom',
-        labels: { color: labelColor, boxWidth: 12, padding: 14 } },
-      tooltip: {
-        callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw} MB` }
-      }
+      legend: { display: true, position: 'bottom', labels: { color: labelColor, boxWidth: 12, padding: 14 } },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw} MB` } }
     },
     scales: {
-      x: { stacked: true, grid: { color: gridColor }, ticks: { color: labelColor },
-           title: { display: true, text: 'MB', color: labelColor } },
+      x: { stacked: true, grid: { color: gridColor }, ticks: { color: labelColor }, title: { display: true, text: 'MB', color: labelColor } },
       y: { stacked: true, grid: { display: false }, ticks: { display: false } },
     }
   }
