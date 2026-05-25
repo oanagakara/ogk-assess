@@ -1,3 +1,4 @@
+import ipaddress
 import os
 
 from django.contrib import admin
@@ -14,8 +15,12 @@ handler500 = assessment_views.handler500
 
 _ADMIN_PATH = os.environ.get("ADMIN_URL_PREFIX", "_platform-admin") + "/"
 
-# Only Prometheus (127.0.0.1) may scrape /metrics/.
-_METRICS_ALLOWED_IPS = {"127.0.0.1", "::1"}
+def _metrics_allowed(ip: str) -> bool:
+    try:
+        addr = ipaddress.ip_address(ip)
+        return addr.is_loopback or addr.is_private
+    except ValueError:
+        return False
 
 
 def _health(request):
@@ -29,7 +34,7 @@ def _health(request):
 
 
 def _metrics(request):
-    if request.META.get("REMOTE_ADDR") not in _METRICS_ALLOWED_IPS:
+    if not _metrics_allowed(request.META.get("REMOTE_ADDR", "")):
         return HttpResponse(status=403)
     from prometheus_client import REGISTRY, generate_latest, CONTENT_TYPE_LATEST
     if "text/html" in request.META.get("HTTP_ACCEPT", ""):
