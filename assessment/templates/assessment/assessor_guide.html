@@ -45,6 +45,24 @@
   .toc-link:hover { opacity: 1; background: oklch(var(--b3)); }
   .toc-link.active { opacity: 1; color: oklch(var(--p)); border-left-color: oklch(var(--p)); background: oklch(var(--p) / 0.08); }
 
+  /* ── NQF level badges (grade table) ── */
+  .nqf-grade { width: 100%; border-collapse: collapse; font-size: 0.8125rem; margin-bottom: 1rem; }
+  .nqf-grade thead th { background: oklch(var(--p)); color: oklch(var(--pc)); padding: 0.5rem 0.75rem; text-align: center; font-weight: 600; font-size: 0.75rem; }
+  .nqf-grade thead th:first-child,
+  .nqf-grade thead th:nth-child(2) { text-align: left; }
+  .nqf-grade tbody td { border: 1px solid oklch(var(--b3)); padding: 0.5rem 0.75rem; vertical-align: middle; }
+  .nqf-grade tbody td:first-child { font-weight: 600; font-family: 'SF Mono', 'Fira Code', Consolas, monospace; font-size: 0.75rem; white-space: nowrap; }
+  .nqf-grade tbody td:nth-child(3),
+  .nqf-grade tbody td:nth-child(n+4) { text-align: center; }
+  .nqf-grade tbody tr:nth-child(even) td { background: oklch(var(--b2)); }
+  .nqf-grade tfoot td { border: 1px solid oklch(var(--b3)); padding: 0.5rem 0.75rem; background: oklch(var(--b2)); font-weight: 600; font-size: 0.75rem; }
+  .nqf-grade tfoot td:nth-child(3),
+  .nqf-grade tfoot td:nth-child(n+4) { text-align: center; }
+  .lvl1 { background: #fde8e8; color: #7b1c1c; border-radius: 0.25rem; padding: 0.125rem 0.5rem; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
+  .lvl2 { background: #fef3cd; color: #7d5a00; border-radius: 0.25rem; padding: 0.125rem 0.5rem; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
+  .lvl3 { background: #d4edda; color: #155724; border-radius: 0.25rem; padding: 0.125rem 0.5rem; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
+  .lvl4 { background: #cce5ff; color: #004085; border-radius: 0.25rem; padding: 0.125rem 0.5rem; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
+
   /* ── Print ── */
   @media print {
     #guide-nav, #guide-toc, .no-print { display: none !important; }
@@ -129,10 +147,10 @@
       <details open>
         <summary class="gnav-link cursor-pointer list-none select-none">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" class="shrink-0 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm4.875 6.75h-4.875m0 3h3"/></svg>
-          Working Sheets
+          Handwritten Submissions
         </summary>
         <div class="ml-5 mt-0.5 space-y-0.5">
-          <a href="#s-ws-print"  data-nav-s="s-ws-print"  class="gnav-sub">Printing Sheets</a>
+          <a href="#s-ws-print"  data-nav-s="s-ws-print"  class="gnav-sub">How It Works</a>
           <a href="#s-ws-upload" data-nav-s="s-ws-upload" class="gnav-sub">Uploading a Scan</a>
         </div>
       </details>
@@ -147,6 +165,18 @@
           <a href="#s-roles-matrix"    data-nav-s="s-roles-matrix"    class="gnav-sub">Capability Matrix</a>
           <a href="#s-roles-switching" data-nav-s="s-roles-switching" class="gnav-sub">Switching Roles</a>
           <a href="#s-roles-inviting"  data-nav-s="s-roles-inviting"  class="gnav-sub">Inviting Users</a>
+        </div>
+      </details>
+
+      <details open>
+        <summary class="gnav-link cursor-pointer list-none select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" class="shrink-0 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+          NQF Placement Levels
+        </summary>
+        <div class="ml-5 mt-0.5 space-y-0.5">
+          <a href="#s-nqf-how"     data-nav-s="s-nqf-how"     class="gnav-sub">How Levels Are Assigned</a>
+          <a href="#s-nqf-lit"     data-nav-s="s-nqf-lit"     class="gnav-sub">Literacy Grade Bands</a>
+          <a href="#s-nqf-rules"   data-nav-s="s-nqf-rules"   class="gnav-sub">Placement Rules</a>
         </div>
       </details>
 
@@ -215,13 +245,11 @@
 
           <h2 id="s-overview-workflow" class="prose-h2">Typical Workflow</h2>
           <ol class="step-list">
-            <li><span>Print working sheets and distribute them to learners before the session starts.</span></li>
             <li><span>Create a session in <span class="ui">Sessions → New Session</span>. Share the session code with learners.</span></li>
             <li><span>Learners join using the code, sign the consent agreement, and begin the timed assessment.</span></li>
             <li><span>Monitor the session in real time from <span class="ui">Sessions → Monitor</span>.</span></li>
             <li><span>After learners submit, mark written responses from the <span class="ui">Review Queue</span>.</span></li>
             <li><span>View and export results from <span class="ui">Results at a Glance</span>.</span></li>
-            <li><span>Upload scanned working sheets to each attempt for record-keeping.</span></li>
           </ol>
         </section>
 
@@ -246,10 +274,12 @@
           <p>Navigate to <span class="ui">Sessions → New Session</span> in the sidebar.</p>
           <ol class="step-list">
             <li><span><strong>Template</strong> — select the assessment template to use for this session.</span></li>
-            <li><span><strong>Seat limit</strong> — set the maximum number of learners who can join. Once the limit is reached, no further learners can join this session.</span></li>
-            <li><span><strong>Duration</strong> — set how long the session window stays open. Learners can join at any point before expiry, provided seats remain available.</span></li>
             <li><span>Click <span class="ui">Create Session</span>. The session code is displayed immediately — share it with learners verbally or in writing.</span></li>
           </ol>
+          <div class="callout callout-info">
+            <strong>Seat limit and session window</strong>
+            The seat limit and session expiry window are set by your platform administrator, not during session creation. Contact your administrator if the defaults need adjusting for a sitting.
+          </div>
           <div class="callout callout-tip">
             <strong>Tip</strong>
             You can reuse a session code for the full duration of the session window. Learners can join one at a time as long as seats remain and the session has not expired.
@@ -339,7 +369,7 @@
             </button>
           </div>
 
-          <p>The platform automatically scores all question types except written responses (LIT-D-WRITE), which require an assessor to read and award marks manually.</p>
+          <p>The platform automatically scores all question types except written responses (GEN-G-WRITE), which require an assessor to read and award marks manually.</p>
 
           <h2 id="s-marking-queue" class="prose-h2">The Review Queue</h2>
           <p>The <span class="ui">Review Queue</span> in the sidebar shows all submitted attempts that contain at least one written response pending assessor scoring. The badge count updates as you work through the queue.</p>
@@ -382,6 +412,11 @@
           <p>Navigate to <span class="ui">Results at a Glance</span> under <span class="ui">Attempts</span>. This view shows all marked attempts in a summary table, including the learner's name, total score, section scores, and placement outcome.</p>
           <p>You can filter the table by session, date range, or placement outcome. Results are only shown for attempts with status <span class="badge badge-sm badge-success">Marked</span>.</p>
 
+          <div class="callout callout-info">
+            <strong>Understanding placement levels</strong>
+            For a full breakdown of how NQF levels are calculated from marks, see <a href="#s-nqf-lit" class="underline opacity-80">Chapter 8 — Literacy Grade Bands</a>.
+          </div>
+
           <h2 id="s-results-export" class="prose-h2">Exporting to CSV</h2>
           <p>Click <span class="ui">Export CSV</span> from the Results page. The download includes one row per marked attempt with columns for:</p>
           <ul class="list-disc list-outside ml-5 space-y-1 text-sm opacity-80">
@@ -404,7 +439,7 @@
           <div class="flex items-start justify-between gap-4 mb-6">
             <div>
               <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 6</p>
-              <h1 class="text-2xl font-bold">Working Sheets</h1>
+              <h1 class="text-2xl font-bold">Handwritten Submissions</h1>
             </div>
             <button onclick="printChapter('ch-working-sheets')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
@@ -412,25 +447,26 @@
             </button>
           </div>
 
-          <p>Working sheets are printed templates distributed to learners before the assessment. Learners use them for rough calculations and written working. After the session, assessors scan and upload the completed sheets to each attempt for record-keeping.</p>
+          <p>Some learners may choose to handwrite their essay response rather than type it. When this happens, the assessor scans or photographs the handwritten page and attaches it to the attempt before marking.</p>
 
-          <h2 id="s-ws-print" class="prose-h2">Printing Sheets</h2>
-          <p>Open an attempt and click <span class="ui">Print Working Sheet</span>. The sheet opens in a print-optimised view. Print one copy per learner before the session begins.</p>
-          <div class="callout callout-tip">
-            <strong>Tip</strong>
-            Print sheets in bulk before the session starts. The sheet includes the attempt code, learner name, and date — ensure you match the right sheet to the right learner.
-          </div>
+          <h2 id="s-ws-print" class="prose-h2">How It Works for the Learner</h2>
+          <p>During Section 2, learners encounter the writing question. Before answering, they are asked whether they want to type or handwrite their response.</p>
+          <ul class="list-disc list-outside ml-5 space-y-1 text-sm opacity-80">
+            <li>If they choose <strong>type</strong>, they write directly in the text box on screen.</li>
+            <li>If they choose <strong>handwrite</strong>, they receive a blank page. They write their essay by hand and hand it to the assessor when they submit.</li>
+          </ul>
 
-          <h2 id="s-ws-upload" class="prose-h2">Uploading a Scan</h2>
+          <h2 id="s-ws-upload" class="prose-h2">Uploading a Handwritten Submission</h2>
           <ol class="step-list">
-            <li><span>Scan the completed working sheet as a JPEG or PNG image.</span></li>
-            <li><span>Open the corresponding attempt from the <span class="ui">Attempts</span> list.</span></li>
-            <li><span>Click <span class="ui">Upload Working Sheet</span> and select the scanned file.</span></li>
-            <li><span>The image is attached to the attempt and visible to moderators and auditors.</span></li>
+            <li><span>Collect the handwritten page from the learner when they submit.</span></li>
+            <li><span>Open the attempt from the <span class="ui">Review Queue</span> or <span class="ui">Attempts</span> list.</span></li>
+            <li><span>In the marking view, find the writing submission card and click <span class="ui">Upload</span>.</span></li>
+            <li><span>Select the scan or photo of the handwritten page. Accepted formats: JPEG, PNG, PDF.</span></li>
+            <li><span>The image is attached to the attempt. Use <span class="ui">View</span> to open it alongside the scoring form when you mark.</span></li>
           </ol>
           <div class="callout callout-warn">
             <strong>Important</strong>
-            Only one working sheet image can be attached per attempt. Uploading a new image replaces the existing one. Ensure the correct scan is uploaded before finalising.
+            Upload the handwritten page before finalising the attempt. If the page is lost, note this in the assessor note field and score based on what is available.
           </div>
         </section>
 
@@ -458,7 +494,7 @@
                 <span class="badge badge-sm badge-outline">Assessor</span>
                 <p class="text-sm font-semibold">Day-to-day assessment delivery</p>
               </div>
-              <p class="text-sm opacity-70 leading-relaxed">Can run sessions, monitor learners, mark written responses, and view results. Cannot unlock finalised attempts, moderate scores, or export data.</p>
+              <p class="text-sm opacity-70 leading-relaxed">Can run sessions, monitor learners, mark written responses, view results, and export data. Cannot unlock finalised attempts or moderate scores.</p>
             </div>
             <div class="rounded-lg border border-base-200 p-4">
               <div class="flex items-center gap-2 mb-1">
@@ -537,7 +573,7 @@
                 <tr><td>View results</td>                        <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
                 <tr><td>Scoring breakdown (per attempt)</td>     <td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
                 <tr><td>Score audit log (per attempt)</td>       <td><span class="perm-dash">—</span></td><td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td></tr>
-                <tr><td>Export results to CSV</td>               <td><span class="perm-dash">—</span></td><td><span class="perm-dash">—</span></td><td><span class="perm-check">✓</span></td></tr>
+                <tr><td>Export results to CSV</td>               <td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td><td><span class="perm-check">✓</span></td></tr>
 
                 {# User Management #}
                 <tr class="perm-group-header"><td colspan="4">User Management</td></tr>
@@ -564,6 +600,111 @@
             Invite links expire after 48 hours. If the new user does not register in time, a new invite must be generated. Only Moderators and Auditors can generate invites for Moderator-level roles.
           </div>
 
+        </section>
+
+        {# ══════════════════════════════════════════════════════════ #}
+        {# Chapter 8 — NQF Placement Levels                         #}
+        {# ══════════════════════════════════════════════════════════ #}
+        <section id="ch-nqf" class="guide-chapter mb-16">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider opacity-40 mb-1">Chapter 8</p>
+              <h1 class="text-2xl font-bold">NQF Placement Levels</h1>
+            </div>
+            <button onclick="printChapter('ch-nqf')" class="btn btn-ghost btn-xs no-print shrink-0 mt-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+              Print
+            </button>
+          </div>
+
+          <div class="callout callout-info" style="margin-bottom:1.25rem;">
+            <strong>Template scope</strong>
+            This chapter covers the <strong>NQF Literacy Placement Assessment — General</strong> template only. Other templates have different sections and mark distributions. Their level grading will be documented here as each template is introduced.
+          </div>
+
+          <h2 id="s-nqf-how" class="prose-h2">How Levels Are Assigned</h2>
+          <p>Questions are grouped into parts (GEN-A through GEN-G). Each part is scored independently and mapped to an NQF level using fixed mark bands. The learner's overall literacy placement is then the <strong>lowest</strong> level achieved across all parts — a weak score on any one part pulls the final result down.</p>
+
+          <h2 id="s-nqf-lit" class="prose-h2">Literacy Grade Bands</h2>
+
+          <div class="flex flex-wrap gap-3 mb-4 text-xs not-prose">
+            <span class="flex items-center gap-1.5"><span class="lvl1">L1</span> Below basic competency</span>
+            <span class="flex items-center gap-1.5"><span class="lvl2">L2</span> Basic competency</span>
+            <span class="flex items-center gap-1.5"><span class="lvl3">L3</span> Intermediate competency</span>
+            <span class="flex items-center gap-1.5"><span class="lvl4">L4</span> Competent</span>
+          </div>
+
+          <div class="overflow-x-auto not-prose">
+            <table class="nqf-grade">
+              <thead>
+                <tr>
+                  <th>Part</th>
+                  <th>Description</th>
+                  <th>Max</th>
+                  <th>NQF L1</th>
+                  <th>NQF L2</th>
+                  <th>NQF L3</th>
+                  <th>NQF L4</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:oklch(var(--b2));"><td colspan="7" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;opacity:0.5;padding:0.35rem 0.75rem;">Section 1 — NQF Level 1–2</td></tr>
+                <tr>
+                  <td>GEN-A</td><td>Reading &amp; Comprehension A</td><td>11</td>
+                  <td><span class="lvl1">0 – 4</span></td><td><span class="lvl2">5 – 6</span></td><td><span class="lvl3">7 – 8</span></td><td><span class="lvl4">9 – 11</span></td>
+                </tr>
+                <tr>
+                  <td>GEN-B</td><td>Reading &amp; Comprehension B</td><td>10</td>
+                  <td><span class="lvl1">0 – 3</span></td><td><span class="lvl2">4 – 5</span></td><td><span class="lvl3">6 – 7</span></td><td><span class="lvl4">8 – 10</span></td>
+                </tr>
+                <tr>
+                  <td>GEN-C</td><td>Reading &amp; Comprehension C</td><td>17</td>
+                  <td><span class="lvl1">0 – 6</span></td><td><span class="lvl2">7 – 10</span></td><td><span class="lvl3">11 – 13</span></td><td><span class="lvl4">14 – 17</span></td>
+                </tr>
+                <tr>
+                  <td>GEN-D</td><td>Language &amp; Usage</td><td>12</td>
+                  <td><span class="lvl1">0 – 4</span></td><td><span class="lvl2">5 – 7</span></td><td><span class="lvl3">8 – 9</span></td><td><span class="lvl4">10 – 12</span></td>
+                </tr>
+                <tr style="background:oklch(var(--b2));"><td colspan="7" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;opacity:0.5;padding:0.35rem 0.75rem;">Section 2 — NQF Level 3–4</td></tr>
+                <tr>
+                  <td>GEN-E</td><td>Reading &amp; Comprehension E</td><td>30</td>
+                  <td><span class="lvl1">0 – 11</span></td><td><span class="lvl2">12 – 17</span></td><td><span class="lvl3">18 – 23</span></td><td><span class="lvl4">24 – 30</span></td>
+                </tr>
+                <tr>
+                  <td>GEN-F</td><td>Reading &amp; Comprehension F</td><td>20</td>
+                  <td><span class="lvl1">0 – 7</span></td><td><span class="lvl2">8 – 11</span></td><td><span class="lvl3">12 – 15</span></td><td><span class="lvl4">16 – 20</span></td>
+                </tr>
+                <tr>
+                  <td>GEN-G</td><td>Writing <span class="badge badge-xs badge-ghost ml-1">assessor-marked</span></td><td>8</td>
+                  <td><span class="lvl1">0 – 3</span></td><td><span class="lvl2">4</span></td><td><span class="lvl3">5 – 6</span></td><td><span class="lvl4">7 – 8</span></td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr><td colspan="2">Total marks</td><td>108</td><td>0 – 39%</td><td>40 – 59%</td><td>60 – 79%</td><td>80 – 100%</td></tr>
+              </tfoot>
+            </table>
+          </div>
+          <p class="text-xs opacity-50 mt-1 mb-4">The total percentage row is a reference only. The final placement is the lowest individual part level, not the overall percentage.</p>
+
+          <h2 id="s-nqf-rules" class="prose-h2">Placement Rules</h2>
+          <div class="space-y-3 not-prose">
+            <div class="rounded-lg border border-base-200 p-4">
+              <p class="text-sm font-semibold mb-1">Overall level = lowest part level</p>
+              <p class="text-sm opacity-70 leading-relaxed">A learner who achieves L4 on all parts except GEN-G (Writing), where they score L2, receives an overall literacy placement of <strong>NQF L2</strong>.</p>
+            </div>
+            <div class="rounded-lg border border-base-200 p-4">
+              <p class="text-sm font-semibold mb-1">GEN-G is the only manually marked part</p>
+              <p class="text-sm opacity-70 leading-relaxed">All other parts are auto-marked on submission. GEN-G (Writing) goes to the Review Queue and must be scored before the overall placement is finalised.</p>
+            </div>
+            <div class="rounded-lg border border-base-200 p-4">
+              <p class="text-sm font-semibold mb-1">Levels are computed, not stored as fixed values</p>
+              <p class="text-sm opacity-70 leading-relaxed">The platform recalculates the placement each time a score changes. The level shown in Results always reflects the current state of all marks.</p>
+            </div>
+            <div class="rounded-lg border border-base-200 p-4">
+              <p class="text-sm font-semibold mb-1">Other templates</p>
+              <p class="text-sm opacity-70 leading-relaxed">Templates other than the General Literacy template may have different sections, different parts, and different mark distributions. Their grading bands will be added to this guide when those templates are in use.</p>
+            </div>
+          </div>
         </section>
 
       </div>
@@ -597,8 +738,8 @@
         <a href="#s-results-overview" data-toc="s-results-overview" class="toc-link">Overview</a>
         <a href="#s-results-export"   data-toc="s-results-export"   class="toc-link">Exporting CSV</a>
 
-        <p class="toc-chapter">Working Sheets</p>
-        <a href="#s-ws-print"  data-toc="s-ws-print"  class="toc-link">Printing</a>
+        <p class="toc-chapter">Handwritten Submissions</p>
+        <a href="#s-ws-print"  data-toc="s-ws-print"  class="toc-link">How It Works</a>
         <a href="#s-ws-upload" data-toc="s-ws-upload" class="toc-link">Uploading</a>
 
         <p class="toc-chapter">Roles &amp; Permissions</p>
@@ -606,6 +747,11 @@
         <a href="#s-roles-matrix"    data-toc="s-roles-matrix"    class="toc-link">Capability Matrix</a>
         <a href="#s-roles-switching" data-toc="s-roles-switching" class="toc-link">Switching Roles</a>
         <a href="#s-roles-inviting"  data-toc="s-roles-inviting"  class="toc-link">Inviting Users</a>
+
+        <p class="toc-chapter">NQF Placement Levels</p>
+        <a href="#s-nqf-how"   data-toc="s-nqf-how"   class="toc-link">How Levels Are Assigned</a>
+        <a href="#s-nqf-lit"   data-toc="s-nqf-lit"   class="toc-link">Literacy Grade Bands</a>
+        <a href="#s-nqf-rules" data-toc="s-nqf-rules" class="toc-link">Placement Rules</a>
 
       </nav>
     </aside>
@@ -692,6 +838,10 @@
     's-roles-matrix':    null,
     's-roles-switching': null,
     's-roles-inviting':  null,
+    'ch-nqf':            null,
+    's-nqf-how':         null,
+    's-nqf-lit':         null,
+    's-nqf-rules':       null,
   };
 
   function setActive(id) {
