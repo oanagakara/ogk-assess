@@ -67,13 +67,13 @@
 
       <div id="tab-demo" class="portal-tab-panel">
         <p class="text-sm opacity-60 mb-3">See the platform in action before committing.</p>
-        <div class="flex flex-col gap-3 w-full portal-scaffold">
-          <input class="input input-bordered w-full" type="text" placeholder="Your name" disabled>
-          <input class="input input-bordered w-full" type="email" placeholder="Email address" disabled>
-          <input class="input input-bordered w-full" type="text" placeholder="Organisation" disabled>
-          <button class="btn btn-outline w-full" disabled>Request Access</button>
+        <div id="demo-form" class="flex flex-col gap-3 w-full">
+          <input id="demo-name"  class="input input-bordered w-full" type="text"  placeholder="Your name">
+          <input id="demo-email" class="input input-bordered w-full" type="email" placeholder="Email address">
+          <input id="demo-org"   class="input input-bordered w-full" type="text"  placeholder="Organisation">
+          <button id="demo-submit" class="btn btn-primary w-full">Request a Demo</button>
         </div>
-        <div class="text-center text-sm opacity-30 mt-3">Demo requests coming soon.</div>
+        <div id="demo-feedback" class="text-center text-sm mt-3 hidden"></div>
       </div>
 
     </div>
@@ -87,6 +87,48 @@
       document.querySelectorAll('.portal-tab-panel').forEach(function(p) { p.classList.remove('active'); });
       btn.classList.add('active');
       document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  document.getElementById('demo-submit').addEventListener('click', function() {
+    var name  = document.getElementById('demo-name').value.trim();
+    var email = document.getElementById('demo-email').value.trim();
+    var org   = document.getElementById('demo-org').value.trim();
+    var fb    = document.getElementById('demo-feedback');
+
+    if (!name || !email) {
+      fb.textContent = 'Please enter your name and email.';
+      fb.className = 'text-center text-sm mt-3 text-error';
+      return;
+    }
+
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    fetch('{% url "assessment:request_demo" %}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token }}'},
+      body: 'name=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email) + '&org=' + encodeURIComponent(org)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.ok) {
+        document.getElementById('demo-form').classList.add('hidden');
+        fb.textContent = "Thanks — we'll be in touch shortly.";
+        fb.className = 'text-center text-sm mt-3 opacity-70';
+      } else {
+        fb.textContent = data.error || 'Something went wrong. Please try again.';
+        fb.className = 'text-center text-sm mt-3 text-error';
+        btn.disabled = false;
+        btn.textContent = 'Request a Demo';
+      }
+    })
+    .catch(function() {
+      fb.textContent = 'Could not send. Please try again.';
+      fb.className = 'text-center text-sm mt-3 text-error';
+      btn.disabled = false;
+      btn.textContent = 'Request a Demo';
     });
   });
 </script>

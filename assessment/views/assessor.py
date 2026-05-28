@@ -372,7 +372,7 @@ def assessor_results(request):
 
 
 @login_required
-@user_passes_test(is_auditor)
+@user_passes_test(is_assessor)
 def assessor_results_export(request):
     attempts = (
         Attempt.objects
