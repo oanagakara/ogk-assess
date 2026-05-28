@@ -66,6 +66,7 @@ current_questions_export.json
 recap.md
 
 # Claude skills and memory
+.claude/
 .skills/
 memory/
 staticfiles/
