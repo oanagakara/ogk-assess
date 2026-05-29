@@ -20,6 +20,9 @@ else:
     print('Template pk=5 already exists, skipping lit_nqf_general fixture.')
 "
 
+# Update GEN question content: GEN-D-1 answer keys, 5 question splits
+uv run python manage.py update_gen_questions
+
 # Ensure assessor, moderator, and auditor groups exist
 uv run python manage.py shell -c "
 from django.contrib.auth.models import Group, Permission
