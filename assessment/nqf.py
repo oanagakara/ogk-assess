@@ -112,7 +112,7 @@ def modal_level(levels: list[str]) -> NQFLevel:
 def min_level(levels: list[str]) -> NQFLevel:
     """
     Lowest achieved level (conservative placement).
-    Used for literacy: a weak writing score gates the overall placement.
+    Used for group-level display breakdowns only — not for the overall literacy placement.
     """
     if not levels:
         return NQFLevel.L1
@@ -158,6 +158,8 @@ def compute_levels_from_prefix_scores(
     lit_q_levels: list[str] = []
     num_q_levels: list[str] = []
     num_prefix_pcts: dict[str, float] = {}
+    lit_awarded_total = 0.0
+    lit_max_total = 0.0
     _domain = prefix_domain or {}
 
     for prefix, (awarded, maximum) in prefix_scores.items():
@@ -168,11 +170,17 @@ def compute_levels_from_prefix_scores(
         domain = _domain.get(prefix, "")
         if prefix.startswith("LIT") or domain == "literacy":
             lit_q_levels.append(level)
+            lit_awarded_total += awarded
+            lit_max_total += maximum
         elif prefix.startswith("NUM") or domain == "numeracy":
             num_q_levels.append(level)
             num_prefix_pcts[prefix] = pct
 
-    lit_level = min_level(lit_q_levels) if lit_q_levels else NQFLevel.L1
+    if lit_q_levels:
+        total_pct = round(lit_awarded_total / lit_max_total * 100) if lit_max_total else 0
+        lit_level = level_for_percentage(total_pct, NQF_PCT_THRESHOLDS)
+    else:
+        lit_level = NQFLevel.L1
     num_level = modal_level(num_q_levels) if num_q_levels else NQFLevel.NA
 
     if (
