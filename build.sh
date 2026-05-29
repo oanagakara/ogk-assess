@@ -23,6 +23,23 @@ else:
 # Update GEN question content: GEN-D-1 answer keys, 5 question splits
 uv run python manage.py update_gen_questions
 
+# Re-mark demo attempts with current question structure
+# Runs unconditionally — idempotent, fast, ensures scores stay consistent
+# with any question max_marks changes (splits, GEN-G-WRITE scaling, etc.)
+uv run python manage.py shell -c "
+from assessment.models import Attempt, Score
+from assessment.auto_mark import auto_mark_attempt
+
+keep = ['IGWNXK6U', 'O7RI56IS', 'CTCDRW62', 'TWOM1SXJ', '2TS77VCR']
+for code in keep:
+    attempt = Attempt.objects.filter(code=code).first()
+    if not attempt:
+        continue
+    Score.objects.filter(response__attempt=attempt, assessor__isnull=True).delete()
+    count = auto_mark_attempt(attempt)
+    print(f'{code}: re-marked {count} responses')
+"
+
 # Ensure assessor, moderator, and auditor groups exist
 uv run python manage.py shell -c "
 from django.contrib.auth.models import Group, Permission
