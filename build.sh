@@ -44,6 +44,18 @@ for name in ['moderator', 'auditor']:
 "
 
 
+# One-time demo cleanup: wipe test attempts, keep the five demo attempts only
+uv run python manage.py shell -c "
+from assessment.models import Attempt
+from django.core.management import call_command
+keep = ['IGWNXK6U', 'O7RI56IS', 'CTCDRW62', 'TWOM1SXJ', '2TS77VCR']
+if Attempt.objects.exclude(code__in=keep).exists():
+    call_command('cleanup_for_demo', keep=keep, no_backup=True)
+    print('Demo cleanup complete.')
+else:
+    print('Demo cleanup already done, skipping.')
+"
+
 # Seed simulation data if no attempts exist yet
 uv run python manage.py shell -c "
 from assessment.models import Attempt
