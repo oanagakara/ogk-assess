@@ -546,10 +546,10 @@
       "code": "GEN-G-WRITE",
       "prompt": "PART G: WRITING TASK",
       "kind": "text",
-      "max_marks": 8,
+      "max_marks": 33,
       "spec_json": "{\"layout\": \"writing\", \"prompt\": \"Why I want to join a learnership and what skills I want to develop.\", \"instructions\": [\"Write 6 to 8 sentences in English.\", \"Spell-check and grammar assist are disabled.\", \"Do not use notes or outside help.\"]}",
-      "answer_key_json": "{\"auto_mark\": false, \"criteria\": [{\"key\": \"motivation\", \"label\": \"MOTIVATION\", \"max_points\": 3, \"description\": \"3=clearly stated and specific, elaborated with personal context; 2=stated with some elaboration but lacking depth; 1=generic or unexplained; 0=none or off-topic\"}, {\"key\": \"skills\", \"label\": \"SKILLS\", \"max_points\": 3, \"description\": \"3=two or more specific skills named with personal relevance explanation; 2=skills named with limited elaboration; 1=vague skills; 0=none\"}, {\"key\": \"language\", \"label\": \"LANGUAGE\", \"max_points\": 2, \"description\": \"2=complete coherent sentences meeting 6 to 8 requirement; 1=some coherence issues; 0=too brief or incoherent\"}]}",
-      "marking_notes": "Score each criterion independently. MOTIVATION (0-3): motivation stated, elaborated, personal context. SKILLS (0-3): specific skills named with relevance. LANGUAGE (0-2): sentence quality and length (6-8 sentences)."
+      "answer_key_json": "{\"auto_mark\": false, \"criteria\": [{\"key\": \"motivation\", \"label\": \"MOTIVATION\", \"max_points\": 12, \"description\": \"10-12=clearly stated, fully elaborated, strong personal context; 7-9=stated with good elaboration and some personal context; 4-6=partially stated, limited elaboration; 1-3=generic or unexplained; 0=none or off-topic\"}, {\"key\": \"skills\", \"label\": \"SKILLS\", \"max_points\": 12, \"description\": \"10-12=two or more specific skills named with strong personal relevance and explanation; 7-9=skills named with good elaboration; 4-6=skills named with limited elaboration; 1-3=vague skills; 0=none\"}, {\"key\": \"language\", \"label\": \"LANGUAGE\", \"max_points\": 9, \"description\": \"8-9=complete coherent sentences, exactly 6-8, minimal errors; 5-7=mostly coherent, meets length requirement; 2-4=some coherence issues or length not met; 0-1=too brief or largely incoherent\"}]}",
+      "marking_notes": "Score each criterion independently. MOTIVATION (0-12): strength of reason, elaboration, personal context. SKILLS (0-12): specificity and relevance of skills named. LANGUAGE (0-9): sentence quality, coherence, and length (6-8 sentences)."
     }
   },
   {
