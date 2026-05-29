@@ -3,7 +3,7 @@
 {% block title %}Question {{ n }}{% endblock %}
 
 {% block content %}
-<div class="min-h-[calc(100vh-6rem)] flex items-start justify-center px-4 pt-8 pb-6">
+<div class="min-h-[calc(100vh-6rem)] flex items-start justify-center px-4 pt-4 pb-6">
     {% if section_expires_at %}
         <div id="section-timer-data"
              data-expires-at="{{ section_expires_at|date:'c' }}"
@@ -130,7 +130,7 @@
             </div>
 
             <div class="card bg-base-100 shadow-xl">
-                <div class="card-body p-6 md:p-8 space-y-6">
+                <div class="card-body p-4 md:p-6 space-y-3">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h1 class="card-title text-2xl">Question {{ n }} of {{ total }}</h1>
@@ -367,7 +367,7 @@
     {% else %}
         <div class="w-full" style="max-width:1047px;">
             <div class="card bg-base-100 shadow-xl">
-                <div class="card-body p-6 md:p-8 space-y-6">
+                <div class="card-body p-4 md:p-6 space-y-3">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h1 class="card-title text-2xl">Question {{ n }} of {{ total }}</h1>
