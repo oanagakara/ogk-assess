@@ -174,16 +174,21 @@ class TestComputeLevelsFromPrefixScores:
         lit, num = compute_levels_from_prefix_scores(scores)
         assert lit == "L4"
 
-    def test_low_writing_gates_literacy_level(self):
-        # Perfect reading but poor writing → overall literacy capped at L1
+    def test_low_writing_averaged_into_total(self):
+        # Perfect on all parts, poor writing (25%) — total 102/108 = 94% → L4
+        # Previously min_level would have returned L1; now total percentage is used
         scores = {
-            "LIT-A": [10.0, 10.0],   # 100% → L4
-            "LIT-B": [14.0, 14.0],   # 100% → L4
-            "LIT-C": [20.0, 20.0],   # 100% → L4
-            "LIT-D": [2.0,  14.0],   # 14% → L1 (fallback threshold)
+            "GEN-A": [11.0, 11.0],
+            "GEN-B": [10.0, 10.0],
+            "GEN-C": [17.0, 17.0],
+            "GEN-D": [12.0, 12.0],
+            "GEN-E": [30.0, 30.0],
+            "GEN-F": [20.0, 20.0],
+            "GEN-G": [2.0,   8.0],   # 25% — total: 102/108 = 94% → L4
         }
-        lit, _ = compute_levels_from_prefix_scores(scores)
-        assert lit == "L1"
+        prefix_domain = {p: "literacy" for p in scores}
+        lit, _ = compute_levels_from_prefix_scores(scores, prefix_domain)
+        assert lit == "L4"
 
     def test_post_l4_triggered_when_all_num_prefixes_at_87_pct(self):
         # Each NUM prefix at exactly NQF_POST_L4_NUM_PCT (87%)
