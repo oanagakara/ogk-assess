@@ -141,9 +141,9 @@
       "code": "GEN-B-5",
       "prompt": "PART B: CONNECTIVES — Choose the correct connective word for each sentence.",
       "kind": "match",
-      "max_marks": 6,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the 'Princess of Africa'. She became one of South Africa's most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"prompt\": \"Drag the correct connective to complete each sentence.\", \"bank\": [\"when\", \"because\", \"and\", \"but\", \"so\", \"while\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She became famous _____ her voice was powerful.\"}, {\"id\": \"t2\", \"text\": \"She was already performing _____ she was still a teenager.\"}, {\"id\": \"t3\", \"text\": \"She received many awards _____ continued to inspire others.\"}, {\"id\": \"t4\", \"text\": \"She wanted to rest, _____ she kept performing for her fans.\"}, {\"id\": \"t5\", \"text\": \"She cared deeply about health, _____ she became a UNICEF Ambassador.\"}, {\"id\": \"t6\", \"text\": \"She was singing on stage _____ her fans cheered loudly.\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"because\", \"t2\": \"when\", \"t3\": \"and\", \"t4\": \"but\", \"t5\": \"so\", \"t6\": \"while\"}, \"marks_per_match\": 1}",
+      "max_marks": 3,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the \\u2018Princess of Africa\\u2019. She became one of South Africa\\u2019s most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"prompt\": \"Drag the correct connective to complete each sentence.\", \"bank\": [\"because\", \"when\", \"and\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She became famous _____ her voice was powerful.\"}, {\"id\": \"t2\", \"text\": \"She was already performing _____ she was still a teenager.\"}, {\"id\": \"t3\", \"text\": \"She received many awards _____ continued to inspire others.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"because\", \"t2\": \"when\", \"t3\": \"and\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -152,7 +152,7 @@
     "pk": 42,
     "fields": {
       "section": 5,
-      "order": 9,
+      "order": 10,
       "code": "GEN-C-READ",
       "prompt": "PART C: NOTICE — Read the following notice carefully before answering the questions.",
       "kind": "text",
@@ -167,13 +167,13 @@
     "pk": 43,
     "fields": {
       "section": 5,
-      "order": 10,
+      "order": 11,
       "code": "GEN-C-1",
       "prompt": "PART C: CLOZE TEST — Complete each sentence using the correct word from the box.",
       "kind": "match",
-      "max_marks": 6,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"certificate\", \"stipend\", \"closing\", \"shortlisted\", \"permanent\", \"qualify\"], \"targets\": [{\"id\": \"t1\", \"text\": \"The programme is not _____ employment.\"}, {\"id\": \"t2\", \"text\": \"Learners who _____ will develop valuable retail skills.\"}, {\"id\": \"t3\", \"text\": \"Learners receive a monthly _____  throughout the programme.\"}, {\"id\": \"t4\", \"text\": \"A _____ of competence is awarded on completion.\"}, {\"id\": \"t5\", \"text\": \"The _____ date for applications is 31 May 2026.\"}, {\"id\": \"t6\", \"text\": \"Only _____ candidates will be contacted.\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"permanent\", \"t2\": \"qualify\", \"t3\": \"stipend\", \"t4\": \"certificate\", \"t5\": \"closing\", \"t6\": \"shortlisted\"}, \"marks_per_match\": 1}",
+      "max_marks": 3,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"permanent\", \"qualify\", \"stipend\"], \"targets\": [{\"id\": \"t1\", \"text\": \"The programme is not _____ employment.\"}, {\"id\": \"t2\", \"text\": \"Learners who _____ will develop valuable retail skills.\"}, {\"id\": \"t3\", \"text\": \"Learners receive a monthly _____ throughout the programme.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"permanent\", \"t2\": \"qualify\", \"t3\": \"stipend\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -182,7 +182,7 @@
     "pk": 44,
     "fields": {
       "section": 5,
-      "order": 11,
+      "order": 13,
       "code": "GEN-C-2",
       "prompt": "You must pay a fee to join the Pick n Pay Learnership.",
       "kind": "text",
@@ -197,7 +197,7 @@
     "pk": 45,
     "fields": {
       "section": 5,
-      "order": 12,
+      "order": 14,
       "code": "GEN-C-3",
       "prompt": "The Pick n Pay Learnership Programme lasts 12 months.",
       "kind": "text",
@@ -212,7 +212,7 @@
     "pk": 46,
     "fields": {
       "section": 5,
-      "order": 13,
+      "order": 15,
       "code": "GEN-C-4",
       "prompt": "Every person who applies will receive a response.",
       "kind": "text",
@@ -227,7 +227,7 @@
     "pk": 47,
     "fields": {
       "section": 5,
-      "order": 14,
+      "order": 16,
       "code": "GEN-C-5",
       "prompt": "Applicants need at least Grade 10 to apply.",
       "kind": "text",
@@ -242,7 +242,7 @@
     "pk": 48,
     "fields": {
       "section": 5,
-      "order": 15,
+      "order": 17,
       "code": "GEN-C-6",
       "prompt": "Applicants must be between 18 and 35 years old.",
       "kind": "text",
@@ -257,13 +257,13 @@
     "pk": 49,
     "fields": {
       "section": 5,
-      "order": 16,
+      "order": 18,
       "code": "GEN-C-7",
       "prompt": "PART C: LANGUAGE — Choose the correct word to complete each sentence.",
       "kind": "match",
-      "max_marks": 6,
-      "spec_json": "{\"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"want\", \"flour\", \"is\", \"There\", \"where\", \"teach\"], \"targets\": [{\"id\": \"t1\", \"text\": \"_____ are many people waiting to apply for the learnership.\"}, {\"id\": \"t2\", \"text\": \"She will _____ the learners how to serve customers.\"}, {\"id\": \"t3\", \"text\": \"Add the _____ to make the dough for the bread rolls.\"}, {\"id\": \"t4\", \"text\": \"I _____ to complete this programme and find a job.\"}, {\"id\": \"t5\", \"text\": \"Do you know _____ the training centre is located?\"}, {\"id\": \"t6\", \"text\": \"The office _____ open every weekday from 8 am.\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"There\", \"t2\": \"teach\", \"t3\": \"flour\", \"t4\": \"want\", \"t5\": \"where\", \"t6\": \"is\"}, \"marks_per_match\": 1}",
+      "max_marks": 3,
+      "spec_json": "{\"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"There\", \"teach\", \"flour\"], \"targets\": [{\"id\": \"t1\", \"text\": \"_____ are many people waiting to apply for the learnership.\"}, {\"id\": \"t2\", \"text\": \"She will _____ the learners how to serve customers.\"}, {\"id\": \"t3\", \"text\": \"Add the _____ to make the dough for the bread rolls.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"There\", \"t2\": \"teach\", \"t3\": \"flour\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -272,13 +272,13 @@
     "pk": 50,
     "fields": {
       "section": 5,
-      "order": 17,
+      "order": 20,
       "code": "GEN-D-1",
       "prompt": "PART D: SENTENCE ORDER — Number the sentences in the correct order to form a paragraph about the Shoprite Learnership Programme.",
       "kind": "match",
       "max_marks": 6,
-      "spec_json": "{\"prompt\": \"Drag the number that shows where each sentence belongs in the paragraph.\", \"bank\": [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Shoprite is one of the largest retail companies in Africa.\"}, {\"id\": \"t2\", \"text\": \"The company offers a learnership programme for young South Africans.\"}, {\"id\": \"t3\", \"text\": \"Applicants must have completed Grade 10 and be between 18 and 35 years old.\"}, {\"id\": \"t4\", \"text\": \"Successful candidates receive training in customer service and stock management.\"}, {\"id\": \"t5\", \"text\": \"At the end of the programme, learners write a final assessment.\"}, {\"id\": \"t6\", \"text\": \"Those who pass may be offered permanent employment at Shoprite.\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"1\", \"t2\": \"2\", \"t3\": \"3\", \"t4\": \"4\", \"t5\": \"5\", \"t6\": \"6\"}, \"marks_per_match\": 1}",
+      "spec_json": "{\"prompt\": \"Drag the number that shows where each sentence belongs in the paragraph.\", \"bank\": [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Shoprite is one of the largest retail companies in Africa.\"}, {\"id\": \"t2\", \"text\": \"The company offers a learnership programme for young South Africans.\"}, {\"id\": \"t3\", \"text\": \"Successful candidates receive training in customer service and stock management.\"}, {\"id\": \"t4\", \"text\": \"At the end of the programme, learners write a final assessment.\"}, {\"id\": \"t5\", \"text\": \"Those who pass may be offered permanent employment at Shoprite.\"}, {\"id\": \"t6\", \"text\": \"Applicants must have completed Grade 10 and be between 18 and 35 years old.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"1\", \"t2\": \"2\", \"t3\": \"3\", \"t4\": \"5\", \"t5\": \"6\", \"t6\": \"4\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -287,13 +287,13 @@
     "pk": 51,
     "fields": {
       "section": 5,
-      "order": 18,
+      "order": 21,
       "code": "GEN-D-2",
       "prompt": "PART D: TIME — Match each digital time to its written description.",
       "kind": "match",
-      "max_marks": 6,
-      "spec_json": "{\"prompt\": \"Drag the digital time that matches each written description.\", \"bank\": [\"07h30\", \"14h45\", \"21h20\", \"12h00\", \"05h55\", \"16h10\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Half past seven in the morning\"}, {\"id\": \"t2\", \"text\": \"Quarter to three in the afternoon\"}, {\"id\": \"t3\", \"text\": \"Twenty minutes past nine at night\"}, {\"id\": \"t4\", \"text\": \"Midday\"}, {\"id\": \"t5\", \"text\": \"Five minutes to six in the morning\"}, {\"id\": \"t6\", \"text\": \"Ten minutes past four in the afternoon\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"07h30\", \"t2\": \"14h45\", \"t3\": \"21h20\", \"t4\": \"12h00\", \"t5\": \"05h55\", \"t6\": \"16h10\"}, \"marks_per_match\": 1}",
+      "max_marks": 3,
+      "spec_json": "{\"prompt\": \"Drag the digital time that matches each written description.\", \"bank\": [\"07h30\", \"14h45\", \"21h20\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Half past seven in the morning\"}, {\"id\": \"t2\", \"text\": \"Quarter to three in the afternoon\"}, {\"id\": \"t3\", \"text\": \"Twenty minutes past nine at night\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"07h30\", \"t2\": \"14h45\", \"t3\": \"21h20\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -381,9 +381,9 @@
       "code": "GEN-E-4",
       "prompt": "PART E: MODAL VERBS — Complete each sentence using the correct modal verb phrase.",
       "kind": "match",
-      "max_marks": 6,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct modal verb phrase to complete each sentence about Natalie.\", \"bank\": [\"had to\", \"refused to\", \"was able to\", \"managed to\", \"wanted to\", \"chose to\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie _____ give up swimming, so she kept training.\"}, {\"id\": \"t2\", \"text\": \"After losing her leg, she _____ learn to swim in a completely new way.\"}, {\"id\": \"t3\", \"text\": \"Through years of training, she _____ compete against swimmers without disabilities.\"}, {\"id\": \"t4\", \"text\": \"She _____ qualify for the 2008 Olympic Games, becoming the first amputee to do so.\"}, {\"id\": \"t5\", \"text\": \"She always _____ represent South Africa on the world stage.\"}, {\"id\": \"t6\", \"text\": \"After the Olympics, she _____ compete in the Paralympic Games as well.\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"refused to\", \"t2\": \"had to\", \"t3\": \"was able to\", \"t4\": \"managed to\", \"t5\": \"wanted to\", \"t6\": \"chose to\"}, \"marks_per_match\": 1}",
+      "max_marks": 3,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie\\u2019s story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct modal verb phrase to complete each sentence about Natalie.\", \"bank\": [\"refused to\", \"had to\", \"was able to\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie _____ give up swimming, so she kept training.\"}, {\"id\": \"t2\", \"text\": \"After losing her leg, she _____ learn to swim in a completely new way.\"}, {\"id\": \"t3\", \"text\": \"Through years of training, she _____ compete against swimmers without disabilities.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"refused to\", \"t2\": \"had to\", \"t3\": \"was able to\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -392,7 +392,7 @@
     "pk": 57,
     "fields": {
       "section": 6,
-      "order": 7,
+      "order": 8,
       "code": "GEN-E-5",
       "prompt": "PART E: PREPOSITIONS — Complete each phrase with the correct preposition.",
       "kind": "match",
@@ -407,7 +407,7 @@
     "pk": 58,
     "fields": {
       "section": 6,
-      "order": 8,
+      "order": 9,
       "code": "GEN-F-READ",
       "prompt": "PART F: READING COMPREHENSION — Read the passage carefully before answering the questions.",
       "kind": "text",
@@ -422,7 +422,7 @@
     "pk": 59,
     "fields": {
       "section": 6,
-      "order": 8,
+      "order": 10,
       "code": "GEN-F-1",
       "prompt": "PART F: VOCABULARY — Match each word to its correct meaning.",
       "kind": "match",
@@ -437,7 +437,7 @@
     "pk": 60,
     "fields": {
       "section": 6,
-      "order": 9,
+      "order": 11,
       "code": "GEN-F-2",
       "prompt": "The 1956 women's march was organised by the African National Congress (ANC).",
       "kind": "text",
@@ -452,7 +452,7 @@
     "pk": 61,
     "fields": {
       "section": 6,
-      "order": 10,
+      "order": 12,
       "code": "GEN-F-3",
       "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-2.",
       "kind": "text",
@@ -467,7 +467,7 @@
     "pk": 62,
     "fields": {
       "section": 6,
-      "order": 11,
+      "order": 13,
       "code": "GEN-F-4",
       "prompt": "Prime Minister Strijdom met with the women when they arrived at the Union Buildings.",
       "kind": "text",
@@ -482,7 +482,7 @@
     "pk": 63,
     "fields": {
       "section": 6,
-      "order": 12,
+      "order": 14,
       "code": "GEN-F-5",
       "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-4.",
       "kind": "text",
@@ -497,7 +497,7 @@
     "pk": 64,
     "fields": {
       "section": 6,
-      "order": 13,
+      "order": 15,
       "code": "GEN-F-6",
       "prompt": "The 1956 Women's March was a violent event.",
       "kind": "text",
@@ -512,7 +512,7 @@
     "pk": 65,
     "fields": {
       "section": 6,
-      "order": 14,
+      "order": 16,
       "code": "GEN-F-7",
       "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-6.",
       "kind": "text",
@@ -527,7 +527,7 @@
     "pk": 66,
     "fields": {
       "section": 6,
-      "order": 15,
+      "order": 17,
       "code": "GEN-F-8",
       "prompt": "PART F: WORD SEARCH IN PASSAGE — Find the word in the passage that matches each definition.",
       "kind": "match",
@@ -542,7 +542,7 @@
     "pk": 67,
     "fields": {
       "section": 6,
-      "order": 16,
+      "order": 18,
       "code": "GEN-G-WRITE",
       "prompt": "PART G: WRITING TASK",
       "kind": "text",
@@ -557,13 +557,103 @@
     "pk": 68,
     "fields": {
       "section": 6,
-      "order": 17,
+      "order": 19,
       "code": "GEN-G-HANDWRITE",
       "prompt": "Did you write your essay on a page instead of typing it in the box?",
       "kind": "text",
       "max_marks": 0,
       "spec_json": "{\"kind_hint\": \"mcq_or_choice\", \"choices\": [\"Yes\", \"No\"]}",
       "answer_key_json": "{\"auto_mark\": false}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 70,
+    "fields": {
+      "section": 5,
+      "order": 9,
+      "code": "GEN-B-5B",
+      "prompt": "PART B: CONNECTIVES — Choose the correct connective word for each sentence.",
+      "kind": "match",
+      "max_marks": 3,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the \\u2018Princess of Africa\\u2019. She became one of South Africa\\u2019s most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"prompt\": \"Drag the correct connective to complete each sentence.\", \"bank\": [\"but\", \"so\", \"while\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She wanted to rest, _____ she kept performing for her fans.\"}, {\"id\": \"t2\", \"text\": \"She cared deeply about health, _____ she became a UNICEF Ambassador.\"}, {\"id\": \"t3\", \"text\": \"She was singing on stage _____ her fans cheered loudly.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"but\", \"t2\": \"so\", \"t3\": \"while\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 71,
+    "fields": {
+      "section": 5,
+      "order": 12,
+      "code": "GEN-C-1B",
+      "prompt": "PART C: CLOZE TEST — Complete each sentence using the correct word from the box.",
+      "kind": "match",
+      "max_marks": 3,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"certificate\", \"closing\", \"shortlisted\"], \"targets\": [{\"id\": \"t1\", \"text\": \"A _____ of competence is awarded on completion.\"}, {\"id\": \"t2\", \"text\": \"The _____ date for applications is 31 May 2026.\"}, {\"id\": \"t3\", \"text\": \"Only _____ candidates will be contacted.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"certificate\", \"t2\": \"closing\", \"t3\": \"shortlisted\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 72,
+    "fields": {
+      "section": 5,
+      "order": 19,
+      "code": "GEN-C-7B",
+      "prompt": "PART C: LANGUAGE — Choose the correct word to complete each sentence.",
+      "kind": "match",
+      "max_marks": 3,
+      "spec_json": "{\"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"want\", \"where\", \"is\"], \"targets\": [{\"id\": \"t1\", \"text\": \"I _____ to complete this programme and find a job.\"}, {\"id\": \"t2\", \"text\": \"Do you know _____ the training centre is located?\"}, {\"id\": \"t3\", \"text\": \"The office _____ open every weekday from 8 am.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"want\", \"t2\": \"where\", \"t3\": \"is\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 73,
+    "fields": {
+      "section": 5,
+      "order": 22,
+      "code": "GEN-D-2B",
+      "prompt": "PART D: TIME — Match each digital time to its written description.",
+      "kind": "match",
+      "max_marks": 3,
+      "spec_json": "{\"prompt\": \"Drag the digital time that matches each written description.\", \"bank\": [\"12h00\", \"05h55\", \"16h10\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Midday\"}, {\"id\": \"t2\", \"text\": \"Five minutes to six in the morning\"}, {\"id\": \"t3\", \"text\": \"Ten minutes past four in the afternoon\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"12h00\", \"t2\": \"05h55\", \"t3\": \"16h10\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 69,
+    "fields": {
+      "section": 6,
+      "order": 3,
+      "code": "GEN-E-1B",
+      "prompt": "PART E: VOCABULARY — Match each word from the passage to its meaning. (Part 2 of 2)",
+      "kind": "match",
+      "max_marks": 4,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag each word to its correct definition. (Part 2 of 2)\", \"bank\": [\"prosthetic\", \"competitive\", \"subsequently\", \"disabilities\"], \"targets\": [{\"id\": \"t5\", \"text\": \"An artificial replacement for a body part\"}, {\"id\": \"t6\", \"text\": \"Having a strong desire to win or succeed\"}, {\"id\": \"t7\", \"text\": \"Happening later, as a result\"}, {\"id\": \"t8\", \"text\": \"Physical or mental conditions that limit a person's activities\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t5\": \"prosthetic\", \"t6\": \"competitive\", \"t7\": \"subsequently\", \"t8\": \"disabilities\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 74,
+    "fields": {
+      "section": 6,
+      "order": 7,
+      "code": "GEN-E-4B",
+      "prompt": "PART E: MODAL VERBS — Complete each sentence using the correct modal verb phrase.",
+      "kind": "match",
+      "max_marks": 3,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie\\u2019s story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct modal verb phrase to complete each sentence about Natalie.\", \"bank\": [\"managed to\", \"wanted to\", \"chose to\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She _____ qualify for the 2008 Olympic Games, becoming the first amputee to do so.\"}, {\"id\": \"t2\", \"text\": \"She always _____ represent South Africa on the world stage.\"}, {\"id\": \"t3\", \"text\": \"After the Olympics, she _____ compete in the Paralympic Games as well.\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"managed to\", \"t2\": \"wanted to\", \"t3\": \"chose to\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   }
