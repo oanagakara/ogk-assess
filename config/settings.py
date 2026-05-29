@@ -227,3 +227,6 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # Build CSRF_TRUSTED_ORIGINS from ALLOWED_HOSTS so POST requests over HTTPS
+    # are accepted without relying solely on the Referer header check.
+    CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h not in ("localhost", "127.0.0.1")]
