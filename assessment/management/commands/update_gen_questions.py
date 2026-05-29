@@ -67,8 +67,9 @@ class Command(BaseCommand):
         e2_done = "She lost her leg in an accident" in _json.loads(
             Question.objects.get(code="GEN-E-2").spec_json
         ).get("bank", [])
+        write_done = Question.objects.get(code="GEN-G-WRITE").max_marks == 33
 
-        if splits_done and e2_done:
+        if splits_done and e2_done and write_done:
             self.stdout.write("update_gen_questions: already applied, skipping.")
             return
 
@@ -83,8 +84,63 @@ class Command(BaseCommand):
                 self._reorder()
             if not e2_done:
                 self._update_gen_e2()
+            if not write_done:
+                self._update_gen_g_write()
 
         self.stdout.write(self.style.SUCCESS("update_gen_questions: done."))
+
+    # ── GEN-G-WRITE ───────────────────────────────────────────────────────────
+
+    def _update_gen_g_write(self):
+        from assessment.models import Question
+        import json as _json
+        q = Question.objects.get(code="GEN-G-WRITE")
+        q.max_marks = 33
+        q.marking_notes = (
+            "Score each criterion independently. "
+            "MOTIVATION (0-12): strength of reason, elaboration, personal context. "
+            "SKILLS (0-12): specificity and relevance of skills named. "
+            "LANGUAGE (0-9): sentence quality, coherence, and length (6-8 sentences)."
+        )
+        q.answer_key_json = _json.dumps({
+            "auto_mark": False,
+            "criteria": [
+                {
+                    "key": "motivation",
+                    "label": "MOTIVATION",
+                    "max_points": 12,
+                    "description": (
+                        "10-12=clearly stated, fully elaborated, strong personal context; "
+                        "7-9=stated with good elaboration and some personal context; "
+                        "4-6=partially stated, limited elaboration; "
+                        "1-3=generic or unexplained; 0=none or off-topic"
+                    ),
+                },
+                {
+                    "key": "skills",
+                    "label": "SKILLS",
+                    "max_points": 12,
+                    "description": (
+                        "10-12=two or more specific skills named with strong personal relevance and explanation; "
+                        "7-9=skills named with good elaboration; "
+                        "4-6=skills named with limited elaboration; "
+                        "1-3=vague skills; 0=none"
+                    ),
+                },
+                {
+                    "key": "language",
+                    "label": "LANGUAGE",
+                    "max_points": 9,
+                    "description": (
+                        "8-9=complete coherent sentences, exactly 6-8, minimal errors; "
+                        "5-7=mostly coherent, meets length requirement; "
+                        "2-4=some coherence issues or length not met; "
+                        "0-1=too brief or largely incoherent"
+                    ),
+                },
+            ],
+        })
+        q.save()
 
     # ── GEN-E-2 ──────────────────────────────────────────────────────────────
 
