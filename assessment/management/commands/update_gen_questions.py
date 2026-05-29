@@ -61,21 +61,62 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from assessment.models import Question
+        import json as _json
 
-        if Question.objects.filter(code="GEN-B-5B").exists():
+        splits_done = Question.objects.filter(code="GEN-B-5B").exists()
+        e2_done = "She lost her leg in an accident" in _json.loads(
+            Question.objects.get(code="GEN-E-2").spec_json
+        ).get("bank", [])
+
+        if splits_done and e2_done:
             self.stdout.write("update_gen_questions: already applied, skipping.")
             return
 
         with transaction.atomic():
-            self._update_gen_d1()
-            self._split("GEN-B-5")
-            self._split("GEN-C-1")
-            self._split("GEN-C-7")
-            self._split("GEN-D-2")
-            self._split("GEN-E-4")
-            self._reorder()
+            if not splits_done:
+                self._update_gen_d1()
+                self._split("GEN-B-5")
+                self._split("GEN-C-1")
+                self._split("GEN-C-7")
+                self._split("GEN-D-2")
+                self._split("GEN-E-4")
+                self._reorder()
+            if not e2_done:
+                self._update_gen_e2()
 
         self.stdout.write(self.style.SUCCESS("update_gen_questions: done."))
+
+    # ── GEN-E-2 ──────────────────────────────────────────────────────────────
+
+    def _update_gen_e2(self):
+        from assessment.models import Question
+        q = Question.objects.get(code="GEN-E-2")
+        q.spec_json = _spec(
+            passage=_NATALIE,
+            prompt="Drag the cause that matches each effect.",
+            bank=[
+                "She lost her leg in an accident",
+                "She did not give up",
+                "She trained hard every day",
+                "She qualified for the Olympics",
+                "Her story inspired others",
+            ],
+            targets=[
+                {"id": "t1", "text": "She had to learn a new way to swim."},
+                {"id": "t2", "text": "She returned to the pool and kept competing."},
+                {"id": "t3", "text": "She could race against swimmers without disabilities."},
+                {"id": "t4", "text": "She became the first amputee to compete at the Olympic Games."},
+                {"id": "t5", "text": "People with disabilities felt they could reach their goals too."},
+            ],
+        )
+        q.answer_key_json = _key({
+            "t1": "She lost her leg in an accident",
+            "t2": "She did not give up",
+            "t3": "She trained hard every day",
+            "t4": "She qualified for the Olympics",
+            "t5": "Her story inspired others",
+        })
+        q.save()
 
     # ── GEN-D-1 ──────────────────────────────────────────────────────────────
 
