@@ -1,10 +1,9 @@
 """
-Updates GEN question content:
-  - GEN-D-1: reorder targets, fix answer keys (sentence ordering)
-  - GEN-B-5, GEN-C-1, GEN-C-7, GEN-D-2, GEN-E-4: split each 6-item match
-    into two 3-item questions (original keeps items 1-3, new *B keeps 4-6)
+Updates GEN question content. Idempotent — guards check before each batch.
 
-Guard: skips silently if GEN-B-5B already exists.
+Batch 1: GEN-D-1 reorder, 5 splits (GEN-B-5/C-1/C-7/D-2/E-4)
+Batch 2: GEN-E-2 plain language, GEN-G-WRITE scale to 33 marks
+Batch 3: grid_cols, full shared banks, GEN-E-5/F-1/F-8 splits
 """
 import json
 from django.core.management.base import BaseCommand
@@ -45,10 +44,23 @@ _NATALIE = (
 )
 
 
-def _spec(passage, prompt, bank, targets):
+_WOMEN = (
+    "On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest "
+    "against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). "
+    "The women were required to carry passes under apartheid law, which they strongly opposed. They "
+    "carried petitions with thousands of signatures, determined to have their voices heard. Prime "
+    "Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained "
+    "orderly and observed a moment of silence with dignity before leaving. The march became a landmark "
+    "event in South African history and a symbol of women's courage."
+)
+
+
+def _spec(passage, prompt, bank, targets, grid_cols=None):
     spec = {"prompt": prompt, "bank": bank, "targets": targets}
     if passage:
         spec = {"layout": "passage_split", "passage": passage, **spec}
+    if grid_cols:
+        spec["grid_cols"] = grid_cols
     return json.dumps(spec)
 
 
@@ -68,8 +80,12 @@ class Command(BaseCommand):
             Question.objects.get(code="GEN-E-2").spec_json
         ).get("bank", [])
         write_done = Question.objects.get(code="GEN-G-WRITE").max_marks == 33
+        grid_done = (
+            Question.objects.filter(code="GEN-E-5A").exists()
+            and Question.objects.filter(code="GEN-F-8B").exists()
+        )
 
-        if splits_done and e2_done and write_done:
+        if splits_done and e2_done and write_done and grid_done:
             self.stdout.write("update_gen_questions: already applied, skipping.")
             return
 
@@ -86,6 +102,13 @@ class Command(BaseCommand):
                 self._update_gen_e2()
             if not write_done:
                 self._update_gen_g_write()
+            if not grid_done:
+                self._apply_grids()
+                self._update_e4_banks()
+                self._split_e5()
+                self._split_f1()
+                self._split_f8()
+                self._reorder()
 
         self.stdout.write(self.style.SUCCESS("update_gen_questions: done."))
 
@@ -315,12 +338,148 @@ class Command(BaseCommand):
             marking_notes="",
         )
 
+    # ── Batch 3: grid cols, shared banks, E-5 / F-1 / F-8 splits ─────────────
+
+    def _apply_grids(self):
+        """Add grid_cols=1 to questions that need a single-column answer grid."""
+        import json as _json
+        from assessment.models import Question
+        for code in ["GEN-B-5", "GEN-B-5B", "GEN-C-1", "GEN-E-4", "GEN-E-4B"]:
+            q = Question.objects.get(code=code)
+            spec = _json.loads(q.spec_json)
+            spec["grid_cols"] = 1
+            q.spec_json = _json.dumps(spec)
+            q.save()
+
+    def _update_e4_banks(self):
+        """Give GEN-E-4 and GEN-E-4B the full 6-word bank as distractors."""
+        import json as _json
+        from assessment.models import Question
+        full_bank = ["refused to", "had to", "was able to", "managed to", "wanted to", "chose to"]
+        for code in ["GEN-E-4", "GEN-E-4B"]:
+            q = Question.objects.get(code=code)
+            spec = _json.loads(q.spec_json)
+            spec["bank"] = full_bank
+            q.spec_json = _json.dumps(spec)
+            q.save()
+
+    def _split_e5(self):
+        from assessment.models import Question
+        full_bank = ["at", "for", "in", "against", "from", "through", "with"]
+        q = Question.objects.get(code="GEN-E-5")
+        # Rename to GEN-E-5A with first 3 targets
+        q.code = "GEN-E-5A"
+        q.max_marks = 3
+        q.spec_json = _spec(
+            _NATALIE,
+            "Drag the correct preposition to complete each sentence.",
+            full_bank,
+            [
+                {"id": "t1", "text": "Natalie was born _____ Cape Town."},
+                {"id": "t2", "text": "She trained _____ years to reach her goals."},
+                {"id": "t3", "text": "She competed _____ able-bodied swimmers."},
+            ],
+            grid_cols=1,
+        )
+        q.answer_key_json = _key({"t1": "in", "t2": "for", "t3": "against"})
+        q.save()
+        # Create GEN-E-5B with last 4 targets
+        Question.objects.create(
+            section=q.section, order=q.order + 1, code="GEN-E-5B",
+            prompt=q.prompt, kind=q.kind, max_marks=4,
+            spec_json=_spec(
+                _NATALIE,
+                "Drag the correct preposition to complete each sentence.",
+                full_bank,
+                [
+                    {"id": "t1", "text": "She won medals _____ the Paralympic Games."},
+                    {"id": "t2", "text": "She showed talent _____ a young age."},
+                    {"id": "t3", "text": "She achieved success _____ hard work and determination."},
+                    {"id": "t4", "text": "She swam _____ a prosthetic limb."},
+                ],
+                grid_cols=1,
+            ),
+            answer_key_json=_key({"t1": "at", "t2": "from", "t3": "through", "t4": "with"}),
+            marking_notes="",
+        )
+
+    def _split_f1(self):
+        from assessment.models import Question
+        full_bank = ["organised", "protest", "petition", "orderly", "dignity", "symbol"]
+        q = Question.objects.get(code="GEN-F-1")
+        q.max_marks = 3
+        q.spec_json = _spec(
+            _WOMEN,
+            "Match each word to its correct meaning.",
+            full_bank,
+            [
+                {"id": "t1", "text": "A formal written request signed by many people"},
+                {"id": "t2", "text": "To plan and coordinate an activity"},
+                {"id": "t3", "text": "A public expression of disagreement or disapproval"},
+            ],
+        )
+        q.answer_key_json = _key({"t1": "petition", "t2": "organised", "t3": "protest"})
+        q.save()
+        Question.objects.create(
+            section=q.section, order=q.order + 1, code="GEN-F-1B",
+            prompt=q.prompt, kind=q.kind, max_marks=3,
+            spec_json=_spec(
+                _WOMEN,
+                "Match each word to its correct meaning.",
+                full_bank,
+                [
+                    {"id": "t1", "text": "Calm and well-behaved"},
+                    {"id": "t2", "text": "A feeling of pride and self-respect"},
+                    {"id": "t3", "text": "Something that represents a bigger idea or group"},
+                ],
+            ),
+            answer_key_json=_key({"t1": "orderly", "t2": "dignity", "t3": "symbol"}),
+            marking_notes="",
+        )
+
+    def _split_f8(self):
+        from assessment.models import Question
+        full_bank = ["protest", "required", "determined", "orderly", "observed", "landmark", "absent", "symbol"]
+        q = Question.objects.get(code="GEN-F-8")
+        q.max_marks = 4
+        q.spec_json = _spec(
+            _WOMEN,
+            "Find the word in the passage that matches each meaning.",
+            full_bank,
+            [
+                {"id": "t1", "text": "A public objection or expression of disapproval"},
+                {"id": "t2", "text": "Needed; expected by law or rule"},
+                {"id": "t3", "text": "Showing firm purpose; not willing to give up"},
+                {"id": "t4", "text": "Calm and controlled in behaviour"},
+            ],
+            grid_cols=1,
+        )
+        q.answer_key_json = _key({"t1": "protest", "t2": "required", "t3": "determined", "t4": "orderly"})
+        q.save()
+        Question.objects.create(
+            section=q.section, order=q.order + 1, code="GEN-F-8B",
+            prompt=q.prompt, kind=q.kind, max_marks=4,
+            spec_json=_spec(
+                _WOMEN,
+                "Find the word in the passage that matches each meaning.",
+                full_bank,
+                [
+                    {"id": "t1", "text": "Watched solemnly or took part in a ceremony"},
+                    {"id": "t2", "text": "Important and historically significant"},
+                    {"id": "t3", "text": "Not present; not there"},
+                    {"id": "t4", "text": "Something that stands for a larger idea or meaning"},
+                ],
+                grid_cols=1,
+            ),
+            answer_key_json=_key({"t1": "observed", "t2": "landmark", "t3": "absent", "t4": "symbol"}),
+            marking_notes="",
+        )
+
     # ── Re-order ──────────────────────────────────────────────────────────────
 
     def _reorder(self):
         from assessment.models import Question
 
-        # Section 5 final order
         sec5_order = [
             "GEN-A-1", "GEN-A-2",
             "GEN-B-READ", "GEN-B-1", "GEN-B-2", "GEN-B-3", "GEN-B-4",
@@ -332,15 +491,15 @@ class Command(BaseCommand):
             "GEN-D-1",
             "GEN-D-2", "GEN-D-2B",
         ]
-        # Section 6 final order
         sec6_order = [
             "GEN-E-READ",
             "GEN-E-1", "GEN-E-1B",
             "GEN-E-2", "GEN-E-3",
             "GEN-E-4", "GEN-E-4B",
-            "GEN-E-5",
-            "GEN-F-READ", "GEN-F-1",
-            "GEN-F-2", "GEN-F-3", "GEN-F-4", "GEN-F-5", "GEN-F-6", "GEN-F-7", "GEN-F-8",
+            "GEN-E-5A", "GEN-E-5B",
+            "GEN-F-READ", "GEN-F-1", "GEN-F-1B",
+            "GEN-F-2", "GEN-F-3", "GEN-F-4", "GEN-F-5", "GEN-F-6", "GEN-F-7",
+            "GEN-F-8", "GEN-F-8B",
             "GEN-G-WRITE", "GEN-G-HANDWRITE",
         ]
 

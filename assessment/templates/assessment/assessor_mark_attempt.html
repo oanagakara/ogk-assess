@@ -84,7 +84,7 @@
       </div>
       <div class="flex-1 min-w-0">
         <div class="text-xs opacity-50">Working sheet</div>
-          {% if working_sheet %}
+        {% if working_sheet %}
           <div class="flex items-center gap-2">
             <button type="button"
                     data-ws-open
@@ -94,7 +94,11 @@
                target="_blank" class="text-xs opacity-50 hover:opacity-100">Print</a>
           </div>
         {% else %}
-          <div class="text-sm opacity-40">Not uploaded</div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm opacity-40">Not uploaded</span>
+            <a href="{% url 'assessment:assessor_working_sheet_print' attempt.code %}"
+               target="_blank" class="text-xs opacity-50 hover:opacity-100">Print blank →</a>
+          </div>
         {% endif %}
       </div>
       <form method="post" action="{% url 'assessment:assessor_working_sheet_upload' attempt.code %}"

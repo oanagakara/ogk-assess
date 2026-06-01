@@ -142,7 +142,7 @@
       "prompt": "PART B: CONNECTIVES — Choose the correct connective word for each sentence.",
       "kind": "match",
       "max_marks": 3,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the \\u2018Princess of Africa\\u2019. She became one of South Africa\\u2019s most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"prompt\": \"Drag the correct connective to complete each sentence.\", \"bank\": [\"because\", \"when\", \"and\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She became famous _____ her voice was powerful.\"}, {\"id\": \"t2\", \"text\": \"She was already performing _____ she was still a teenager.\"}, {\"id\": \"t3\", \"text\": \"She received many awards _____ continued to inspire others.\"}]}",
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the \\u2018Princess of Africa\\u2019. She became one of South Africa\\u2019s most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"prompt\": \"Drag the correct connective to complete each sentence.\", \"bank\": [\"because\", \"when\", \"and\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She became famous _____ her voice was powerful.\"}, {\"id\": \"t2\", \"text\": \"She was already performing _____ she was still a teenager.\"}, {\"id\": \"t3\", \"text\": \"She received many awards _____ continued to inspire others.\"}], \"grid_cols\": 1}",
       "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"because\", \"t2\": \"when\", \"t3\": \"and\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
@@ -172,7 +172,7 @@
       "prompt": "PART C: CLOZE TEST — Complete each sentence using the correct word from the box.",
       "kind": "match",
       "max_marks": 3,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"permanent\", \"qualify\", \"stipend\"], \"targets\": [{\"id\": \"t1\", \"text\": \"The programme is not _____ employment.\"}, {\"id\": \"t2\", \"text\": \"Learners who _____ will develop valuable retail skills.\"}, {\"id\": \"t3\", \"text\": \"Learners receive a monthly _____ throughout the programme.\"}]}",
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"PICK N PAY LEARNERSHIP PROGRAMME 2026\\n\\nPick n Pay is inviting applications for its 2026 Retail Learnership Programme. The 12-month programme is not permanent employment, but learners who qualify will develop valuable retail skills. Learners will receive a monthly stipend throughout the programme. A certificate of competence will be awarded to learners who successfully complete the programme.\\n\\nTo apply, you must be between 18 and 35 years of age and have completed at least Grade 10. There is no fee to apply or join. Due to the high number of applications received, only shortlisted candidates will be contacted. The closing date for applications is 31 May 2026.\", \"prompt\": \"Drag the correct word to complete each sentence.\", \"bank\": [\"permanent\", \"qualify\", \"stipend\"], \"targets\": [{\"id\": \"t1\", \"text\": \"The programme is not _____ employment.\"}, {\"id\": \"t2\", \"text\": \"Learners who _____ will develop valuable retail skills.\"}, {\"id\": \"t3\", \"text\": \"Learners receive a monthly _____ throughout the programme.\"}], \"grid_cols\": 1}",
       "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"permanent\", \"t2\": \"qualify\", \"t3\": \"stipend\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
@@ -382,7 +382,7 @@
       "prompt": "PART E: MODAL VERBS — Complete each sentence using the correct modal verb phrase.",
       "kind": "match",
       "max_marks": 3,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie\\u2019s story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct modal verb phrase to complete each sentence about Natalie.\", \"bank\": [\"refused to\", \"had to\", \"was able to\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie _____ give up swimming, so she kept training.\"}, {\"id\": \"t2\", \"text\": \"After losing her leg, she _____ learn to swim in a completely new way.\"}, {\"id\": \"t3\", \"text\": \"Through years of training, she _____ compete against swimmers without disabilities.\"}]}",
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie\\u2019s story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct modal verb phrase to complete each sentence about Natalie.\", \"bank\": [\"refused to\", \"had to\", \"was able to\", \"managed to\", \"wanted to\", \"chose to\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie _____ give up swimming, so she kept training.\"}, {\"id\": \"t2\", \"text\": \"After losing her leg, she _____ learn to swim in a completely new way.\"}, {\"id\": \"t3\", \"text\": \"Through years of training, she _____ compete against swimmers without disabilities.\"}], \"grid_cols\": 1}",
       "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"refused to\", \"t2\": \"had to\", \"t3\": \"was able to\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
@@ -393,12 +393,12 @@
     "fields": {
       "section": 6,
       "order": 8,
-      "code": "GEN-E-5",
+      "code": "GEN-E-5A",
       "prompt": "PART E: PREPOSITIONS — Complete each phrase with the correct preposition.",
       "kind": "match",
-      "max_marks": 7,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie's story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct preposition to complete each phrase.\", \"bank\": [\"at\", \"for\", \"in\", \"against\", \"from\", \"through\", \"with\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie was born _____ Cape Town.\"}, {\"id\": \"t2\", \"text\": \"She trained _____ years to reach her goals.\"}, {\"id\": \"t3\", \"text\": \"She competed _____ able-bodied swimmers.\"}, {\"id\": \"t4\", \"text\": \"She won medals _____ the Paralympic Games.\"}, {\"id\": \"t5\", \"text\": \"She showed talent _____ a young age.\"}, {\"id\": \"t6\", \"text\": \"She achieved success _____ hard work and determination.\"}, {\"id\": \"t7\", \"text\": \"She swam _____ a prosthetic limb.\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"in\", \"t2\": \"for\", \"t3\": \"against\", \"t4\": \"at\", \"t5\": \"from\", \"t6\": \"through\", \"t7\": \"with\"}, \"marks_per_match\": 1}",
+      "max_marks": 3,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie\\u2019s story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct preposition to complete each sentence.\", \"bank\": [\"at\", \"for\", \"in\", \"against\", \"from\", \"through\", \"with\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Natalie was born _____ Cape Town.\"}, {\"id\": \"t2\", \"text\": \"She trained _____ years to reach her goals.\"}, {\"id\": \"t3\", \"text\": \"She competed _____ able-bodied swimmers.\"}], \"grid_cols\": 1}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"in\", \"t2\": \"for\", \"t3\": \"against\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -407,7 +407,7 @@
     "pk": 58,
     "fields": {
       "section": 6,
-      "order": 9,
+      "order": 10,
       "code": "GEN-F-READ",
       "prompt": "PART F: READING COMPREHENSION — Read the passage carefully before answering the questions.",
       "kind": "text",
@@ -422,13 +422,13 @@
     "pk": 59,
     "fields": {
       "section": 6,
-      "order": 10,
+      "order": 11,
       "code": "GEN-F-1",
       "prompt": "PART F: VOCABULARY — Match each word to its correct meaning.",
       "kind": "match",
-      "max_marks": 6,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Drag each word to its correct definition.\", \"bank\": [\"organised\", \"protest\", \"petition\", \"orderly\", \"dignity\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"A formal written request signed by many people\"}, {\"id\": \"t2\", \"text\": \"To plan and coordinate an activity\"}, {\"id\": \"t3\", \"text\": \"A public expression of disagreement or disapproval\"}, {\"id\": \"t4\", \"text\": \"Calm and well-behaved\"}, {\"id\": \"t5\", \"text\": \"A feeling of pride and self-respect\"}, {\"id\": \"t6\", \"text\": \"Something that represents a bigger idea or group\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"petition\", \"t2\": \"organised\", \"t3\": \"protest\", \"t4\": \"orderly\", \"t5\": \"dignity\", \"t6\": \"symbol\"}, \"marks_per_match\": 1}",
+      "max_marks": 3,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Match each word to its correct meaning.\", \"bank\": [\"organised\", \"protest\", \"petition\", \"orderly\", \"dignity\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"A formal written request signed by many people\"}, {\"id\": \"t2\", \"text\": \"To plan and coordinate an activity\"}, {\"id\": \"t3\", \"text\": \"A public expression of disagreement or disapproval\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"petition\", \"t2\": \"organised\", \"t3\": \"protest\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -437,7 +437,7 @@
     "pk": 60,
     "fields": {
       "section": 6,
-      "order": 11,
+      "order": 13,
       "code": "GEN-F-2",
       "prompt": "The 1956 women's march was organised by the African National Congress (ANC).",
       "kind": "text",
@@ -452,7 +452,7 @@
     "pk": 61,
     "fields": {
       "section": 6,
-      "order": 12,
+      "order": 14,
       "code": "GEN-F-3",
       "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-2.",
       "kind": "text",
@@ -467,7 +467,7 @@
     "pk": 62,
     "fields": {
       "section": 6,
-      "order": 13,
+      "order": 15,
       "code": "GEN-F-4",
       "prompt": "Prime Minister Strijdom met with the women when they arrived at the Union Buildings.",
       "kind": "text",
@@ -482,7 +482,7 @@
     "pk": 63,
     "fields": {
       "section": 6,
-      "order": 14,
+      "order": 16,
       "code": "GEN-F-5",
       "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-4.",
       "kind": "text",
@@ -497,7 +497,7 @@
     "pk": 64,
     "fields": {
       "section": 6,
-      "order": 15,
+      "order": 17,
       "code": "GEN-F-6",
       "prompt": "The 1956 Women's March was a violent event.",
       "kind": "text",
@@ -512,7 +512,7 @@
     "pk": 65,
     "fields": {
       "section": 6,
-      "order": 16,
+      "order": 18,
       "code": "GEN-F-7",
       "prompt": "Choose the sentence from the passage that best supports your answer to GEN-F-6.",
       "kind": "text",
@@ -527,13 +527,13 @@
     "pk": 66,
     "fields": {
       "section": 6,
-      "order": 17,
+      "order": 19,
       "code": "GEN-F-8",
       "prompt": "PART F: WORD SEARCH IN PASSAGE — Find the word in the passage that matches each definition.",
       "kind": "match",
-      "max_marks": 8,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Drag the word from the passage that matches each definition.\", \"bank\": [\"protest\", \"required\", \"determined\", \"orderly\", \"observed\", \"landmark\", \"absent\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"A public objection or expression of disapproval\"}, {\"id\": \"t2\", \"text\": \"Needed; expected by law or rule\"}, {\"id\": \"t3\", \"text\": \"Showing firm purpose; not willing to give up\"}, {\"id\": \"t4\", \"text\": \"Calm and controlled in behaviour\"}, {\"id\": \"t5\", \"text\": \"Watched solemnly or took part in a ceremony\"}, {\"id\": \"t6\", \"text\": \"Important and historically significant\"}, {\"id\": \"t7\", \"text\": \"Not present; not there\"}, {\"id\": \"t8\", \"text\": \"Something that stands for a larger idea or meaning\"}]}",
-      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"protest\", \"t2\": \"required\", \"t3\": \"determined\", \"t4\": \"orderly\", \"t5\": \"observed\", \"t6\": \"landmark\", \"t7\": \"absent\", \"t8\": \"symbol\"}, \"marks_per_match\": 1}",
+      "max_marks": 4,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Find the word in the passage that matches each meaning.\", \"bank\": [\"protest\", \"required\", \"determined\", \"orderly\", \"observed\", \"landmark\", \"absent\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"A public objection or expression of disapproval\"}, {\"id\": \"t2\", \"text\": \"Needed; expected by law or rule\"}, {\"id\": \"t3\", \"text\": \"Showing firm purpose; not willing to give up\"}, {\"id\": \"t4\", \"text\": \"Calm and controlled in behaviour\"}], \"grid_cols\": 1}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"protest\", \"t2\": \"required\", \"t3\": \"determined\", \"t4\": \"orderly\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   },
@@ -542,7 +542,7 @@
     "pk": 67,
     "fields": {
       "section": 6,
-      "order": 18,
+      "order": 21,
       "code": "GEN-G-WRITE",
       "prompt": "PART G: WRITING TASK",
       "kind": "text",
@@ -557,7 +557,7 @@
     "pk": 68,
     "fields": {
       "section": 6,
-      "order": 19,
+      "order": 22,
       "code": "GEN-G-HANDWRITE",
       "prompt": "Did you write your essay on a page instead of typing it in the box?",
       "kind": "text",
@@ -577,7 +577,7 @@
       "prompt": "PART B: CONNECTIVES — Choose the correct connective word for each sentence.",
       "kind": "match",
       "max_marks": 3,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the \\u2018Princess of Africa\\u2019. She became one of South Africa\\u2019s most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"prompt\": \"Drag the correct connective to complete each sentence.\", \"bank\": [\"but\", \"so\", \"while\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She wanted to rest, _____ she kept performing for her fans.\"}, {\"id\": \"t2\", \"text\": \"She cared deeply about health, _____ she became a UNICEF Ambassador.\"}, {\"id\": \"t3\", \"text\": \"She was singing on stage _____ her fans cheered loudly.\"}]}",
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Yvonne Chaka Chaka was born and grew up in Dobsonville, Soweto. She began her music career in the early 1980s and released her first album in 1985. Her warm and powerful voice won the hearts of millions, and people began to call her the \\u2018Princess of Africa\\u2019. She became one of South Africa\\u2019s most celebrated entertainers, performing across Africa and around the world. In 2001, she was appointed a UNICEF Goodwill Ambassador. In this role, she uses her fame to fight malaria and promote better health across the African continent. She has received many awards and continues to inspire young people through music and public service.\", \"prompt\": \"Drag the correct connective to complete each sentence.\", \"bank\": [\"but\", \"so\", \"while\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She wanted to rest, _____ she kept performing for her fans.\"}, {\"id\": \"t2\", \"text\": \"She cared deeply about health, _____ she became a UNICEF Ambassador.\"}, {\"id\": \"t3\", \"text\": \"She was singing on stage _____ her fans cheered loudly.\"}], \"grid_cols\": 1}",
       "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"but\", \"t2\": \"so\", \"t3\": \"while\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
@@ -652,8 +652,53 @@
       "prompt": "PART E: MODAL VERBS — Complete each sentence using the correct modal verb phrase.",
       "kind": "match",
       "max_marks": 3,
-      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie\\u2019s story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct modal verb phrase to complete each sentence about Natalie.\", \"bank\": [\"managed to\", \"wanted to\", \"chose to\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She _____ qualify for the 2008 Olympic Games, becoming the first amputee to do so.\"}, {\"id\": \"t2\", \"text\": \"She always _____ represent South Africa on the world stage.\"}, {\"id\": \"t3\", \"text\": \"After the Olympics, she _____ compete in the Paralympic Games as well.\"}]}",
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie\\u2019s story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct modal verb phrase to complete each sentence about Natalie.\", \"bank\": [\"refused to\", \"had to\", \"was able to\", \"managed to\", \"wanted to\", \"chose to\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She _____ qualify for the 2008 Olympic Games, becoming the first amputee to do so.\"}, {\"id\": \"t2\", \"text\": \"She always _____ represent South Africa on the world stage.\"}, {\"id\": \"t3\", \"text\": \"After the Olympics, she _____ compete in the Paralympic Games as well.\"}], \"grid_cols\": 1}",
       "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"managed to\", \"t2\": \"wanted to\", \"t3\": \"chose to\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 75,
+    "fields": {
+      "section": 6,
+      "order": 9,
+      "code": "GEN-E-5B",
+      "prompt": "PART E: PREPOSITIONS — Complete each phrase with the correct preposition.",
+      "kind": "match",
+      "max_marks": 4,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"Natalie du Toit was born in Cape Town in 1984. She showed exceptional talent as a swimmer from a young age and competed at a high level.\\n\\nIn 2001, a motorcycle accident resulted in her left leg being amputated. Many people expected her to give up, but Natalie was compelled by her love for the sport and refused to surrender.\\n\\nWith dedication and hard work, she was subsequently able to compete against able-bodied swimmers. She returned to top-level competition and continued to improve her times.\\n\\nIn 2008, she became the first amputee swimmer to qualify for the Olympic Games, competing alongside athletes without disabilities. She later won multiple gold medals at the Paralympic Games. Natalie\\u2019s story is a powerful symbol of resilience and determination.\", \"prompt\": \"Drag the correct preposition to complete each sentence.\", \"bank\": [\"at\", \"for\", \"in\", \"against\", \"from\", \"through\", \"with\"], \"targets\": [{\"id\": \"t1\", \"text\": \"She won medals _____ the Paralympic Games.\"}, {\"id\": \"t2\", \"text\": \"She showed talent _____ a young age.\"}, {\"id\": \"t3\", \"text\": \"She achieved success _____ hard work and determination.\"}, {\"id\": \"t4\", \"text\": \"She swam _____ a prosthetic limb.\"}], \"grid_cols\": 1}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"at\", \"t2\": \"from\", \"t3\": \"through\", \"t4\": \"with\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 76,
+    "fields": {
+      "section": 6,
+      "order": 12,
+      "code": "GEN-F-1B",
+      "prompt": "PART F: VOCABULARY — Match each word to its correct meaning.",
+      "kind": "match",
+      "max_marks": 3,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Match each word to its correct meaning.\", \"bank\": [\"organised\", \"protest\", \"petition\", \"orderly\", \"dignity\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Calm and well-behaved\"}, {\"id\": \"t2\", \"text\": \"A feeling of pride and self-respect\"}, {\"id\": \"t3\", \"text\": \"Something that represents a bigger idea or group\"}]}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"orderly\", \"t2\": \"dignity\", \"t3\": \"symbol\"}, \"marks_per_match\": 1}",
+      "marking_notes": ""
+    }
+  },
+  {
+    "model": "assessment.question",
+    "pk": 77,
+    "fields": {
+      "section": 6,
+      "order": 20,
+      "code": "GEN-F-8B",
+      "prompt": "PART F: WORD SEARCH IN PASSAGE — Find the word in the passage that matches each definition.",
+      "kind": "match",
+      "max_marks": 4,
+      "spec_json": "{\"layout\": \"passage_split\", \"passage\": \"On 9 August 1956, more than 20 000 women marched to the Union Buildings in Pretoria to protest against the pass laws. The march was organised by the Federation of South African Women (FEDSAW). The women were required to carry passes under apartheid law, which they strongly opposed. They carried petitions with thousands of signatures, determined to have their voices heard. Prime Minister J.G. Strijdom was absent and refused to meet with them. Despite this, the women remained orderly and observed a moment of silence with dignity before leaving. The march became a landmark event in South African history and a symbol of women's courage.\", \"prompt\": \"Find the word in the passage that matches each meaning.\", \"bank\": [\"protest\", \"required\", \"determined\", \"orderly\", \"observed\", \"landmark\", \"absent\", \"symbol\"], \"targets\": [{\"id\": \"t1\", \"text\": \"Watched solemnly or took part in a ceremony\"}, {\"id\": \"t2\", \"text\": \"Important and historically significant\"}, {\"id\": \"t3\", \"text\": \"Not present; not there\"}, {\"id\": \"t4\", \"text\": \"Something that stands for a larger idea or meaning\"}], \"grid_cols\": 1}",
+      "answer_key_json": "{\"auto_mark\": true, \"match\": {\"t1\": \"observed\", \"t2\": \"landmark\", \"t3\": \"absent\", \"t4\": \"symbol\"}, \"marks_per_match\": 1}",
       "marking_notes": ""
     }
   }
