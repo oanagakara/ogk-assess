@@ -18,41 +18,38 @@
         </div>
 
         <div>
-          <h1 class="text-2xl font-bold">You finished {{ section.title }}</h1>
+          <h1 class="text-2xl font-bold">You have completed the assessment</h1>
           <p class="text-base-content opacity-60 mt-2">
-            You can use the time you have left in this section to review and update your answers
-            before moving on.
+            You can use the time remaining to review and update any of your answers before submitting.
           </p>
         </div>
 
-        <div class="stats shadow w-full">
-          <div class="stat">
-            <div class="stat-title">Questions in this section</div>
-            <div class="stat-value text-primary">{{ total_questions }}</div>
+        <div class="grid grid-cols-2 gap-1">
+          <div class="bg-base-200 rounded-xl p-6 text-center">
+            <div class="text-xs uppercase tracking-widest opacity-50 mb-1">Total questions</div>
+            <div class="font-bold text-primary" style="font-size:3rem;line-height:1;">{{ total_questions }}</div>
           </div>
-          <div class="stat">
-            <div class="stat-title">Review time available</div>
-            <div class="stat-value text-secondary">
-              {% widthratio review_seconds 60 1 %}<span class="text-base font-normal opacity-60"> min</span>
-            </div>
-            <div class="stat-desc">{{ review_seconds }} seconds — one timer for all questions</div>
+          <div class="bg-base-200 rounded-xl p-6 text-center">
+            <div class="text-xs uppercase tracking-widest opacity-50 mb-1">Review time available</div>
+            <div class="font-bold text-primary" style="font-size:3rem;line-height:1;">{% widthratio review_seconds 60 1 %}<span class="font-normal opacity-60" style="font-size:1.25rem;"> min</span></div>
+            <div class="text-xs opacity-40 mt-1">one timer for all questions</div>
           </div>
         </div>
 
         <p class="text-sm opacity-60">
-          Review uses a single timer (max 10 minutes) for the whole section. You can move freely
-          between questions with Previous / Next.
+          Review uses a single timer (max 10 minutes). You can move freely between all questions
+          with Previous / Next.
         </p>
 
-        <form method="post" class="flex flex-col gap-3">
+        <form method="post" class="flex items-center justify-center gap-4 pt-2">
           {% csrf_token %}
-          <button type="submit" name="action" value="review"
-                  class="btn btn-primary btn-lg">
-            Start review →
-          </button>
           <button type="submit" name="action" value="skip"
                   class="btn btn-ghost">
-            Skip review and continue
+            Skip and continue
+          </button>
+          <button type="submit" name="action" value="review"
+                  class="btn btn-primary">
+            Start review →
           </button>
         </form>
 

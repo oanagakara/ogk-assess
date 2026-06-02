@@ -124,19 +124,15 @@
     {% endif %}
   </div>
 
-  <div class="flex items-center justify-between">
-    <div>
-      {% if has_prev %}
-        <a href="{% url 'assessment:attempt_section_review_question' attempt.code section.pk n|add:'-1' %}"
-           class="btn">← Previous</a>
-      {% endif %}
-    </div>
-    <div>
-      {% if has_next %}
-        <button type="submit" class="btn btn-primary">Save & Next →</button>
-      {% else %}
-        <button type="submit" class="btn btn-primary">Save & Submit</button>
-      {% endif %}
-    </div>
+  <div class="flex items-center justify-center gap-4">
+    {% if has_prev %}
+      <a href="{% url 'assessment:attempt_section_review_question' attempt.code section.pk n|add:'-1' %}"
+         class="btn btn-sm">← Previous</a>
+    {% endif %}
+    {% if has_next %}
+      <button type="submit" class="btn btn-sm btn-primary">Save & Next →</button>
+    {% else %}
+      <button type="submit" class="btn btn-sm btn-primary">Save & Submit</button>
+    {% endif %}
   </div>
 </form>

@@ -25,7 +25,7 @@ class LearnerForm(forms.ModelForm):
             "first_names": forms.TextInput(attrs={"class": INPUT}),
             "surname": forms.TextInput(attrs={"class": INPUT}),
             "id_number": forms.TextInput(attrs={"class": INPUT}),
-            "dob": forms.DateInput(attrs={"class": INPUT, "type": "date"}),
+            "dob": forms.DateInput(attrs={"class": INPUT, "type": "date", "min": "1920-01-01", "max": "2015-12-31"}),
             "gender": forms.Select(attrs={"class": SELECT}),
             "demographic": forms.Select(attrs={"class": SELECT}),
         }

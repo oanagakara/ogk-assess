@@ -258,7 +258,7 @@
     "fields": {
       "section": 5,
       "order": 18,
-      "code": "GEN-C-7",
+      "code": "GEN-C-7A",
       "prompt": "PART C: LANGUAGE — Choose the correct word to complete each sentence.",
       "kind": "match",
       "max_marks": 3,
@@ -288,7 +288,7 @@
     "fields": {
       "section": 5,
       "order": 21,
-      "code": "GEN-D-2",
+      "code": "GEN-D-2A",
       "prompt": "PART D: TIME — Match each digital time to its written description.",
       "kind": "match",
       "max_marks": 3,
@@ -318,7 +318,7 @@
     "fields": {
       "section": 6,
       "order": 2,
-      "code": "GEN-E-1",
+      "code": "GEN-E-1A",
       "prompt": "PART E: VOCABULARY — Match each word from the passage to its meaning. (Part 1 of 2)",
       "kind": "match",
       "max_marks": 4,
@@ -378,7 +378,7 @@
     "fields": {
       "section": 6,
       "order": 6,
-      "code": "GEN-E-4",
+      "code": "GEN-E-4A",
       "prompt": "PART E: MODAL VERBS — Complete each sentence using the correct modal verb phrase.",
       "kind": "match",
       "max_marks": 3,
