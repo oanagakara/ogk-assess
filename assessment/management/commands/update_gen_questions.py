@@ -94,9 +94,9 @@ class Command(BaseCommand):
                 self._update_gen_d1()
                 self._split("GEN-B-5")
                 self._split("GEN-C-1")
-                self._split("GEN-C-7")
-                self._split("GEN-D-2")
-                self._split("GEN-E-4")
+                self._split("GEN-C-7A")
+                self._split("GEN-D-2A")
+                self._split("GEN-E-4A")
                 self._reorder()
             if not e2_done:
                 self._update_gen_e2()
@@ -202,6 +202,7 @@ class Command(BaseCommand):
     def _update_gen_d1(self):
         from assessment.models import Question
         q = Question.objects.get(code="GEN-D-1")
+        q.max_marks = 6
         q.spec_json = _spec(
             passage=None,
             prompt="Drag the number that shows where each sentence belongs in the paragraph.",
@@ -260,7 +261,7 @@ class Command(BaseCommand):
                 ],
                 b_key={"t1": "certificate", "t2": "closing", "t3": "shortlisted"},
             ),
-            "GEN-C-7": dict(
+            "GEN-C-7A": dict(
                 passage=None,
                 prompt="Drag the correct word to complete each sentence.",
                 a_bank=["There", "teach", "flour"],
@@ -278,7 +279,7 @@ class Command(BaseCommand):
                 ],
                 b_key={"t1": "want", "t2": "where", "t3": "is"},
             ),
-            "GEN-D-2": dict(
+            "GEN-D-2A": dict(
                 passage=None,
                 prompt="Drag the digital time that matches each written description.",
                 a_bank=["07h30", "14h45", "21h20"],
@@ -296,7 +297,7 @@ class Command(BaseCommand):
                 ],
                 b_key={"t1": "12h00", "t2": "05h55", "t3": "16h10"},
             ),
-            "GEN-E-4": dict(
+            "GEN-E-4A": dict(
                 passage=_NATALIE,
                 prompt="Drag the correct modal verb phrase to complete each sentence about Natalie.",
                 a_bank=["refused to", "had to", "was able to"],
@@ -341,22 +342,29 @@ class Command(BaseCommand):
     # ── Batch 3: grid cols, shared banks, E-5 / F-1 / F-8 splits ─────────────
 
     def _apply_grids(self):
-        """Add grid_cols=1 to questions that need a single-column answer grid."""
+        """Set grid_cols on questions that need a specific answer grid layout."""
         import json as _json
         from assessment.models import Question
-        for code in ["GEN-B-5", "GEN-B-5B", "GEN-C-1", "GEN-E-4", "GEN-E-4B"]:
-            q = Question.objects.get(code=code)
-            spec = _json.loads(q.spec_json)
-            spec["grid_cols"] = 1
-            q.spec_json = _json.dumps(spec)
-            q.save()
+        grids = {
+            3: ["GEN-B-5", "GEN-B-5B", "GEN-C-1", "GEN-C-1B", "GEN-C-7A", "GEN-C-7B",
+                "GEN-D-2A", "GEN-D-2B", "GEN-E-4A", "GEN-E-4B", "GEN-E-5A",
+                "GEN-F-1A", "GEN-F-1B"],
+            4: ["GEN-E-1A", "GEN-E-1B", "GEN-E-3", "GEN-E-5B", "GEN-F-8", "GEN-F-8B"],
+        }
+        for cols, codes in grids.items():
+            for code in codes:
+                q = Question.objects.get(code=code)
+                spec = _json.loads(q.spec_json)
+                spec["grid_cols"] = cols
+                q.spec_json = _json.dumps(spec)
+                q.save()
 
     def _update_e4_banks(self):
-        """Give GEN-E-4 and GEN-E-4B the full 6-word bank as distractors."""
+        """Give GEN-E-4A and GEN-E-4B the full 6-word bank as distractors."""
         import json as _json
         from assessment.models import Question
         full_bank = ["refused to", "had to", "was able to", "managed to", "wanted to", "chose to"]
-        for code in ["GEN-E-4", "GEN-E-4B"]:
+        for code in ["GEN-E-4A", "GEN-E-4B"]:
             q = Question.objects.get(code=code)
             spec = _json.loads(q.spec_json)
             spec["bank"] = full_bank
@@ -406,7 +414,7 @@ class Command(BaseCommand):
     def _split_f1(self):
         from assessment.models import Question
         full_bank = ["organised", "protest", "petition", "orderly", "dignity", "symbol"]
-        q = Question.objects.get(code="GEN-F-1")
+        q = Question.objects.get(code="GEN-F-1A")
         q.max_marks = 3
         q.spec_json = _spec(
             _WOMEN,
@@ -487,15 +495,15 @@ class Command(BaseCommand):
             "GEN-C-READ",
             "GEN-C-1", "GEN-C-1B",
             "GEN-C-2", "GEN-C-3", "GEN-C-4", "GEN-C-5", "GEN-C-6",
-            "GEN-C-7", "GEN-C-7B",
+            "GEN-C-7A", "GEN-C-7B",
             "GEN-D-1",
-            "GEN-D-2", "GEN-D-2B",
+            "GEN-D-2A", "GEN-D-2B",
         ]
         sec6_order = [
             "GEN-E-READ",
-            "GEN-E-1", "GEN-E-1B",
+            "GEN-E-1A", "GEN-E-1B",
             "GEN-E-2", "GEN-E-3",
-            "GEN-E-4", "GEN-E-4B",
+            "GEN-E-4A", "GEN-E-4B",
             "GEN-E-5A", "GEN-E-5B",
             "GEN-F-READ", "GEN-F-1", "GEN-F-1B",
             "GEN-F-2", "GEN-F-3", "GEN-F-4", "GEN-F-5", "GEN-F-6", "GEN-F-7",

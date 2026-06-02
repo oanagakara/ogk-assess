@@ -661,10 +661,15 @@ def attempt_section_review_info(request, code: str, section_id: int):
     if projected_review_seconds == 0 or not section_questions:
         return _advance_after_section(attempt, section.pk)
 
+    all_sections = Section.objects.filter(template=attempt.template)
+    total_all_questions = sum(
+        len(_section_questions(attempt.template, s.pk)) for s in all_sections
+    )
+
     return render(request, "assessment/review_info.html", {
         "attempt": attempt,
         "section": section,
-        "total_questions": len(section_questions),
+        "total_questions": total_all_questions,
         "review_seconds": projected_review_seconds,
     })
 
