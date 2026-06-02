@@ -49,7 +49,7 @@
           </div>
         {% endfor %}
       </div>
-      <script>
+      <script nonce="{{ csp_nonce }}">
         (function () {
           const bank = document.getElementById("bank");
           const hidden = document.getElementById("id_response_json");

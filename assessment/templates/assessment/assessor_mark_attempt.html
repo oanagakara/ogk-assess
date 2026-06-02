@@ -594,7 +594,7 @@
 
       {% else %}
         {# No pending questions, not showing summary — redirect to summary #}
-        <script>window.location = "{% url 'assessment:assessor_mark_attempt' attempt.code %}?summary=1&from_tab={{ from_tab }}";</script>
+        <script nonce="{{ csp_nonce }}">window.location = "{% url 'assessment:assessor_mark_attempt' attempt.code %}?summary=1&from_tab={{ from_tab }}";</script>
       {% endif %}
 
     </div>
@@ -617,7 +617,7 @@
   <div id="ws-modal-body" style="flex:1;min-height:0;background:#f3f4f6;overflow:hidden;"></div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
   (function () {
     var backdrop = document.getElementById('ws-backdrop');
     var panel    = document.getElementById('ws-panel');
@@ -692,7 +692,7 @@
 </script>
 {% endif %}
 
-<script>
+<script nonce="{{ csp_nonce }}">
   // After navigation, scroll the active sidebar item into view so it isn't
   // out of focus when the page reloads with the selected question.
   (function () {

@@ -1,3 +1,5 @@
+import secrets
+
 from django.contrib.auth.signals import user_login_failed
 from django.core.cache import cache
 from django.dispatch import receiver
@@ -38,16 +40,11 @@ class LoginRateLimitMiddleware:
 
 
 class SecurityHeadersMiddleware:
-    """
-    Inject Content-Security-Policy (M-2) and Permissions-Policy (L-2) on every response.
-
-    unsafe-inline is required because the base template injects tenant brand CSS variables
-    and theme-toggle scripts inline. A nonce-based CSP would require template refactoring.
-    """
-    _CSP = (
+    """Inject Content-Security-Policy and Permissions-Policy on every response."""
+    _CSP_TEMPLATE = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self' 'nonce-{nonce}'; "
+        "style-src 'self' 'nonce-{nonce}'; "
         "img-src 'self' data:; "
         "font-src 'self'; "
         "frame-ancestors 'none';"
@@ -58,7 +55,9 @@ class SecurityHeadersMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        request.csp_nonce = secrets.token_urlsafe(16)
         response = self.get_response(request)
-        response.setdefault("Content-Security-Policy", self._CSP)
+        csp = self._CSP_TEMPLATE.format(nonce=request.csp_nonce)
+        response.setdefault("Content-Security-Policy", csp)
         response.setdefault("Permissions-Policy", self._PERMISSIONS)
         return response

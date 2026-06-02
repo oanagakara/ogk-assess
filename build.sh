@@ -5,6 +5,25 @@ pip install uv
 uv sync --frozen
 uv run python manage.py collectstatic --no-input
 uv run python manage.py migrate
+uv run python manage.py createcachetable
+
+# Verify PostgreSQL SSL when a live DB is configured
+if [ -n "$DATABASE_URL" ]; then
+    if command -v psql > /dev/null 2>&1; then
+        echo "Verifying PostgreSQL SSL..."
+        SSL_STATUS=$(psql "$DATABASE_URL" -t -c "SHOW ssl;" 2>/dev/null | tr -d ' \n')
+        if [ "$SSL_STATUS" = "on" ]; then
+            echo "PostgreSQL SSL: ON"
+        else
+            echo "ERROR: PostgreSQL SSL is not enabled (got: '${SSL_STATUS}'). Check ssl_require=True in settings.py."
+            exit 1
+        fi
+    else
+        echo "psql not available in build environment — SSL verification skipped."
+    fi
+else
+    echo "DATABASE_URL not set — skipping SSL verification."
+fi
 uv run python manage.py shell -c "
 from assessment.models import Question, AssessmentTemplate
 from django.core.management import call_command

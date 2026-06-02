@@ -167,7 +167,7 @@
 
 {% load static %}
 <script src="{% static 'js/chart.umd.min.js' %}"></script>
-<script>
+<script nonce="{{ csp_nonce }}">
 {% autoescape off %}
 if (typeof Chart === 'undefined') {
   document.querySelectorAll('canvas').forEach(function(c) {
