@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from ..models import AssessorInvite
 
@@ -29,7 +30,13 @@ def set_active_role(request):
     elif is_moderator(request.user):
         request.session.pop("active_role", None)
     logger.info("Role switched: user=%s active_role=%s", request.user.username, request.session.get("active_role", "full"))
-    next_url = request.POST.get("next") or reverse("assessment:assessor_dashboard")
+    next_url = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts=request.get_host(),
+        require_https=request.is_secure(),
+    ):
+        next_url = reverse("assessment:assessor_dashboard")
     return redirect(next_url)
 
 

@@ -2,7 +2,7 @@
 {% block title %}Assessor Guide{% endblock %}
 
 {% block body %}
-<style>
+<style nonce="{{ csp_nonce }}">
   /* ── Layout ── */
   #guide-content { scroll-behavior: smooth; }
 
@@ -519,7 +519,7 @@
           <h2 id="s-roles-matrix" class="prose-h2">Capability Matrix</h2>
           <p>Use this table when deciding which role to assign to a new user.</p>
 
-          <style>
+          <style nonce="{{ csp_nonce }}">
             .perm-table th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.55; padding: 0.5rem 0.75rem; }
             .perm-table td { font-size: 0.8125rem; padding: 0.4rem 0.75rem; }
             .perm-table td:not(:first-child) { text-align: center; }
@@ -759,7 +759,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   // ── Theme + font (same as assessor_base) ────────────────────────
   var root = document.documentElement;

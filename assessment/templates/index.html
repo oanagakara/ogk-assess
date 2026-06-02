@@ -79,7 +79,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
   document.querySelectorAll('.portal-tab-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.portal-tab-btn').forEach(function(b) { b.classList.remove('active'); });

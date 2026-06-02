@@ -5,6 +5,10 @@ from .models import Attempt, Response, Score
 from .tenant import get_active_tenant
 
 
+def csp_nonce(request):
+    return {"csp_nonce": getattr(request, "csp_nonce", "")}
+
+
 def tenant_branding(request):
     tenant = get_active_tenant()
     if tenant is None:
