@@ -19,7 +19,7 @@ if [ -n "$DATABASE_URL" ]; then
             echo "ERROR: PostgreSQL SSL is not enabled (got: '${SSL_STATUS}'). Check ssl_require=True in settings.py."
             exit 1
         else
-            echo "WARNING: PostgreSQL SSL is off. Set REQUIRE_DB_SSL=true in Render env vars after upgrading to paid PostgreSQL."
+            echo "WARNING: PostgreSQL SSL is off (expected on Render free plan — internal network only). Will pass automatically on paid PostgreSQL. Set REQUIRE_DB_SSL=true then to enforce."
         fi
     else
         echo "psql not available in build environment — SSL verification skipped."
