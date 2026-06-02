@@ -3,21 +3,25 @@
 
 {% block content %}
 <div class="min-h-[calc(100vh-6rem)] flex items-start justify-center px-4 pt-8 pb-6">
-    <div class="w-full" style="max-width:1047px;">
+    <div class="w-full" style="max-width:1400px;">
         <div class="card bg-base-100 shadow-xl">
-            <div class="card-body p-6 md:p-8 space-y-6">
+            <div class="card-body px-4 pt-6 space-y-2" style="padding-bottom:10px">
               <div>
                 <h1 class="card-title text-2xl">INSTRUCTIONS TO LEARNERS</h1>
               </div>
               <div class="badge badge-outline">Code: {{ attempt.code }}</div>
               <div class="divider my-0"></div>
-              <ul class="list-disc pl-6 space-y-2">
-                <li>Work on one question at a time</li>
-                <li>You may skip and come back</li>
-                <li>No phones, dictionaries, or calculators</li>
-                <li>Ask the facilitator for help if instructions are not clear</li>
-              </ul>
-              <form method="post" class="pt-2 flex justify-end" action="">
+              <div class="card bg-base-200 shadow">
+                <div class="card-body p-4">
+                  <ul class="list-disc pl-6 space-y-2">
+                    <li>Work on one question at a time</li>
+                    <li>You may skip and come back</li>
+                    <li>No phones, dictionaries, or calculators</li>
+                    <li>Ask the facilitator for help if instructions are not clear</li>
+                  </ul>
+                </div>
+              </div>
+              <form method="post" class="flex justify-end" action="">
                 {% csrf_token %}
                 <button class="btn btn-primary" type="submit">I understand, continue</button>
               </form>

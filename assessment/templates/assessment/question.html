@@ -3,7 +3,7 @@
 {% block title %}Question {{ n }}{% endblock %}
 
 {% block content %}
-<div class="min-h-[calc(100vh-6rem)] flex items-start justify-center px-4 pt-4 pb-6">
+<div class="flex items-stretch justify-center px-4" id="question-outer" style="min-height:calc(100vh - 40px)">
     {% if section_expires_at %}
         <div id="section-timer-data"
              data-expires-at="{{ section_expires_at|date:'c' }}"
@@ -13,7 +13,7 @@
     {% endif %}
 
     {% if layout == "passage_only" %}
-        <div class="w-full" style="max-width:1047px;">
+        <div class="w-full" style="max-width:1400px;">
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-6 md:p-8 space-y-6">
                     <div class="flex items-start justify-between gap-4">
@@ -35,15 +35,17 @@
 
                     <div class="divider mb-0"></div>
 
-                    <div class="prose max-w-none space-y-4">
-                        <p>
-                            Read the passage below, and click Next to answer questions about it.
-                            The passage will remain on screen until you have answered all questions about it.
-                            Click Next after you have read the passage and you are ready to proceed.
-                        </p>
+                    <p class="prose max-w-none">
+                        Read the passage below, and click Next to answer questions about it.
+                        The passage will remain on screen until you have answered all questions about it.
+                        Click Next after you have read the passage and you are ready to proceed.
+                    </p>
 
-                        <div class="space-y-4">
-                            {{ passage|flow_paragraphs }}
+                    <div class="card bg-base-200 shadow">
+                        <div class="card-body p-4">
+                            <div class="prose max-w-none space-y-4">
+                                {{ passage|flow_paragraphs }}
+                            </div>
                         </div>
                     </div>
 
@@ -56,7 +58,7 @@
         </div>
 
     {% elif layout == "info_only" %}
-        <div class="w-full" style="max-width:1047px;">
+        <div class="w-full" style="max-width:1400px;">
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-6 md:p-8 space-y-6">
                     <div class="flex items-start justify-between gap-4">
@@ -101,7 +103,7 @@
         </div>
 
     {% elif layout == "passage_split" %}
-        <div class="w-full" style="max-width:1400px; display:grid; grid-template-columns:2fr 3fr; gap:1.5rem;">
+        <div class="w-full" style="max-width:1400px; display:grid; grid-template-columns:2fr 3fr; gap:1.5rem; align-self:flex-start;">
             <div class="card bg-base-100 shadow-xl lg:sticky lg:top-4">
                 <div class="card-body p-6 md:p-8 space-y-4">
                     <div class="flex items-start justify-between gap-4">
@@ -123,17 +125,21 @@
 
                     <div class="divider mb-0"></div>
 
-                    <div class="prose max-w-none space-y-4">
-                        {{ passage|flow_paragraphs }}
+                    <div class="card bg-base-200 shadow">
+                        <div class="card-body p-4">
+                            <div class="prose max-w-none space-y-4 text-sm">
+                                {{ passage|flow_paragraphs }}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="card bg-base-100 shadow-xl">
-                <div class="card-body p-4 md:p-6 space-y-3">
+                <div class="card-body space-y-1" style="padding:10px">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h1 class="card-title text-2xl">Question {{ n }} of {{ total }}</h1>
+                            <h1 class="card-title text-xl">Question {{ n }} of {{ total }}</h1>
                             <p class="text-sm opacity-70">{{ question.section.title }}</p>
                         </div>
                         <div class="flex items-center gap-2">
@@ -150,11 +156,11 @@
 
                     <div class="divider mb-0"></div>
 
-                    <form method="post" class="space-y-6">
+                    <form method="post" class="space-y-1" style="display:flex; flex-direction:column; flex:1;">
                         {% csrf_token %}
 
-                        <div class="space-y-2">
-                            <h2 class="text-xl font-semibold">{{ question.code }}</h2>
+                        <div class="space-y-0.5">
+                            <h2 class="text-base font-semibold">{{ question.code }}</h2>
                             <div class="whitespace-pre-wrap">{{ question.prompt }}</div>
                         </div>
 
@@ -162,12 +168,12 @@
                             {% if question.kind == "match" %}
                                 {{ form.response_json }}
 
-                                <div class="space-y-4">
+                                <div class="space-y-1">
 
                                     <div class="card bg-base-200 shadow">
-                                        <div class="card-body p-4">
-                                            <h3 class="font-semibold text-sm mb-2">Words</h3>
-                                            <div id="bank" class="flex flex-wrap gap-2" style="min-height:44px;">
+                                        <div class="card-body" style="padding:6px">
+                                            <h3 class="font-semibold text-sm mb-1">Words</h3>
+                                            <div id="bank" class="flex flex-wrap gap-2" style="min-height:32px;">
                                                 {% for w in spec.bank %}
                                                     <div
                                                         class="badge badge-lg cursor-move select-none"
@@ -176,17 +182,17 @@
                                                     >{{ w }}</div>
                                                 {% endfor %}
                                             </div>
-                                            <p class="text-xs opacity-50 mt-2">Drag a word onto a box.</p>
+                                            <p class="text-xs opacity-50 mt-1">Drag a word onto a box.</p>
                                         </div>
                                     </div>
 
-                                    <div class="gap-3" style="display:grid; {% if spec.grid_cols == 1 %}grid-template-columns: 1fr;{% else %}grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 1fr;{% endif %}">
+                                    <div class="gap-2" style="display:grid; {% if spec.grid_cols == 1 %}grid-template-columns: 1fr;{% elif spec.grid_cols %}grid-template-columns: repeat({{ spec.grid_cols }}, 1fr);{% else %}grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 1fr;{% endif %}">
                                         {% for t in spec.targets %}
                                             <div class="card bg-base-200 shadow" style="min-width:0;">
-                                                <div class="card-body p-3">
+                                                <div class="card-body" style="padding:8px">
                                                     <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
                                                     <div
-                                                        class="mt-2 p-2 rounded-lg bg-base-100 border border-base-300" style="min-height:56px;"
+                                                        class="mt-1 p-2 rounded-lg bg-base-100 border border-base-300" style="min-height:28px;"
                                                         data-target="{{ t.id }}"
                                                     >
                                                         <span class="opacity-50 text-sm">Drop here</span>
@@ -198,7 +204,7 @@
 
                                 </div>
 
-                                <script>
+                                <script nonce="{{ csp_nonce }}">
                                     const bank = document.getElementById("bank");
                                     const hidden = document.getElementById("id_response_json");
                                     const targets = document.querySelectorAll("[data-target]");
@@ -305,9 +311,9 @@
                                     </div>
 
                                 {% elif spec.kind_hint == "mcq_or_choice" and spec.choices %}
-                                    <div class="space-y-3">
+                                    <div class="space-y-2">
                                         {% for choice in spec.choices %}
-                                            <label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-200 px-4 py-3">
+                                            <label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-200 px-3 py-2">
                                                 <input
                                                     type="radio"
                                                     name="answer"
@@ -351,7 +357,7 @@
                             {% endif %}
                         </div>
 
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between pt-2" style="margin-top:auto;">
                             <button class="btn" type="submit" name="prev">Back</button>
                             <button class="btn btn-primary" type="submit" name="next">
                                 {% if n == total %}Submit{% else %}Next{% endif %}
@@ -363,12 +369,12 @@
         </div>
 
     {% else %}
-        <div class="w-full" style="max-width:1047px;">
+        <div class="w-full" style="max-width:1400px;">
             <div class="card bg-base-100 shadow-xl">
-                <div class="card-body p-4 md:p-6 space-y-3">
+                <div class="card-body space-y-1" style="padding:10px">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h1 class="card-title text-2xl">Question {{ n }} of {{ total }}</h1>
+                            <h1 class="card-title text-xl">Question {{ n }} of {{ total }}</h1>
                             <p class="text-sm opacity-70">{{ question.section.title }}</p>
                         </div>
                         <div class="flex items-center gap-2">
@@ -383,13 +389,13 @@
                         </div>
                     </div>
 
-                    <div class="divider mb-0"></div>
+                    <div class="divider my-0"></div>
 
-                    <form method="post" class="space-y-6">
+                    <form method="post" class="flex flex-col gap-1">
                         {% csrf_token %}
 
-                        <div class="space-y-2">
-                            <h2 class="text-xl font-semibold">{{ question.code }}</h2>
+                        <div class="space-y-0.5">
+                            <h2 class="text-base font-semibold">{{ question.code }}</h2>
                             <div class="whitespace-pre-wrap">{{ question.prompt }}</div>
                         </div>
 
@@ -397,12 +403,12 @@
                             {% if question.kind == "match" %}
                                 {{ form.response_json }}
 
-                                <div class="space-y-4">
+                                <div class="space-y-1">
 
                                     <div class="card bg-base-200 shadow">
-                                        <div class="card-body p-4">
-                                            <h3 class="font-semibold text-sm mb-2">Words</h3>
-                                            <div id="bank" class="flex flex-wrap gap-2" style="min-height:44px;">
+                                        <div class="card-body" style="padding:6px">
+                                            <h3 class="font-semibold text-sm mb-1">Words</h3>
+                                            <div id="bank" class="flex flex-wrap gap-2" style="min-height:32px;">
                                                 {% for w in spec.bank %}
                                                     <div
                                                         class="badge badge-lg cursor-move select-none"
@@ -411,17 +417,17 @@
                                                     >{{ w }}</div>
                                                 {% endfor %}
                                             </div>
-                                            <p class="text-xs opacity-50 mt-2">Drag a word onto a box.</p>
+                                            <p class="text-xs opacity-50 mt-1">Drag a word onto a box.</p>
                                         </div>
                                     </div>
 
-                                    <div class="gap-3" style="display:grid; {% if spec.grid_cols == 1 %}grid-template-columns: 1fr;{% else %}grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 1fr;{% endif %}">
+                                    <div class="gap-2" style="display:grid; {% if spec.grid_cols == 1 %}grid-template-columns: 1fr;{% elif spec.grid_cols %}grid-template-columns: repeat({{ spec.grid_cols }}, 1fr);{% else %}grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 1fr;{% endif %}">
                                         {% for t in spec.targets %}
                                             <div class="card bg-base-200 shadow" style="min-width:0;">
-                                                <div class="card-body p-3">
+                                                <div class="card-body" style="padding:8px">
                                                     <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
                                                     <div
-                                                        class="mt-2 p-2 rounded-lg bg-base-100 border border-base-300" style="min-height:56px;"
+                                                        class="mt-1 p-2 rounded-lg bg-base-100 border border-base-300" style="min-height:28px;"
                                                         data-target="{{ t.id }}"
                                                     >
                                                         <span class="opacity-50 text-sm">Drop here</span>
@@ -433,7 +439,7 @@
 
                                 </div>
 
-                                <script>
+                                <script nonce="{{ csp_nonce }}">
                                     const bank = document.getElementById("bank");
                                     const hidden = document.getElementById("id_response_json");
                                     const targets = document.querySelectorAll("[data-target]");
@@ -554,7 +560,7 @@
                                     </div>
                                 </div>
 
-                                <script>
+                                <script nonce="{{ csp_nonce }}">
                                 (function () {
                                     const answerInput = document.getElementById("ld-answer");
                                     const slots = document.querySelectorAll("[data-ld-slot]");
@@ -656,9 +662,9 @@
                                     </div>
 
                                 {% elif spec.kind_hint == "mcq_or_choice" and spec.choices %}
-                                    <div class="space-y-3">
+                                    <div class="space-y-2">
                                         {% for choice in spec.choices %}
-                                            <label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-200 px-4 py-3">
+                                            <label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-200 px-3 py-2">
                                                 <input
                                                     type="radio"
                                                     name="answer"
@@ -702,7 +708,7 @@
                             {% endif %}
                         </div>
 
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between mt-2">
                             <button class="btn" type="submit" name="prev">Back</button>
                             <button class="btn btn-primary" type="submit" name="next">
                                 {% if n == total %}Submit{% else %}Next{% endif %}
@@ -714,7 +720,7 @@
         </div>
     {% endif %}
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         document.addEventListener("DOMContentLoaded", function () {
             const clocks = document.querySelectorAll(".section-clock");
             if (!clocks.length) return;
@@ -744,6 +750,24 @@
             tick();
             setInterval(tick, 1000);
         });
+    </script>
+
+    <script nonce="{{ csp_nonce }}">
+    (function () {
+        function fixHeight() {
+            const outer = document.getElementById('question-outer');
+            const toolbar = document.querySelector('.flex.justify-end.items-center');
+            if (!outer || !toolbar) return;
+            const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+            const tbH = toolbar.getBoundingClientRect().height;
+            outer.style.minHeight = Math.ceil((window.innerHeight - tbH) / zoom) + 'px';
+        }
+        fixHeight();
+        ['zoom-in', 'zoom-out'].forEach(function (id) {
+            var btn = document.getElementById(id);
+            if (btn) btn.addEventListener('click', function () { requestAnimationFrame(fixHeight); });
+        });
+    })();
     </script>
 </div>
 {% endblock %}

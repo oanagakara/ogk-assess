@@ -1,7 +1,7 @@
 {% extends "assessment/base.html" %}
 
 {% block body %}
-<style>
+<style nonce="{{ csp_nonce }}">
   #sidebar { transition: width 0.2s ease; }
   #sidebar[data-collapsed] { width: 3.5rem; }
   #sidebar[data-collapsed] .sl { display: none; }
@@ -367,7 +367,7 @@
 
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
   (function () {
     var sidebar = document.getElementById("sidebar");
     var toggleBtn = document.getElementById("sidebar-toggle");
@@ -457,7 +457,7 @@
   })();
 </script>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var main = document.querySelector('main');
   if (!main) return;
