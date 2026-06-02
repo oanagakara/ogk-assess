@@ -1,7 +1,7 @@
 """Assessor marking workflow: scoring, review queue, uploads, audit."""
 import json
 import logging
-import re
+from pathlib import Path
 from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
@@ -960,7 +960,7 @@ def assessor_working_sheet_image(request, code: str):
     sheet = get_object_or_404(WorkingSheet, attempt=attempt)
     data = base64.b64decode(sheet.data)
     response = HttpResponse(data, content_type=sheet.content_type)
-    safe_name = re.sub(r'["\r\n\\]', '', sheet.original_filename or f"working_sheet_{code}")
+    safe_name = Path(sheet.original_filename or f"working_sheet_{code}").name
     response["Content-Disposition"] = f'inline; filename="{safe_name}"'
     return response
 
@@ -1016,7 +1016,7 @@ def assessor_writing_submission_image(request, code: str):
     submission = get_object_or_404(WritingSubmission, attempt=attempt)
     data = base64.b64decode(submission.data)
     response = HttpResponse(data, content_type=submission.content_type)
-    safe_name = re.sub(r'["\r\n\\]', '', submission.original_filename or f"writing_{code}")
+    safe_name = Path(submission.original_filename or f"writing_{code}").name
     response["Content-Disposition"] = f'inline; filename="{safe_name}"'
     return response
 
