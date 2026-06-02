@@ -2,7 +2,7 @@
 {% block title %}Join session {{ session.code }}{% endblock %}
 
 {% block extra_head %}
-<style>
+<style nonce="{{ csp_nonce }}">
   ul.errorlist { list-style: none; padding: 0; margin: 0.25rem 0 0; }
   ul.errorlist li { font-size: 0.875rem; color: oklch(var(--er)); }
 </style>
@@ -250,7 +250,7 @@
     </div>
   </dialog>
 
-  <script>
+  <script nonce="{{ csp_nonce }}">
     const modal = document.getElementById('consent-modal');
 
     {% if not show_consent %}

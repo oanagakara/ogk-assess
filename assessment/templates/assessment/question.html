@@ -204,7 +204,7 @@
 
                                 </div>
 
-                                <script>
+                                <script nonce="{{ csp_nonce }}">
                                     const bank = document.getElementById("bank");
                                     const hidden = document.getElementById("id_response_json");
                                     const targets = document.querySelectorAll("[data-target]");
@@ -439,7 +439,7 @@
 
                                 </div>
 
-                                <script>
+                                <script nonce="{{ csp_nonce }}">
                                     const bank = document.getElementById("bank");
                                     const hidden = document.getElementById("id_response_json");
                                     const targets = document.querySelectorAll("[data-target]");
@@ -560,7 +560,7 @@
                                     </div>
                                 </div>
 
-                                <script>
+                                <script nonce="{{ csp_nonce }}">
                                 (function () {
                                     const answerInput = document.getElementById("ld-answer");
                                     const slots = document.querySelectorAll("[data-ld-slot]");
@@ -720,7 +720,7 @@
         </div>
     {% endif %}
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         document.addEventListener("DOMContentLoaded", function () {
             const clocks = document.querySelectorAll(".section-clock");
             if (!clocks.length) return;
@@ -752,7 +752,7 @@
         });
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
     (function () {
         function fixHeight() {
             const outer = document.getElementById('question-outer');

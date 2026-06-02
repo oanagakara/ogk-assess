@@ -76,7 +76,7 @@
   </div>
   {% endif %}
 
-  <script>
+  <script nonce="{{ csp_nonce }}">
     document.addEventListener("DOMContentLoaded", function () {
       const timerData = document.getElementById("review-timer-data");
       const countdown = document.getElementById("review-countdown");

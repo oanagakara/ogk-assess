@@ -73,6 +73,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'assessment.context_processors.assessor_nav_counts',
                 'assessment.context_processors.tenant_branding',
+                'assessment.context_processors.csp_nonce',
             ],
         },
     },
@@ -91,6 +92,14 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
+# ── Cache (shared across Gunicorn workers — required for rate limiting) ────────
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "cache_table",
+    }
+}
 
 # ── Password validation ────────────────────────────────────────────────────────
 # L-3: Minimum raised to 12 characters.

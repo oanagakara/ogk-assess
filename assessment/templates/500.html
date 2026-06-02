@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script>
+    <script nonce="{{ csp_nonce }}">
         (function () {
             var t = localStorage.getItem("theme") || "business";
             document.documentElement.setAttribute("data-theme", t);
@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         document.getElementById("report-btn").addEventListener("click", function () {
             var btn = this;
             btn.disabled = true;
