@@ -7,16 +7,19 @@ uv run python manage.py collectstatic --no-input
 uv run python manage.py migrate
 uv run python manage.py createcachetable
 
-# Verify PostgreSQL SSL when a live DB is configured
+# Verify PostgreSQL SSL when a live DB is configured.
+# Hard-fails only when REQUIRE_DB_SSL=true is set (set this after upgrading to paid PostgreSQL).
 if [ -n "$DATABASE_URL" ]; then
     if command -v psql > /dev/null 2>&1; then
         echo "Verifying PostgreSQL SSL..."
         SSL_STATUS=$(psql "$DATABASE_URL" -t -c "SHOW ssl;" 2>/dev/null | tr -d ' \n')
         if [ "$SSL_STATUS" = "on" ]; then
             echo "PostgreSQL SSL: ON"
-        else
+        elif [ "${REQUIRE_DB_SSL}" = "true" ]; then
             echo "ERROR: PostgreSQL SSL is not enabled (got: '${SSL_STATUS}'). Check ssl_require=True in settings.py."
             exit 1
+        else
+            echo "WARNING: PostgreSQL SSL is off. Set REQUIRE_DB_SSL=true in Render env vars after upgrading to paid PostgreSQL."
         fi
     else
         echo "psql not available in build environment — SSL verification skipped."
