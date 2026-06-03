@@ -53,7 +53,10 @@ docs/product_specification.html
 docs/service_agreement*.html
 docs/costing_model.html
 docs/data_processing_agreement.html
-docs/procurement_review.html
+docs/procurement_review*.html
+docs/support-sla*.docx
+docs/support-sla*.html
+docs/sysadmin_management*.html
 docs/administrator_guide.html
 docs/vendor_questionnaire.pdf
 docs/technical_overview.html
