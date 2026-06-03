@@ -103,7 +103,19 @@ TABLES = {
             timed_out,
             session_id,
             template_id,
-            learner_id
+            learner_id,
+            -- Transform layer
+            CASE
+                WHEN started_at IS NOT NULL AND submitted_at IS NOT NULL
+                THEN ROUND(EXTRACT(EPOCH FROM (submitted_at - started_at)) / 60.0, 1)
+                ELSE NULL
+            END AS duration_minutes,
+            CASE
+                WHEN started_at IS NOT NULL AND submitted_at IS NOT NULL
+                AND EXTRACT(EPOCH FROM (submitted_at - started_at)) / 60.0 BETWEEN 0.1 AND 240
+                THEN TRUE
+                ELSE FALSE
+            END AS is_valid_duration
         FROM public.assessment_attempt
     """),
  
