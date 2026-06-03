@@ -81,6 +81,8 @@ CREATE TABLE staging.attempts (
     session_id          bigint,
     template_id         bigint,
     learner_id          bigint,
+    gender              text,
+    demographic         text,
     duration_minutes    numeric(8,1),
     is_valid_duration   boolean
 );
@@ -297,6 +299,56 @@ FROM reporting.fact_attempt
 WHERE is_submitted = TRUE
   AND is_valid_duration = TRUE
 GROUP BY template_name;
+
+-- Candidate score summary — per attempt, no PII
+CREATE OR REPLACE VIEW reporting.agg_candidate_score AS
+SELECT
+    a.id                        AS attempt_id,
+    a.template_id,
+    t.name                      AS template_name,
+    a.session_id,
+    a.gender,
+    a.demographic,
+    a.duration_minutes,
+    a.is_valid_duration,
+    SUM(sc.points)              AS total_points,
+    SUM(sc.max_points)          AS max_possible,
+    ROUND((SUM(sc.points) / NULLIF(SUM(sc.max_points), 0) * 100)::numeric, 1)
+                                AS pct_score
+FROM staging.attempts a
+JOIN staging.responses r        ON r.attempt_id = a.id
+JOIN staging.scores sc          ON sc.response_id = r.id
+LEFT JOIN staging.templates t   ON t.id = a.template_id
+WHERE a.status = 'submitted'
+GROUP BY a.id, a.template_id, t.name, a.session_id,
+         a.gender, a.demographic, a.duration_minutes, a.is_valid_duration;
+
+
+-- Session completion rates
+CREATE OR REPLACE VIEW reporting.agg_completion AS
+SELECT
+    s.id                        AS session_id,
+    s.code                      AS session_code,
+    t.name                      AS template_name,
+    s.created_at                AS session_date,
+    s.seat_limit,
+    COUNT(a.id)                 AS total_attempts,
+    COUNT(*) FILTER (WHERE a.status = 'submitted')
+                                AS submitted,
+    COUNT(*) FILTER (WHERE a.status = 'incomplete')
+                                AS incomplete,
+    COUNT(*) FILTER (WHERE a.status = 'in_progress')
+                                AS in_progress,
+    COUNT(*) FILTER (WHERE a.timed_out = TRUE)
+                                AS timed_out,
+    ROUND(COUNT(*) FILTER (WHERE a.status = 'submitted')::numeric
+        / NULLIF(COUNT(a.id), 0) * 100, 1)
+                                AS completion_rate_pct
+FROM staging.sessions s
+LEFT JOIN staging.attempts a    ON a.session_id = s.id
+LEFT JOIN staging.templates t   ON t.id = s.template_id
+GROUP BY s.id, s.code, t.name, s.created_at, s.seat_limit
+ORDER BY s.created_at DESC;
 
 -- ============================================================
 -- COMMENTS

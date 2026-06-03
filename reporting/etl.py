@@ -91,34 +91,37 @@ TABLES = {
     """),
  
     "attempts": dedent("""
-        SELECT
-            id,
-            code,
-            status,
-            started_at,
-            submitted_at,
-            last_activity_at,
-            finalised_at,
-            moderated_at,
-            timed_out,
-            session_id,
-            template_id,
-            learner_id,
-            -- Transform layer
-            CASE
-                WHEN started_at IS NOT NULL AND submitted_at IS NOT NULL
-                THEN ROUND(EXTRACT(EPOCH FROM (submitted_at - started_at)) / 60.0, 1)
-                ELSE NULL
-            END AS duration_minutes,
-            CASE
-                WHEN started_at IS NOT NULL AND submitted_at IS NOT NULL
-                AND EXTRACT(EPOCH FROM (submitted_at - started_at)) / 60.0 BETWEEN 0.1 AND 240
-                THEN TRUE
-                ELSE FALSE
-            END AS is_valid_duration
-        FROM public.assessment_attempt
-    """),
- 
+    SELECT
+        a.id,
+        a.code,
+        a.status,
+        a.started_at,
+        a.submitted_at,
+        a.last_activity_at,
+        a.finalised_at,
+        a.moderated_at,
+        a.timed_out,
+        a.session_id,
+        a.template_id,
+        a.learner_id,
+        -- Learner demographics (no PII)
+        l.gender,
+        l.demographic,
+        -- Transform layer
+        CASE
+            WHEN a.started_at IS NOT NULL AND a.submitted_at IS NOT NULL
+            THEN ROUND(EXTRACT(EPOCH FROM (a.submitted_at - a.started_at)) / 60.0, 1)
+            ELSE NULL
+        END AS duration_minutes,
+        CASE
+            WHEN a.started_at IS NOT NULL AND a.submitted_at IS NOT NULL
+            AND EXTRACT(EPOCH FROM (a.submitted_at - a.started_at)) / 60.0 BETWEEN 0.1 AND 240
+            THEN TRUE
+            ELSE FALSE
+        END AS is_valid_duration
+    FROM public.assessment_attempt a
+    LEFT JOIN public.assessment_learner l ON l.id = a.learner_id
+"""), 
     "responses": dedent("""
         SELECT
             id,
@@ -259,6 +262,8 @@ def verify_views(database_url: str):
         "reporting.agg_unscored",
         "reporting.agg_question_fail",
         "reporting.agg_duration",
+        "reporting.agg_candidate_score",
+        "reporting.agg_completion",   
     ]
     log.info("Verifying reporting views:")
     conn = get_connection(database_url)
