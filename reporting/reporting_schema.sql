@@ -168,12 +168,8 @@ SELECT
     a.finalised_at,
     a.moderated_at,
     -- Duration in minutes from start to submission
-    CASE
-        WHEN a.started_at IS NOT NULL AND a.submitted_at IS NOT NULL
-        THEN ROUND(EXTRACT(EPOCH FROM (a.submitted_at - a.started_at)) / 60.0, 1)
-        ELSE NULL
-    END                         AS duration_minutes,
-    -- Timeout flag normalised to boolean
+    a.duration_minutes,
+    a.is_valid_duration,
     COALESCE(a.timed_out, FALSE) AS did_time_out,
     -- Convenience flags
     (a.status = 'submitted')    AS is_submitted,
@@ -289,7 +285,7 @@ SELECT
                                 AS hr1_to_1hr30,
     COUNT(*) FILTER (WHERE duration_minutes BETWEEN 90 AND 120)
                                 AS hr1_30_to_2hr,
-    COUNT(*) FILTER (WHERE duration_minutes > 120)
+    COUNT(*) FILTER (WHERE duration_minutes BETWEEN 120 AND 240)
                                 AS over_2hr,
     COUNT(*) FILTER (WHERE did_time_out = TRUE)
                                 AS timed_out,
@@ -299,9 +295,8 @@ SELECT
                                 AS median_duration_minutes
 FROM reporting.fact_attempt
 WHERE is_submitted = TRUE
-  AND duration_minutes IS NOT NULL
+  AND is_valid_duration = TRUE
 GROUP BY template_name;
-
 
 -- ============================================================
 -- COMMENTS
