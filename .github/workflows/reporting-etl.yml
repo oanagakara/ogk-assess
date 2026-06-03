@@ -1,0 +1,44 @@
+name: Reporting ETL
+
+on:
+  schedule:
+    # 04:00 UTC = 06:00 SAST
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    # Allow manual trigger from GitHub Actions UI
+    inputs:
+      verify:
+        description: "Print reporting view row counts after ETL"
+        required: false
+        default: "true"
+        type: boolean
+
+jobs:
+  etl:
+    name: Run reporting ETL
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run ETL
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          REPORTING_ENV: production
+        run: uv run reporting/etl.py
+
+      - name: Verify reporting views
+        if: ${{ github.event_name == 'schedule' || inputs.verify == 'true' }}
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          REPORTING_ENV: production
+        run: uv run reporting/etl.py --verify-only
