@@ -169,6 +169,12 @@ def run_etl(database_url: str, dry_run: bool, only_table: str | None) -> dict:
     Main ETL routine.
     Returns a summary dict suitable for the run log.
     """
+    env = os.environ.get("REPORTING_ENV", "").lower()
+    if env != "production" and not dry_run:
+        log.warning("REPORTING_ENV is not set to 'production'. Forcing dry-run.")
+        log.warning("Set REPORTING_ENV=production to write to staging tables.")
+        dry_run = True
+
     started = datetime.now(timezone.utc)
     log.info("ETL started at %s%s", started.isoformat(), "  [DRY RUN]" if dry_run else "")
 
