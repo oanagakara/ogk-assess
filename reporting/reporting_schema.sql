@@ -80,7 +80,9 @@ CREATE TABLE staging.attempts (
     timed_out           boolean,
     session_id          bigint,
     template_id         bigint,
-    learner_id          bigint
+    learner_id          bigint,
+    duration_minutes    numeric(8,1),
+    is_valid_duration   boolean
 );
 
 DROP TABLE IF EXISTS staging.responses CASCADE;
