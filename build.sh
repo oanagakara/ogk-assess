@@ -46,23 +46,6 @@ else:
 # Update GEN question content: GEN-D-1 answer keys, 5 question splits
 uv run python manage.py update_gen_questions
 
-# Re-mark demo attempts with current question structure
-# Runs unconditionally — idempotent, fast, ensures scores stay consistent
-# with any question max_marks changes (splits, GEN-G-WRITE scaling, etc.)
-uv run python manage.py shell -c "
-from assessment.models import Attempt, Score
-from assessment.auto_mark import auto_mark_attempt
-
-keep = ['IGWNXK6U', 'O7RI56IS', 'CTCDRW62', 'TWOM1SXJ', '2TS77VCR']
-for code in keep:
-    attempt = Attempt.objects.filter(code=code).first()
-    if not attempt:
-        continue
-    Score.objects.filter(response__attempt=attempt, assessor__isnull=True).delete()
-    count = auto_mark_attempt(attempt)
-    print(f'{code}: re-marked {count} responses')
-"
-
 # Ensure assessor, moderator, and auditor groups exist
 uv run python manage.py shell -c "
 from django.contrib.auth.models import Group, Permission
@@ -87,7 +70,23 @@ for name in ['moderator', 'auditor']:
 "
 
 
-# One-time demo cleanup: wipe test attempts, keep the five demo attempts only
+# Demo ops — SQLite local only; skipped when any live DB is configured
+if [ -z "$DATABASE_URL" ]; then
+
+uv run python manage.py shell -c "
+from assessment.models import Attempt, Score
+from assessment.auto_mark import auto_mark_attempt
+
+keep = ['IGWNXK6U', 'O7RI56IS', 'CTCDRW62', 'TWOM1SXJ', '2TS77VCR']
+for code in keep:
+    attempt = Attempt.objects.filter(code=code).first()
+    if not attempt:
+        continue
+    Score.objects.filter(response__attempt=attempt, assessor__isnull=True).delete()
+    count = auto_mark_attempt(attempt)
+    print(f'{code}: re-marked {count} responses')
+"
+
 uv run python manage.py shell -c "
 from assessment.models import Attempt
 from django.core.management import call_command
@@ -99,7 +98,6 @@ else:
     print('Demo cleanup already done, skipping.')
 "
 
-# Seed simulation data if no attempts exist yet
 uv run python manage.py shell -c "
 from assessment.models import Attempt
 if not Attempt.objects.exists():
@@ -109,6 +107,8 @@ if not Attempt.objects.exists():
 else:
     print('Attempts already exist, skipping simulation.')
 "
+
+fi  # end demo ops — SQLite only
 
 # Create or update superuser from env vars
 uv run python manage.py shell -c "
