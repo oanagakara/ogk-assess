@@ -58,6 +58,9 @@ from .errors import (
     handler500,
     error_report,
     error_preview,
+    dev_doc_view,
+    dev_report_file,
+    dev_reporting_dashboard,
 )
 
 from .auth import (

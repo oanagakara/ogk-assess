@@ -6,7 +6,8 @@ from .tenant import get_active_tenant
 
 
 def csp_nonce(request):
-    return {"csp_nonce": getattr(request, "csp_nonce", "")}
+    from django.conf import settings
+    return {"csp_nonce": getattr(request, "csp_nonce", ""), "debug": settings.DEBUG}
 
 
 def tenant_branding(request):

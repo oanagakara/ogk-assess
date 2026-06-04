@@ -7,7 +7,7 @@ import sys
 logger = logging.getLogger(__name__)
 
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.utils.html import escape
 
@@ -130,6 +130,64 @@ def handler404(request, exception=None):
         "error_type": "Page Not Found",
         "error_msg": request.path,
     }, status=404)
+
+
+@login_required
+@user_passes_test(is_staff)
+def dev_doc_view(request, name: str):
+    from django.conf import settings
+    if not settings.DEBUG:
+        raise Http404
+    doc_path = settings.BASE_DIR / "docs" / f"{name}.html"
+    if not doc_path.exists():
+        raise Http404
+    return HttpResponse(doc_path.read_text(encoding="utf-8"), content_type="text/html; charset=utf-8")
+
+
+_REPORT_CONTENT_TYPES = {
+    ".pdf":  "application/pdf",
+    ".html": "text/html; charset=utf-8",
+    ".htm":  "text/html; charset=utf-8",
+}
+
+@login_required
+@user_passes_test(is_staff)
+def dev_report_file(request):
+    from django.conf import settings
+    if not settings.DEBUG:
+        raise Http404
+    filename = request.GET.get("name", "")
+    if not filename or "/" in filename or "\\" in filename or filename.startswith("."):
+        raise Http404
+    report_dir = settings.BASE_DIR / "reporting" / "powerbi"
+    file_path = report_dir / filename
+    if not file_path.exists() or not file_path.is_file():
+        raise Http404
+    ext = file_path.suffix.lower()
+    content_type = _REPORT_CONTENT_TYPES.get(ext, "application/octet-stream")
+    response = HttpResponse(file_path.read_bytes(), content_type=content_type)
+    response["Content-Disposition"] = "inline"
+    response["Content-Security-Policy"] = "frame-ancestors 'self'"
+    return response
+
+
+@login_required
+@user_passes_test(is_staff)
+def dev_reporting_dashboard(request):
+    from django.conf import settings
+    if not settings.DEBUG:
+        raise Http404
+    report_dir = settings.BASE_DIR / "reporting" / "powerbi"
+    files = sorted(
+        [f.name for f in report_dir.iterdir()
+         if f.is_file() and f.suffix.lower() in _REPORT_CONTENT_TYPES],
+        key=str.lower,
+    ) if report_dir.exists() else []
+    selected = request.GET.get("file", files[0] if files else "")
+    return render(request, "assessment/dev_reporting_dashboard.html", {
+        "report_files": files,
+        "selected_file": selected,
+    })
 
 
 @login_required
