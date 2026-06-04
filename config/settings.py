@@ -121,7 +121,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # ── Internationalisation ───────────────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Johannesburg'
 USE_I18N = True
 USE_TZ = True
 
