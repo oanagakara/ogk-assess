@@ -51,6 +51,10 @@ class LearnerForm(forms.ModelForm):
         # Normalise empty string to None so multiple blank entries don't collide on the unique constraint
         cleaned_data["id_number"] = id_number or None
 
+        if dob and not id_number:
+            if dob < date(1920, 1, 1) or dob > date(2015, 12, 31):
+                self.add_error("dob", "Date of birth must be between 1920 and 2015.")
+
         if id_number:
             if len(id_number) != 13 or not id_number.isdigit():
                 self.add_error("id_number", "Enter a valid 13-digit South African ID number.")
