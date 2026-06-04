@@ -1,0 +1,39 @@
+{% extends "assessment/assessor_base.html" %}
+
+{% block assessor_content %}
+<div class="-m-6 flex h-full" style="height: calc(100% + 3rem);">
+
+  {# File list #}
+  <div class="w-56 shrink-0 flex flex-col border-r border-base-300 bg-base-100 overflow-y-auto">
+    <div class="px-4 py-3 border-b border-base-200 text-xs font-semibold uppercase tracking-wide opacity-50">
+      Reports
+    </div>
+    {% if report_files %}
+      {% for filename in report_files %}
+      <a href="?file={{ filename }}"
+         class="px-4 py-2.5 text-sm border-b border-base-200 transition-colors truncate
+           {% if filename == selected_file %}bg-primary text-primary-content font-medium{% else %}hover:bg-base-200 opacity-70 hover:opacity-100{% endif %}"
+         title="{{ filename }}">
+        {{ filename }}
+      </a>
+      {% endfor %}
+    {% else %}
+      <p class="px-4 py-4 text-sm opacity-40">No reports in reporting/powerbi/</p>
+    {% endif %}
+  </div>
+
+  {# Preview pane #}
+  <div class="flex-1 min-w-0">
+    {% if selected_file %}
+    <iframe src="{% url 'assessment:dev_report_file' %}?name={{ selected_file }}"
+            class="w-full h-full border-none"
+            title="{{ selected_file }}"></iframe>
+    {% else %}
+    <div class="flex items-center justify-center h-full opacity-30 text-sm">
+      No reports found. Add PDF or HTML files to reporting/powerbi/
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

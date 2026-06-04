@@ -4,6 +4,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+<style nonce="{{ csp_nonce }}">.code-input{text-align:center;text-transform:uppercase;letter-spacing:0.2em;font-size:1.1rem;}</style>
 {% endblock %}
 
 {% block content %}
@@ -36,8 +37,7 @@
         <p class="text-sm opacity-60 mb-3">Enter the code provided by your facilitator.</p>
         <form method="post" action="{% url 'assessment:start' %}" class="flex flex-col gap-3 w-full">
           {% csrf_token %}
-          <input name="code" type="text" class="input input-bordered w-full"
-                 style="text-align:center;text-transform:uppercase;letter-spacing:0.2em;font-size:1.1rem;"
+          <input name="code" type="text" class="input input-bordered w-full code-input"
                  placeholder="AB3X7KP2" maxlength="32" autocomplete="off" spellcheck="false">
           <button type="submit" class="btn btn-primary w-full">Start Assessment</button>
         </form>

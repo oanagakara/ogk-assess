@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import path
 from . import views
 
@@ -53,3 +54,10 @@ urlpatterns = [
     path("error-report/", views.error_report, name="error_report"),
     path("assessor/error-preview/<int:code>/", views.error_preview, name="error_preview"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path("dev/docs/<slug:name>/", views.dev_doc_view, name="dev_doc"),
+        path("dev/report/file/", views.dev_report_file, name="dev_report_file"),
+        path("assessor/reporting/", views.dev_reporting_dashboard, name="dev_reporting_dashboard"),
+    ]
