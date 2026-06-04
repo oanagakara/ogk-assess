@@ -1,13 +1,54 @@
 -- ============================================================
 -- NQF Assessment Platform — Reporting Schema
 -- Oanagakara (Pty) Ltd
--- Version 1.0 — 2026-06-03
+-- Version 1.1 — 2026-06-04
 --
 -- Two schemas inside the same Neon database:
 --   staging   — raw extracts from app tables, refreshed each run
 --   reporting — transformed views, Power BI connects here only
 --
 -- Run this once to set up. Re-run is idempotent (DROP IF EXISTS).
+-- ============================================================
+
+
+-- ============================================================
+-- ACCESS CONTROL (run once as superuser on each database)
+-- Two dedicated roles — etl_writer for the ETL pipeline,
+-- reporting_reader for Power BI. Neither uses the full-privilege
+-- app credential.
+--
+-- ── etl_writer: reads app data, writes staging ───────────────
+-- CREATE ROLE etl_writer LOGIN PASSWORD '<strong-password>';
+-- GRANT CONNECT ON DATABASE neondb TO etl_writer;
+-- GRANT USAGE ON SCHEMA public TO etl_writer;
+-- GRANT SELECT ON ALL TABLES IN SCHEMA public TO etl_writer;
+-- ALTER DEFAULT PRIVILEGES IN SCHEMA public
+--     GRANT SELECT ON TABLES TO etl_writer;
+-- GRANT USAGE, CREATE ON SCHEMA staging TO etl_writer;
+-- GRANT ALL ON ALL TABLES IN SCHEMA staging TO etl_writer;
+-- GRANT ALL ON ALL SEQUENCES IN SCHEMA staging TO etl_writer;
+-- ALTER DEFAULT PRIVILEGES IN SCHEMA staging
+--     GRANT ALL ON TABLES TO etl_writer;
+-- ALTER DEFAULT PRIVILEGES IN SCHEMA staging
+--     GRANT ALL ON SEQUENCES TO etl_writer;
+-- GRANT USAGE ON SCHEMA reporting TO etl_writer;
+-- GRANT SELECT ON ALL TABLES IN SCHEMA reporting TO etl_writer;
+-- ALTER DEFAULT PRIVILEGES IN SCHEMA reporting
+--     GRANT SELECT ON TABLES TO etl_writer;
+--
+-- ── reporting_reader: Power BI — reporting schema only ────────
+-- (role already exists in Neon; apply these grants if not done)
+-- GRANT CONNECT ON DATABASE neondb TO reporting_reader;
+-- GRANT USAGE ON SCHEMA reporting TO reporting_reader;
+-- GRANT SELECT ON ALL TABLES IN SCHEMA reporting TO reporting_reader;
+-- ALTER DEFAULT PRIVILEGES IN SCHEMA reporting
+--     GRANT SELECT ON TABLES TO reporting_reader;
+-- REVOKE ALL ON SCHEMA public FROM reporting_reader;
+-- REVOKE ALL ON SCHEMA staging FROM reporting_reader;
+--
+-- Store etl_writer connection string as ETL_DATABASE_URL in
+-- GitHub Secrets (used by the reporting-etl.yml workflow).
+-- Store reporting_reader connection string separately for Power BI.
 -- ============================================================
 
 
@@ -80,7 +121,8 @@ CREATE TABLE staging.attempts (
     timed_out           boolean,
     session_id          bigint,
     template_id         bigint,
-    learner_id          bigint,
+    -- md5 hash of learner PK — pseudonymous; not a direct FK
+    learner_hash        text,
     gender              text,
     demographic         text,
     duration_minutes    numeric(8,1),
@@ -96,13 +138,27 @@ CREATE TABLE staging.responses (
 
 DROP TABLE IF EXISTS staging.scores CASCADE;
 CREATE TABLE staging.scores (
-    id          bigint PRIMARY KEY,
-    response_id bigint,
-    assessor_id integer,
-    points      double precision,
-    max_points  double precision,
-    rubric_json jsonb,
-    created_at  timestamptz
+    id              bigint PRIMARY KEY,
+    response_id     bigint,
+    -- md5 hash of assessor user PK — pseudonymous; not a direct FK
+    assessor_hash   text,
+    points          double precision,
+    max_points      double precision,
+    needs_review    boolean,
+    created_at      timestamptz
+);
+
+
+DROP TABLE IF EXISTS staging.etl_run_log CASCADE;
+CREATE TABLE staging.etl_run_log (
+    id              bigserial PRIMARY KEY,
+    started_at      timestamptz NOT NULL,
+    finished_at     timestamptz,
+    elapsed_seconds numeric(8,2),
+    dry_run         boolean NOT NULL,
+    table_counts    jsonb,
+    error_count     integer,
+    errors          jsonb
 );
 
 
@@ -164,7 +220,7 @@ SELECT
     a.timed_out,
     a.session_id,
     a.template_id,
-    a.learner_id,
+    a.learner_hash,
     a.started_at,
     a.submitted_at,
     a.finalised_at,
@@ -190,12 +246,12 @@ SELECT
     sc.response_id,
     sc.points,
     sc.max_points,
-    sc.assessor_id,
+    sc.assessor_hash,
     sc.created_at               AS scored_at,
     -- Derived flags
     (sc.points = 0)             AS is_zero,
     (sc.points = sc.max_points) AS is_full_marks,
-    (sc.rubric_json->>'needs_review' = 'true') AS needs_review,
+    sc.needs_review,
     -- Response joins
     r.attempt_id,
     r.question_id,
@@ -354,6 +410,7 @@ ORDER BY s.created_at DESC;
 -- COMMENTS
 -- ============================================================
 
-COMMENT ON SCHEMA staging   IS 'Raw extracts from app tables. Truncate and reload on each ETL run.';
-COMMENT ON SCHEMA reporting IS 'Transformed views for Power BI. Never connect Power BI to staging or the live app schema.';
-COMMENT ON VIEW reporting.agg_question_fail IS 'Finalised attempts only. NQF placement level not yet a structured field — pending Attempt model change.';
+COMMENT ON SCHEMA staging   IS 'Raw extracts from app tables. Truncate and reload on each ETL run. etl_writer role only.';
+COMMENT ON SCHEMA reporting IS 'Transformed views for Power BI. reporting_reader role. Never grant public or staging access to Power BI credentials.';
+COMMENT ON TABLE  staging.etl_run_log IS 'One row per ETL write run. Written in a separate connection after commit so it survives a partial rollback.';
+COMMENT ON VIEW   reporting.agg_question_fail IS 'Finalised attempts only. NQF placement level not yet a structured field — pending Attempt model change.';
