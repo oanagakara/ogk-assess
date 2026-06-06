@@ -745,81 +745,130 @@ def assessor_archive(request):
 @login_required
 @user_passes_test(is_moderator)
 def assessor_activity_report(request):
-    """Per-assessor marking activity report with optional date filter."""
+    """Per-assessor activity breakdown: finalisations, moderations, manual marks."""
     from django.db.models import Count, Min, Max
     from django.db.models.functions import TruncDate
 
     q_from = (request.GET.get("from") or "").strip()
     q_to   = (request.GET.get("to")   or "").strip()
 
-    qs = Attempt.objects.filter(finalised_at__isnull=False)
-    if q_from:
-        try:
-            qs = qs.filter(finalised_at__date__gte=q_from)
-        except Exception:
-            pass
-    if q_to:
-        try:
-            qs = qs.filter(finalised_at__date__lte=q_to)
-        except Exception:
-            pass
+    def _apply_date_filter(qs, field):
+        if q_from:
+            try:
+                qs = qs.filter(**{f"{field}__date__gte": q_from})
+            except Exception:
+                pass
+        if q_to:
+            try:
+                qs = qs.filter(**{f"{field}__date__lte": q_to})
+            except Exception:
+                pass
+        return qs
 
-    rows = list(
-        qs
+    # ── Finalisations ──
+    fin_qs = _apply_date_filter(
+        Attempt.objects.filter(finalised_at__isnull=False), "finalised_at"
+    )
+    fin_rows = list(
+        fin_qs
         .values("finalised_by__username", "finalised_by__first_name", "finalised_by__last_name")
-        .annotate(
-            count=Count("pk"),
-            first_on=Min("finalised_at"),
-            last_on=Max("finalised_at"),
-        )
+        .annotate(count=Count("pk"), first_on=Min("finalised_at"), last_on=Max("finalised_at"))
         .order_by("-count")
     )
-    total = sum(r["count"] for r in rows)
-    assessor_count = sum(1 for r in rows if r["finalised_by__username"])
-    period_from = min((r["first_on"] for r in rows), default=None)
-    period_to   = max((r["last_on"]  for r in rows), default=None)
 
-    def _label(r):
-        fn = (r["finalised_by__first_name"] or "").strip()
-        ln = (r["finalised_by__last_name"]  or "").strip()
-        full = f"{fn} {ln}".strip()
-        return full or r["finalised_by__username"] or "System"
-
-    assessor_labels = json.dumps([_label(r) for r in rows])
-    assessor_data   = json.dumps([r["count"] for r in rows])
-
-    from collections import defaultdict
-
-    daily_per_assessor = list(
-        qs
-        .annotate(day=TruncDate("finalised_at"))
-        .values("day", "finalised_by__username", "finalised_by__first_name", "finalised_by__last_name")
-        .annotate(count=Count("pk"))
-        .order_by("day", "finalised_by__username")
+    # ── Moderations ──
+    mod_qs = _apply_date_filter(
+        Attempt.objects.filter(moderated_at__isnull=False), "moderated_at"
     )
-    dates = sorted(set(str(r["day"]) for r in daily_per_assessor))
-    by_assessor: dict = defaultdict(dict)
-    for r in daily_per_assessor:
-        by_assessor[_label(r)][str(r["day"])] = r["count"]
+    mod_by_user = {
+        r["moderated_by__username"]: r["count"]
+        for r in mod_qs.values("moderated_by__username").annotate(count=Count("pk"))
+    }
 
-    daily_labels   = json.dumps(dates)
-    daily_datasets = json.dumps([
-        {"label": name, "data": [counts.get(d, 0) for d in dates]}
-        for name, counts in by_assessor.items()
-    ])
+    # ── Manual marks (first-time scores entered by a human) ──
+    marks_qs = _apply_date_filter(
+        ScoreAuditLog.objects.filter(mode="manual", action="created"), "changed_at"
+    )
+    marks_by_user = {
+        r["changed_by__username"]: r["count"]
+        for r in marks_qs.values("changed_by__username").annotate(count=Count("pk"))
+    }
+
+    # ── Unified per-assessor summary ──
+    def _name(r):
+        fn = (r.get("finalised_by__first_name") or "").strip()
+        ln = (r.get("finalised_by__last_name")  or "").strip()
+        return f"{fn} {ln}".strip() or r.get("finalised_by__username") or "System"
+
+    assessors = [
+        {
+            "username":      r["finalised_by__username"] or "",
+            "name":          _name(r),
+            "finalisations": r["count"],
+            "moderations":   mod_by_user.get(r["finalised_by__username"], 0),
+            "marks":         marks_by_user.get(r["finalised_by__username"], 0),
+            "first_on":      r["first_on"],
+            "last_on":       r["last_on"],
+        }
+        for r in fin_rows
+    ]
+
+    total_fin    = sum(a["finalisations"] for a in assessors)
+    total_mod    = sum(a["moderations"]   for a in assessors)
+    total_marks  = sum(a["marks"]         for a in assessors)
+    assessor_count = sum(1 for a in assessors if a["username"])
+    period_from  = min((a["first_on"] for a in assessors), default=None)
+    period_to    = max((a["last_on"]  for a in assessors), default=None)
+
+    # ── Chart: grouped bar — per assessor × activity type ──
+    assessor_names = json.dumps([a["name"]          for a in assessors])
+    fin_data       = json.dumps([a["finalisations"] for a in assessors])
+    mod_data       = json.dumps([a["moderations"]   for a in assessors])
+    marks_data     = json.dumps([a["marks"]         for a in assessors])
+
+    # ── Chart: stacked bar — per day × activity type ──
+    fin_daily = {
+        str(r["day"]): r["count"]
+        for r in fin_qs.annotate(day=TruncDate("finalised_at"))
+                       .values("day").annotate(count=Count("pk"))
+    }
+    mod_daily = {
+        str(r["day"]): r["count"]
+        for r in mod_qs.annotate(day=TruncDate("moderated_at"))
+                       .values("day").annotate(count=Count("pk"))
+    }
+    marks_daily = {
+        str(r["day"]): r["count"]
+        for r in marks_qs.annotate(day=TruncDate("changed_at"))
+                         .values("day").annotate(count=Count("pk"))
+    }
+
+    all_dates        = sorted(set(list(fin_daily) + list(mod_daily) + list(marks_daily)))
+    daily_labels     = json.dumps(all_dates)
+    daily_fin_data   = json.dumps([fin_daily.get(d, 0)   for d in all_dates])
+    daily_mod_data   = json.dumps([mod_daily.get(d, 0)   for d in all_dates])
+    daily_marks_data = json.dumps([marks_daily.get(d, 0) for d in all_dates])
 
     return render(request, "assessment/assessor_activity_report.html", {
-        "rows": rows,
-        "total": total,
-        "assessor_count": assessor_count,
-        "period_from": period_from,
-        "period_to": period_to,
-        "q_from": q_from,
-        "q_to": q_to,
-        "assessor_labels": assessor_labels,
-        "assessor_data": assessor_data,
-        "daily_labels": daily_labels,
-        "daily_datasets": daily_datasets,
+        "assessors":       assessors,
+        "total_fin":       total_fin,
+        "total_mod":       total_mod,
+        "total_marks":     total_marks,
+        "assessor_count":  assessor_count,
+        "period_from":     period_from,
+        "period_to":       period_to,
+        "q_from":          q_from,
+        "q_to":            q_to,
+        "assessor_names":  assessor_names,
+        "fin_data":        fin_data,
+        "mod_data":        mod_data,
+        "marks_data":      marks_data,
+        "daily_labels":    daily_labels,
+        "daily_fin_data":  daily_fin_data,
+        "daily_mod_data":  daily_mod_data,
+        "daily_marks_data": daily_marks_data,
+        "has_data":        bool(assessors),
+        "has_daily":       bool(all_dates),
     })
 
 
