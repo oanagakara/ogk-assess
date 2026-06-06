@@ -270,6 +270,14 @@ class Attempt(models.Model):
         related_name="moderated_attempts",
     )
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["status"], name="attempt_status_idx"),
+            models.Index(fields=["status", "finalised_at"], name="attempt_status_finalised_idx"),
+            models.Index(fields=["submitted_at"], name="attempt_submitted_idx"),
+            models.Index(fields=["last_activity_at"], name="attempt_last_activity_idx"),
+        ]
+
     def __str__(self) -> str:
         return f"{self.code} - {self.learner} - {self.status}"
 
