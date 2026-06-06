@@ -165,6 +165,7 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_FAILURE_VIEW = "assessment.views.csrf_failure"
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 _LOG_LEVEL = "DEBUG" if DEBUG else "INFO"

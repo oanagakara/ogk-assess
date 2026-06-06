@@ -52,6 +52,7 @@ from .assessor import (
 )
 
 from .errors import (
+    csrf_failure,
     handler400,
     handler403,
     handler404,

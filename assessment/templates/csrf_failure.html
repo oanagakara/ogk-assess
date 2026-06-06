@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script nonce="{{ csp_nonce }}">(function(){var t=localStorage.getItem("theme")||"business";document.documentElement.setAttribute("data-theme",t);})();</script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <title>Session Verification Failed</title>
+</head>
+<body class="min-h-screen bg-base-200 text-base-content flex items-center justify-center p-6">
+    <div class="card bg-base-100 shadow-xl w-full max-w-lg">
+        <div class="card-body space-y-5">
+
+            <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="text-warning shrink-0" width="32" height="32"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                </svg>
+                <h1 class="text-2xl font-bold">{{ heading }}</h1>
+            </div>
+
+            <p class="opacity-70">{{ detail }}</p>
+
+            <div class="divider my-0"></div>
+
+            <p class="text-sm font-medium opacity-50 uppercase tracking-wide">What would you like to do?</p>
+
+            <div class="space-y-4">
+
+                {% if show_reload %}
+                <div class="space-y-1">
+                    <a href="{{ retry_url }}" class="btn btn-primary w-full">Reload the form</a>
+                    <p class="text-xs opacity-60 px-1">Takes you back to the previous page with a fresh security token. <strong>Try this first</strong> — it fixes the problem in most cases.</p>
+                </div>
+                {% endif %}
+
+                <div class="space-y-1">
+                    <a href="/" class="btn btn-ghost w-full">Return to home</a>
+                    <p class="text-xs opacity-60 px-1">Goes to the sign-in page so you can start a new session from the beginning.</p>
+                </div>
+
+                <div class="space-y-1">
+                    {% if support_email %}
+                    <a href="mailto:{{ support_email }}" class="btn btn-ghost w-full">Contact the administrator</a>
+                    <p class="text-xs opacity-60 px-1">Opens your email client to contact support at <span class="font-mono">{{ support_email }}</span>. Use this if the problem keeps happening after reloading.</p>
+                    {% else %}
+                    <div class="btn btn-ghost w-full opacity-50 cursor-default">Contact the administrator</div>
+                    <p class="text-xs opacity-60 px-1">If the problem keeps happening, contact the person who set up your assessment session and ask them to reset your access.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

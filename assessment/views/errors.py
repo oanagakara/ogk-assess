@@ -114,6 +114,85 @@ def handler400(request, exception=None):
     }, status=400)
 
 
+def _classify_csrf_reason(reason):
+    """Return (heading, detail, show_reload) for a Django CSRF rejection reason string."""
+    r = reason.lower()
+    if "from post incorrect" in r or ("incorrect" in r and "http header" in r):
+        return (
+            "Your form session has expired",
+            "This happens when you log in or out in another tab, use the browser "
+            "back button, or your session times out. Reloading the form gives you "
+            "a fresh security token.",
+            True,
+        )
+    if "csrf cookie not set" in r:
+        return (
+            "Your session cookie is missing",
+            "This usually means cookies were disabled or cleared in your browser. "
+            "Enable cookies for this site and reload to continue.",
+            True,
+        )
+    if "csrf token missing" in r:
+        return (
+            "A required security field was missing",
+            "The form was submitted without a required security field — this can "
+            "happen if the page did not load fully. Reloading should fix it.",
+            True,
+        )
+    if "incorrect length" in r or "invalid characters" in r:
+        return (
+            "Your session data appears corrupted",
+            "The security token stored in your browser is invalid, possibly due to "
+            "partial cookie data. Clearing cookies for this site and reloading should fix it.",
+            True,
+        )
+    if "origin checking failed" in r:
+        return (
+            "Request blocked — unexpected source",
+            "Your request came from an address this site does not recognise. "
+            "Navigate directly to the site rather than following an external link.",
+            False,
+        )
+    if "insecure while host is secure" in r:
+        return (
+            "Insecure connection detected",
+            "Your request was sent over an insecure connection while this site "
+            "requires HTTPS. Please use the secure address for this site.",
+            False,
+        )
+    if "referer" in r:
+        return (
+            "Request source could not be verified",
+            "Your browser did not send the information needed to verify this request. "
+            "This can happen in private/incognito mode or with strict privacy settings.",
+            True,
+        )
+    return (
+        "Security verification failed",
+        "Your request could not be verified. Please reload the page and try again.",
+        True,
+    )
+
+
+def csrf_failure(request, reason=""):
+    try:
+        from assessment.tenant import get_active_tenant
+        tenant = get_active_tenant()
+        support_email = (tenant.support_email if tenant else "") or _SUPPORT_EMAIL
+    except Exception:
+        support_email = _SUPPORT_EMAIL
+
+    retry_url = request.META.get("HTTP_REFERER") or "/"
+    heading, detail, show_reload = _classify_csrf_reason(reason)
+    return render(request, "csrf_failure.html", {
+        "heading": heading,
+        "detail": detail,
+        "show_reload": show_reload,
+        "retry_url": retry_url,
+        "support_email": support_email,
+    }, status=403)
+
+
 def handler403(request, exception=None):
     msg = str(exception) if exception else "Access denied."
     _notify("PermissionDenied", msg, url=request.build_absolute_uri(), method=request.method)
