@@ -826,7 +826,7 @@ def assessor_activity_report(request):
     mod_data       = json.dumps([a["moderations"]   for a in assessors])
     marks_data     = json.dumps([a["marks"]         for a in assessors])
 
-    # ── Chart: single line — finalisations + moderations since inception (unfiltered) ──
+    # ── Chart: single line — finalisations + moderations + assessed attempts since inception (unfiltered) ──
     from collections import defaultdict
     inception_by_day: dict[str, int] = defaultdict(int)
     for r in (Attempt.objects.filter(finalised_at__isnull=False)
@@ -834,6 +834,10 @@ def assessor_activity_report(request):
         inception_by_day[str(r["day"])] += r["count"]
     for r in (Attempt.objects.filter(moderated_at__isnull=False)
               .annotate(day=TruncDate("moderated_at")).values("day").annotate(count=Count("pk"))):
+        inception_by_day[str(r["day"])] += r["count"]
+    for r in (ScoreAuditLog.objects.filter(mode="manual", action="created")
+              .annotate(day=TruncDate("changed_at")).values("day")
+              .annotate(count=Count("score__response__attempt", distinct=True))):
         inception_by_day[str(r["day"])] += r["count"]
 
     inception_dates  = sorted(inception_by_day.keys())
