@@ -23,6 +23,7 @@ from .marking import (
     assessor_approve_moderation,
     assessor_archive,
     assessor_activity_report,
+    assessor_activity_detail,
     assessor_auditor_reopen,
     assessor_auto_marked_attempt,
     assessor_new_attempt,
