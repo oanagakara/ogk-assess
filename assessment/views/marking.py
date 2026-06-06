@@ -791,7 +791,8 @@ def assessor_activity_report(request):
     )
     marks_by_user = {
         r["changed_by__username"]: r["count"]
-        for r in marks_qs.values("changed_by__username").annotate(count=Count("pk"))
+        for r in marks_qs.values("changed_by__username")
+                         .annotate(count=Count("score__response__attempt", distinct=True))
     }
 
     # ── Unified per-assessor summary ──
