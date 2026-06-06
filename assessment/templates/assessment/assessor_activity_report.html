@@ -46,7 +46,7 @@
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body" style="padding:5px 10px;">
         <div class="text-lg font-bold">{{ total_marks }}</div>
-        <div class="text-xs opacity-60">Marks given</div>
+        <div class="text-xs opacity-60">Assessments marked</div>
       </div>
     </div>
     <div class="card bg-base-100 shadow border border-base-300">
@@ -101,7 +101,7 @@
             <th>Assessor</th>
             <th class="text-right">Finalisations</th>
             <th class="text-right">Moderations</th>
-            <th class="text-right">Marks given</th>
+            <th class="text-right">Assessments marked</th>
             <th>First activity</th>
             <th>Last activity</th>
           </tr>
@@ -190,7 +190,7 @@ new Chart(document.getElementById('groupedChart'), {
     datasets: [
       { label: 'Finalisations', data: {{ fin_data }},   backgroundColor: p[2], borderRadius: 4, borderWidth: 0 },
       { label: 'Moderations',   data: {{ mod_data }},   backgroundColor: p[0], borderRadius: 4, borderWidth: 0 },
-      { label: 'Marks given',   data: {{ marks_data }}, backgroundColor: p[4], borderRadius: 4, borderWidth: 0 },
+      { label: 'Assessments marked',   data: {{ marks_data }}, backgroundColor: p[4], borderRadius: 4, borderWidth: 0 },
     ],
   },
   options: {
@@ -204,7 +204,7 @@ new Chart(document.getElementById('groupedChart'), {
 new Chart(document.getElementById('typeChart'), {
   type: 'bar',
   data: {
-    labels: ['Finalisations', 'Moderations', 'Marks given'],
+    labels: ['Finalisations', 'Moderations', 'Assessments marked'],
     datasets: [{
       data: [{{ total_fin }}, {{ total_mod }}, {{ total_marks }}],
       backgroundColor: [p[2], p[0], p[4]],
