@@ -62,51 +62,64 @@
   {% if has_daily %}
   <div class="card bg-base-100 shadow border border-base-300">
     <div class="card-body" style="padding:18px;">
-      <h2 class="font-semibold mb-4">Activity since inception</h2>
-      <canvas id="dailyChart"></canvas>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold">Activity since inception</h2>
+        <div class="flex items-center gap-3">
+          <span id="rangeLabel" class="text-sm opacity-60"></span>
+          <button id="clearRange" class="btn btn-ghost btn-xs hidden">Clear selection</button>
+        </div>
+      </div>
+      <canvas id="dailyChart" style="cursor:pointer;"></canvas>
+      <p class="text-xs opacity-40 mt-2">Click a point to filter the table &mdash; click a second point to extend the range.</p>
     </div>
   </div>
   {% endif %}
 
   {# ── Attempts table ── #}
   <div class="card bg-base-100 shadow border border-base-300">
-    <div class="overflow-auto">
-      <table class="table table-zebra w-full">
-        <thead class="sticky top-0 bg-base-100 z-10">
-          <tr>
-            <th>Code</th>
-            <th>Learner</th>
-            <th>Finalised</th>
-            <th>Moderated</th>
-            <th class="text-right">Marking lag</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in attempt_rows %}
+    <div class="card-body" style="padding:0;">
+      <div class="flex items-center justify-between px-4 pt-4 pb-2">
+        <h2 class="font-semibold">Attempts</h2>
+        <span id="tableCount" class="text-sm opacity-50"></span>
+      </div>
+      <div class="overflow-auto">
+        <table id="attemptTable" class="table table-zebra w-full">
+          <thead class="sticky top-0 bg-base-100 z-10">
             <tr>
-              <td class="font-mono text-sm">
-                <a href="{% url 'assessment:assessor_mark_attempt' r.code %}" class="link link-hover opacity-70">{{ r.code }}</a>
-              </td>
-              <td>{{ r.learner }}</td>
-              <td class="text-sm opacity-70 whitespace-nowrap">{{ r.finalised_at|date:"d M Y" }}</td>
-              <td>
-                {% if r.moderated %}
-                  <span class="badge badge-success badge-sm">Yes</span>
-                {% else %}
-                  <span class="opacity-30 text-xs">—</span>
-                {% endif %}
-              </td>
-              <td class="text-right tabular-nums text-sm {% if r.lag_str == '—' %}opacity-30{% endif %}">
-                {{ r.lag_str }}
-              </td>
+              <th>Code</th>
+              <th>Learner</th>
+              <th>Finalised</th>
+              <th>Moderated</th>
+              <th class="text-right">Marking lag</th>
             </tr>
-          {% empty %}
-            <tr>
-              <td colspan="5" class="text-center py-10 opacity-50">No finalised attempts in this period.</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for r in attempt_rows %}
+              <tr data-date="{{ r.finalised_at|date:'Y-m-d' }}">
+                <td class="font-mono text-sm">
+                  <a href="{% url 'assessment:assessor_mark_attempt' r.code %}" class="link link-hover opacity-70">{{ r.code }}</a>
+                </td>
+                <td>{{ r.learner }}</td>
+                <td class="text-sm opacity-70 whitespace-nowrap">{{ r.finalised_at|date:"d M Y" }}</td>
+                <td>
+                  {% if r.moderated %}
+                    <span class="badge badge-success badge-sm">Yes</span>
+                  {% else %}
+                    <span class="opacity-30 text-xs">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-right tabular-nums text-sm {% if r.lag_str == '—' %}opacity-30{% endif %}">
+                  {{ r.lag_str }}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center py-10 opacity-50">No finalised attempts in this period.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -136,18 +149,44 @@ function hexToRgba(hex, a) {
 }
 const p = PALETTES[localStorage.getItem('metrics_palette')] || PALETTES.red;
 
-new Chart(document.getElementById('dailyChart'), {
+const labels = {{ daily_labels }};
+const data   = {{ daily_data }};
+
+let selA = null, selB = null;
+
+const rangeHighlight = {
+  id: 'rangeHighlight',
+  afterDraw(chart) {
+    if (selA === null) return;
+    const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
+    const iA = labels.indexOf(selA);
+    const iB = selB !== null ? labels.indexOf(selB) : iA;
+    const x1 = x.getPixelForValue(Math.min(iA, iB));
+    const x2 = x.getPixelForValue(Math.max(iA, iB));
+    ctx.save();
+    ctx.fillStyle = hexToRgba(p[2], 0.18);
+    ctx.fillRect(x1 - 6, top, x2 - x1 + 12, bottom - top);
+    ctx.strokeStyle = hexToRgba(p[2], 0.5);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x1 - 6, top, x2 - x1 + 12, bottom - top);
+    ctx.restore();
+  }
+};
+
+const chart = new Chart(document.getElementById('dailyChart'), {
   type: 'line',
+  plugins: [rangeHighlight],
   data: {
-    labels: {{ daily_labels }},
+    labels,
     datasets: [{
       label: 'Activity',
-      data: {{ daily_data }},
+      data,
       borderColor: p[2],
       backgroundColor: hexToRgba(p[2], 0.12),
       tension: 0.3,
       fill: true,
-      pointRadius: 3,
+      pointRadius: 4,
+      pointHoverRadius: 6,
       borderWidth: 2,
     }],
   },
@@ -157,7 +196,51 @@ new Chart(document.getElementById('dailyChart'), {
       x: { grid: { color: gridColor }, ticks: { color: labelColor } },
       y: { grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true },
     },
+    onClick(event, elements) {
+      if (!elements.length) return;
+      const idx = elements[0].index;
+      const date = labels[idx];
+      if (selA === null || selB !== null) {
+        selA = date; selB = null;
+      } else {
+        if (date < selA) { selB = selA; selA = date; }
+        else             { selB = date; }
+      }
+      chart.update();
+      applyFilter();
+    },
   },
+});
+
+function applyFilter() {
+  const rows = document.querySelectorAll('#attemptTable tbody tr[data-date]');
+  const lo = selA, hi = selB || selA;
+  let visible = 0;
+  rows.forEach(row => {
+    const d = row.dataset.date;
+    const show = selA === null || (d >= lo && d <= hi);
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  const label  = document.getElementById('rangeLabel');
+  const btn    = document.getElementById('clearRange');
+  const count  = document.getElementById('tableCount');
+  if (selA === null) {
+    label.textContent = '';
+    btn.classList.add('hidden');
+    count.textContent = '';
+  } else {
+    label.textContent = selB ? `${selA} → ${selB}` : selA;
+    btn.classList.remove('hidden');
+    count.textContent = `${visible} shown`;
+  }
+}
+
+document.getElementById('clearRange').addEventListener('click', () => {
+  selA = null; selB = null;
+  chart.update();
+  applyFilter();
 });
 {% endautoescape %}
 </script>
