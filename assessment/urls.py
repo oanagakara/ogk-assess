@@ -32,6 +32,7 @@ urlpatterns = [
     path("assessor/moderation/", views.assessor_moderation, name="assessor_moderation"),
     path("assessor/archive/", views.assessor_archive, name="assessor_archive"),
     path("assessor/activity/", views.assessor_activity_report, name="assessor_activity_report"),
+    path("assessor/activity/<str:username>/", views.assessor_activity_detail, name="assessor_activity_detail"),
     path("assessor/attempts/<str:code>/auditor-reopen/", views.assessor_auditor_reopen, name="assessor_auditor_reopen"),
     path("assessor/attempts/<str:code>/auto-marked/", views.assessor_auto_marked_attempt, name="assessor_auto_marked_attempt"),
     path("assessor/questions/", views.assessor_questions, name="assessor_questions"),

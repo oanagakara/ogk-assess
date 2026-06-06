@@ -113,7 +113,7 @@
                 {% if a.name == "System" %}
                   <span class="opacity-40 italic">System</span>
                 {% else %}
-                  {{ a.name }}
+                  <a href="{% url 'assessment:assessor_activity_detail' a.username %}" class="link link-hover">{{ a.name }}</a>
                   {% if a.username %}<span class="opacity-50 text-xs ml-1">({{ a.username }})</span>{% endif %}
                 {% endif %}
               </td>

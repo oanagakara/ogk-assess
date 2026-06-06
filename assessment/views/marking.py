@@ -867,6 +867,113 @@ def assessor_activity_report(request):
 
 
 @login_required
+@user_passes_test(is_moderator)
+def assessor_activity_detail(request, username: str):
+    from collections import defaultdict
+    from django.contrib.auth import get_user_model
+    from django.db.models import Count, Max
+    from django.db.models.functions import TruncDate
+    from django.shortcuts import get_object_or_404
+
+    User = get_user_model()
+    assessor = get_object_or_404(User, username=username)
+
+    q_from = (request.GET.get("from") or "").strip()
+    q_to   = (request.GET.get("to")   or "").strip()
+
+    def _apply_date_filter(qs, field):
+        if q_from:
+            try: qs = qs.filter(**{f"{field}__date__gte": q_from})
+            except Exception: pass
+        if q_to:
+            try: qs = qs.filter(**{f"{field}__date__lte": q_to})
+            except Exception: pass
+        return qs
+
+    fin_qs  = _apply_date_filter(
+        Attempt.objects.filter(finalised_by=assessor, finalised_at__isnull=False), "finalised_at"
+    )
+    mod_qs  = _apply_date_filter(
+        Attempt.objects.filter(moderated_by=assessor, moderated_at__isnull=False), "moderated_at"
+    )
+    marks_qs = _apply_date_filter(
+        ScoreAuditLog.objects.filter(changed_by=assessor, mode="manual"), "changed_at"
+    )
+
+    total_fin     = fin_qs.count()
+    total_mod     = mod_qs.count()
+    total_marked  = marks_qs.filter(action="created").values("score__response__attempt").distinct().count()
+    total_creates = marks_qs.filter(action="created").count()
+    total_updates = marks_qs.filter(action="updated").count()
+    correction_pct = round(total_updates / total_creates * 100, 1) if total_creates else 0
+
+    # Per-attempt table: finalised attempts with marking lag
+    attempts = list(
+        fin_qs.select_related("learner").order_by("-finalised_at")
+    )
+    attempt_ids = [a.pk for a in attempts]
+    last_mark_by_attempt = {
+        r["score__response__attempt_id"]: r["last_mark"]
+        for r in ScoreAuditLog.objects.filter(
+            changed_by=assessor, mode="manual",
+            score__response__attempt_id__in=attempt_ids,
+        ).values("score__response__attempt_id").annotate(last_mark=Max("changed_at"))
+    }
+
+    attempt_rows = []
+    for a in attempts:
+        last_mark = last_mark_by_attempt.get(a.pk)
+        lag_min = None
+        if last_mark and a.finalised_at:
+            delta = a.finalised_at - last_mark
+            lag_min = max(0, int(delta.total_seconds() / 60))
+        if lag_min is None:
+            lag_str = "—"
+        elif lag_min < 1:
+            lag_str = "< 1 min"
+        elif lag_min < 60:
+            lag_str = f"{lag_min} min"
+        else:
+            h, m = divmod(lag_min, 60)
+            lag_str = f"{h}h {m}m" if m else f"{h}h"
+
+        attempt_rows.append({
+            "code":         a.code,
+            "learner":      f"{a.learner.first_names} {a.learner.surname}" if a.learner else "—",
+            "finalised_at": a.finalised_at,
+            "moderated":    a.moderated_at is not None,
+            "lag_str":      lag_str,
+        })
+
+    # Timeline: activity per day since inception for this assessor (unfiltered)
+    daily: dict[str, int] = defaultdict(int)
+    for r in (Attempt.objects.filter(finalised_by=assessor, finalised_at__isnull=False)
+              .annotate(day=TruncDate("finalised_at")).values("day").annotate(count=Count("pk"))):
+        daily[str(r["day"])] += r["count"]
+    for r in (Attempt.objects.filter(moderated_by=assessor, moderated_at__isnull=False)
+              .annotate(day=TruncDate("moderated_at")).values("day").annotate(count=Count("pk"))):
+        daily[str(r["day"])] += r["count"]
+
+    daily_dates  = sorted(daily.keys())
+    daily_labels = json.dumps(daily_dates)
+    daily_data   = json.dumps([daily[d] for d in daily_dates])
+
+    return render(request, "assessment/assessor_activity_detail.html", {
+        "assessor":       assessor,
+        "total_fin":      total_fin,
+        "total_mod":      total_mod,
+        "total_marked":   total_marked,
+        "correction_pct": correction_pct,
+        "attempt_rows":   attempt_rows,
+        "daily_labels":   daily_labels,
+        "daily_data":     daily_data,
+        "has_daily":      bool(daily_dates),
+        "q_from":         q_from,
+        "q_to":           q_to,
+    })
+
+
+@login_required
 @user_passes_test(is_auditor)
 def assessor_auditor_reopen(request, code: str):
     if request.method != "POST":
