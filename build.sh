@@ -69,47 +69,6 @@ for name in ['moderator', 'auditor']:
     print(f'{name} group {\"created\" if created else \"already exists\"}.')
 "
 
-
-# Demo ops — SQLite local only; skipped when any live DB is configured
-if [ -z "$DATABASE_URL" ]; then
-
-uv run python manage.py shell -c "
-from assessment.models import Attempt, Score
-from assessment.auto_mark import auto_mark_attempt
-
-keep = ['IGWNXK6U', 'O7RI56IS', 'CTCDRW62', 'TWOM1SXJ', '2TS77VCR']
-for code in keep:
-    attempt = Attempt.objects.filter(code=code).first()
-    if not attempt:
-        continue
-    Score.objects.filter(response__attempt=attempt, assessor__isnull=True).delete()
-    count = auto_mark_attempt(attempt)
-    print(f'{code}: re-marked {count} responses')
-"
-
-uv run python manage.py shell -c "
-from assessment.models import Attempt
-from django.core.management import call_command
-keep = ['IGWNXK6U', 'O7RI56IS', 'CTCDRW62', 'TWOM1SXJ', '2TS77VCR']
-if Attempt.objects.exclude(code__in=keep).exists():
-    call_command('cleanup_for_demo', keep=keep, no_backup=True)
-    print('Demo cleanup complete.')
-else:
-    print('Demo cleanup already done, skipping.')
-"
-
-uv run python manage.py shell -c "
-from assessment.models import Attempt
-if not Attempt.objects.exists():
-    from django.core.management import call_command
-    call_command('simulate_session')
-    print('Simulation complete.')
-else:
-    print('Attempts already exist, skipping simulation.')
-"
-
-fi  # end demo ops — SQLite only
-
 # Create or update superuser from env vars
 uv run python manage.py shell -c "
 from django.contrib.auth import get_user_model
