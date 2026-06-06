@@ -788,15 +788,25 @@ def assessor_activity_report(request):
     assessor_labels = json.dumps([_label(r) for r in rows])
     assessor_data   = json.dumps([r["count"] for r in rows])
 
-    daily_qs = (
+    from collections import defaultdict
+
+    daily_per_assessor = list(
         qs
         .annotate(day=TruncDate("finalised_at"))
-        .values("day")
+        .values("day", "finalised_by__username", "finalised_by__first_name", "finalised_by__last_name")
         .annotate(count=Count("pk"))
-        .order_by("day")
+        .order_by("day", "finalised_by__username")
     )
-    daily_labels = json.dumps([str(r["day"]) for r in daily_qs])
-    daily_data   = json.dumps([r["count"] for r in daily_qs])
+    dates = sorted(set(str(r["day"]) for r in daily_per_assessor))
+    by_assessor: dict = defaultdict(dict)
+    for r in daily_per_assessor:
+        by_assessor[_label(r)][str(r["day"])] = r["count"]
+
+    daily_labels   = json.dumps(dates)
+    daily_datasets = json.dumps([
+        {"label": name, "data": [counts.get(d, 0) for d in dates]}
+        for name, counts in by_assessor.items()
+    ])
 
     return render(request, "assessment/assessor_activity_report.html", {
         "rows": rows,
@@ -809,7 +819,7 @@ def assessor_activity_report(request):
         "assessor_labels": assessor_labels,
         "assessor_data": assessor_data,
         "daily_labels": daily_labels,
-        "daily_data": daily_data,
+        "daily_datasets": daily_datasets,
     })
 
 

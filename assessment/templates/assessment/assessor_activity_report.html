@@ -67,7 +67,7 @@
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body" style="padding:18px;">
         <h2 class="font-semibold mb-4">Daily activity</h2>
-        {% if daily_data != "[]" %}
+        {% if daily_datasets != "[]" %}
           <canvas id="dailyChart"></canvas>
         {% else %}
           <p class="text-sm opacity-50 mt-4">No activity data in this period.</p>
@@ -181,24 +181,29 @@ new Chart(document.getElementById('assessorChart'), {
   }
 });
 
-// Daily activity — line
-{% if daily_data != "[]" %}
+// Daily activity — one line per assessor
+{% if daily_datasets != "[]" %}
 new Chart(document.getElementById('dailyChart'), {
   type: 'line',
   data: {
     labels: {{ daily_labels }},
-    datasets: [{
-      label: 'Finalised',
-      data: {{ daily_data }},
-      borderColor: p[3],
-      backgroundColor: hexToRgba(p[3], 0.15),
-      tension: 0.3,
-      fill: true,
-      pointRadius: 3,
-    }]
+    datasets: {{ daily_datasets }}.map(function(ds, i) {
+      var color = p[Math.min(i, p.length - 1)];
+      return {
+        label: ds.label,
+        data: ds.data,
+        borderColor: color,
+        backgroundColor: hexToRgba(color, 0.12),
+        tension: 0.3,
+        fill: true,
+        pointRadius: 3,
+      };
+    }),
   },
   options: {
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { color: labelColor, boxWidth: 12, padding: 12 } },
+    },
     scales: {
       x: {
         grid: { color: gridColor },
