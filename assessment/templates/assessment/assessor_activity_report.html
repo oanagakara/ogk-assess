@@ -69,14 +69,14 @@
       </div>
     </div>
 
-    {# Stacked bar: per day × activity type #}
+    {# Line: total activity since inception #}
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body" style="padding:18px;">
-        <h2 class="font-semibold mb-4">Daily breakdown</h2>
+        <h2 class="font-semibold mb-4">Activity since inception</h2>
         {% if has_daily %}
           <canvas id="dailyChart"></canvas>
         {% else %}
-          <p class="text-sm opacity-50 mt-4">No activity data in this period.</p>
+          <p class="text-sm opacity-50 mt-4">No activity recorded yet.</p>
         {% endif %}
       </div>
     </div>
@@ -223,20 +223,25 @@ new Chart(document.getElementById('typeChart'), {
 
 {% if has_daily %}
 new Chart(document.getElementById('dailyChart'), {
-  type: 'bar',
+  type: 'line',
   data: {
-    labels: {{ daily_labels }},
-    datasets: [
-      { label: 'Finalisations', data: {{ daily_fin_data }},   backgroundColor: p[2], borderWidth: 0 },
-      { label: 'Moderations',   data: {{ daily_mod_data }},   backgroundColor: p[0], borderWidth: 0 },
-      { label: 'Marks given',   data: {{ daily_marks_data }}, backgroundColor: p[4], borderWidth: 0 },
-    ],
+    labels: {{ inception_labels }},
+    datasets: [{
+      label: 'Total activity',
+      data: {{ inception_data }},
+      borderColor: p[2],
+      backgroundColor: hexToRgba(p[2], 0.12),
+      tension: 0.3,
+      fill: true,
+      pointRadius: 2,
+      borderWidth: 2,
+    }],
   },
   options: {
-    plugins: { legend: legendOpts },
+    plugins: { legend: { display: false } },
     scales: {
-      x: Object.assign({}, scaleX, { stacked: true, title: { display: true, text: 'Date', color: labelColor } }),
-      y: Object.assign({}, scaleY, { stacked: true, title: { display: true, text: 'Actions', color: labelColor } }),
+      x: Object.assign({}, scaleX, { title: { display: true, text: 'Date', color: labelColor } }),
+      y: Object.assign({}, scaleY, { title: { display: true, text: 'Actions', color: labelColor } }),
     },
   },
 });

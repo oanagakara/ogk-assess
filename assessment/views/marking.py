@@ -826,28 +826,22 @@ def assessor_activity_report(request):
     mod_data       = json.dumps([a["moderations"]   for a in assessors])
     marks_data     = json.dumps([a["marks"]         for a in assessors])
 
-    # ── Chart: stacked bar — per day × activity type ──
-    fin_daily = {
-        str(r["day"]): r["count"]
-        for r in fin_qs.annotate(day=TruncDate("finalised_at"))
-                       .values("day").annotate(count=Count("pk"))
-    }
-    mod_daily = {
-        str(r["day"]): r["count"]
-        for r in mod_qs.annotate(day=TruncDate("moderated_at"))
-                       .values("day").annotate(count=Count("pk"))
-    }
-    marks_daily = {
-        str(r["day"]): r["count"]
-        for r in marks_qs.annotate(day=TruncDate("changed_at"))
-                         .values("day").annotate(count=Count("pk"))
-    }
+    # ── Chart: single line — total activity since inception (unfiltered) ──
+    from collections import defaultdict
+    inception_by_day: dict[str, int] = defaultdict(int)
+    for r in (Attempt.objects.filter(finalised_at__isnull=False)
+              .annotate(day=TruncDate("finalised_at")).values("day").annotate(count=Count("pk"))):
+        inception_by_day[str(r["day"])] += r["count"]
+    for r in (Attempt.objects.filter(moderated_at__isnull=False)
+              .annotate(day=TruncDate("moderated_at")).values("day").annotate(count=Count("pk"))):
+        inception_by_day[str(r["day"])] += r["count"]
+    for r in (ScoreAuditLog.objects.filter(mode="manual", action="created")
+              .annotate(day=TruncDate("changed_at")).values("day").annotate(count=Count("pk"))):
+        inception_by_day[str(r["day"])] += r["count"]
 
-    all_dates        = sorted(set(list(fin_daily) + list(mod_daily) + list(marks_daily)))
-    daily_labels     = json.dumps(all_dates)
-    daily_fin_data   = json.dumps([fin_daily.get(d, 0)   for d in all_dates])
-    daily_mod_data   = json.dumps([mod_daily.get(d, 0)   for d in all_dates])
-    daily_marks_data = json.dumps([marks_daily.get(d, 0) for d in all_dates])
+    inception_dates  = sorted(inception_by_day.keys())
+    inception_labels = json.dumps(inception_dates)
+    inception_data   = json.dumps([inception_by_day[d] for d in inception_dates])
 
     return render(request, "assessment/assessor_activity_report.html", {
         "assessors":       assessors,
@@ -863,12 +857,10 @@ def assessor_activity_report(request):
         "fin_data":        fin_data,
         "mod_data":        mod_data,
         "marks_data":      marks_data,
-        "daily_labels":    daily_labels,
-        "daily_fin_data":  daily_fin_data,
-        "daily_mod_data":  daily_mod_data,
-        "daily_marks_data": daily_marks_data,
+        "inception_labels": inception_labels,
+        "inception_data":   inception_data,
         "has_data":        bool(assessors),
-        "has_daily":       bool(all_dates),
+        "has_daily":       bool(inception_dates),
     })
 
 
