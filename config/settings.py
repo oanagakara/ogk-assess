@@ -94,8 +94,15 @@ else:
     }
 
 # ── Cache (shared across Gunicorn workers — required for rate limiting) ────────
+# Use Redis when REDIS_URL is set (production + any dev with a local Redis).
+# Falls back to DatabaseCache so the app starts without Redis in bare local dev,
+# but the fallback is slow — set REDIS_URL=redis://localhost:6379/0 in .env.
+_REDIS_URL = os.environ.get("REDIS_URL", "")
 CACHES = {
     "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": _REDIS_URL,
+    } if _REDIS_URL else {
         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
         "LOCATION": "cache_table",
     }
