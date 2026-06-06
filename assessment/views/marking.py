@@ -747,6 +747,8 @@ def assessor_archive(request):
 def assessor_activity_report(request):
     """Per-assessor marking activity report with optional date filter."""
     from django.db.models import Count, Min, Max
+    from django.db.models.functions import TruncDate
+
     q_from = (request.GET.get("from") or "").strip()
     q_to   = (request.GET.get("to")   or "").strip()
 
@@ -762,7 +764,7 @@ def assessor_activity_report(request):
         except Exception:
             pass
 
-    rows = (
+    rows = list(
         qs
         .values("finalised_by__username", "finalised_by__first_name", "finalised_by__last_name")
         .annotate(
@@ -773,12 +775,41 @@ def assessor_activity_report(request):
         .order_by("-count")
     )
     total = sum(r["count"] for r in rows)
+    assessor_count = sum(1 for r in rows if r["finalised_by__username"])
+    period_from = min((r["first_on"] for r in rows), default=None)
+    period_to   = max((r["last_on"]  for r in rows), default=None)
+
+    def _label(r):
+        fn = (r["finalised_by__first_name"] or "").strip()
+        ln = (r["finalised_by__last_name"]  or "").strip()
+        full = f"{fn} {ln}".strip()
+        return full or r["finalised_by__username"] or "System"
+
+    assessor_labels = json.dumps([_label(r) for r in rows])
+    assessor_data   = json.dumps([r["count"] for r in rows])
+
+    daily_qs = (
+        qs
+        .annotate(day=TruncDate("finalised_at"))
+        .values("day")
+        .annotate(count=Count("pk"))
+        .order_by("day")
+    )
+    daily_labels = json.dumps([str(r["day"]) for r in daily_qs])
+    daily_data   = json.dumps([r["count"] for r in daily_qs])
 
     return render(request, "assessment/assessor_activity_report.html", {
         "rows": rows,
         "total": total,
+        "assessor_count": assessor_count,
+        "period_from": period_from,
+        "period_to": period_to,
         "q_from": q_from,
         "q_to": q_to,
+        "assessor_labels": assessor_labels,
+        "assessor_data": assessor_data,
+        "daily_labels": daily_labels,
+        "daily_data": daily_data,
     })
 
 
