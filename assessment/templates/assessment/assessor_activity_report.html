@@ -4,35 +4,38 @@
 {% block assessor_content %}
 <div class="h-full flex flex-col gap-4">
 
-  <div class="flex items-end justify-between shrink-0 flex-wrap gap-3">
+  {# ── Header ── #}
+  <div class="flex items-center justify-between shrink-0">
     <div>
       <h1 class="text-xl font-semibold">Activity Report</h1>
       <p class="text-sm opacity-60">Marking activity per assessor</p>
     </div>
-
-    <form method="get" class="flex items-center gap-2 flex-wrap">
-      <div class="flex items-center gap-1">
-        <label class="text-xs opacity-60">From</label>
-        <input type="date" name="from" value="{{ q_from }}" class="input input-xs input-bordered">
-      </div>
-      <div class="flex items-center gap-1">
-        <label class="text-xs opacity-60">To</label>
-        <input type="date" name="to" value="{{ q_to }}" class="input input-xs input-bordered">
-      </div>
-      <button type="submit" class="btn btn-xs btn-primary">Filter</button>
-      {% if q_from or q_to %}
-        <a href="{% url 'assessment:assessor_activity_report' %}" class="btn btn-xs btn-ghost">Clear</a>
-      {% endif %}
-    </form>
   </div>
 
+  {# ── Date filter ── #}
+  <form method="get" class="flex items-center gap-3 shrink-0 flex-wrap">
+    <div class="flex items-center gap-2">
+      <label class="text-sm opacity-60">From</label>
+      <input type="date" name="from" value="{{ q_from }}" class="input input-sm input-bordered">
+    </div>
+    <div class="flex items-center gap-2">
+      <label class="text-sm opacity-60">To</label>
+      <input type="date" name="to" value="{{ q_to }}" class="input input-sm input-bordered">
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+    {% if q_from or q_to %}
+      <a href="{% url 'assessment:assessor_activity_report' %}" class="btn btn-sm btn-ghost">Clear</a>
+    {% endif %}
+  </form>
+
+  {# ── Table ── #}
   <div class="card bg-base-100 shadow flex-1 min-h-0 flex flex-col">
     <div class="overflow-auto flex-1">
-      <table class="table table-zebra table-sm w-full">
+      <table class="table table-zebra w-full">
         <thead class="sticky top-0 bg-base-100 z-10">
           <tr>
             <th>Assessor</th>
-            <th class="text-right">Attempts finalised</th>
+            <th class="text-right">Finalised</th>
             <th>First activity</th>
             <th>Last activity</th>
           </tr>
@@ -51,8 +54,8 @@
                 {% endif %}
               </td>
               <td class="text-right font-semibold tabular-nums">{{ row.count }}</td>
-              <td class="text-xs opacity-70 whitespace-nowrap">{{ row.first_on|date:"d M Y" }}</td>
-              <td class="text-xs opacity-70 whitespace-nowrap">{{ row.last_on|date:"d M Y" }}</td>
+              <td class="text-sm opacity-70 whitespace-nowrap">{{ row.first_on|date:"d M Y" }}</td>
+              <td class="text-sm opacity-70 whitespace-nowrap">{{ row.last_on|date:"d M Y" }}</td>
             </tr>
           {% empty %}
             <tr>
