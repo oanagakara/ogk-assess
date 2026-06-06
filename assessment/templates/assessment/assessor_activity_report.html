@@ -59,12 +59,12 @@
 
   {# ── Charts ── #}
   {% if has_data %}
-  <div class="grid gap-4" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+  <div class="grid gap-4" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
 
     {# Grouped bar: per assessor × activity type #}
     <div class="card bg-base-100 shadow border border-base-300">
       <div class="card-body" style="padding:18px;">
-        <h2 class="font-semibold mb-4">Activity by type</h2>
+        <h2 class="font-semibold mb-4">Activity per assessor</h2>
         <canvas id="groupedChart"></canvas>
       </div>
     </div>
@@ -78,6 +78,14 @@
         {% else %}
           <p class="text-sm opacity-50 mt-4">No activity data in this period.</p>
         {% endif %}
+      </div>
+    </div>
+
+    {# Bar: global totals by activity type #}
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18px;">
+        <h2 class="font-semibold mb-4">Activity by type</h2>
+        <canvas id="typeChart"></canvas>
       </div>
     </div>
 
@@ -192,6 +200,27 @@ new Chart(document.getElementById('groupedChart'), {
 });
 
 // Stacked bar: per day × activity type
+// Global totals by activity type
+new Chart(document.getElementById('typeChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Finalisations', 'Moderations', 'Marks given'],
+    datasets: [{
+      data: [{{ total_fin }}, {{ total_mod }}, {{ total_marks }}],
+      backgroundColor: [p[2], p[0], p[4]],
+      borderRadius: 4,
+      borderWidth: 0,
+    }],
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: scaleX,
+      y: Object.assign({}, scaleY, { title: { display: true, text: 'Count', color: labelColor } }),
+    },
+  },
+});
+
 {% if has_daily %}
 new Chart(document.getElementById('dailyChart'), {
   type: 'bar',
