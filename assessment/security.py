@@ -52,9 +52,7 @@ class SecurityHeadersMiddleware:
         "frame-ancestors 'none';"
     )
     _PERMISSIONS = "camera=(), microphone=(), geolocation=()"
-    # Declare COEP explicitly; 'unsafe-none' is the browser default but omitting the
-    # header triggers ZAP [90004] and prevents opt-in to cross-origin isolation later.
-    _COEP = "unsafe-none"
+    _COEP = "require-corp"
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -66,4 +64,5 @@ class SecurityHeadersMiddleware:
         response.setdefault("Content-Security-Policy", csp)
         response.setdefault("Permissions-Policy", self._PERMISSIONS)
         response.setdefault("Cross-Origin-Embedder-Policy", self._COEP)
+        response.setdefault("Cache-Control", "no-store")
         return response
