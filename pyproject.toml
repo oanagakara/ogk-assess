@@ -16,6 +16,14 @@ dependencies = [
     "redis>=8.0.0",
     "sqlparse==0.5.4",
     "whitenoise==6.9.0",
+    # OpenTelemetry
+    "opentelemetry-api>=1.25.0",
+    "opentelemetry-sdk>=1.25.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.25.0",
+    "opentelemetry-instrumentation-django>=0.46b0",
+    "opentelemetry-instrumentation-psycopg2>=0.46b0",
+    "opentelemetry-instrumentation-redis>=0.46b0",
+    "opentelemetry-instrumentation-logging>=0.46b0",
 ]
 
 [dependency-groups]

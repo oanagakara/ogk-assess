@@ -84,7 +84,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ── Database ──────────────────────────────────────────────────────────────────
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
-    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)}
+    _local_hosts = {"localhost", "127.0.0.1", "::1"}
+    _parsed_host = DATABASE_URL.split("@")[-1].split(":")[0].split("/")[0]
+    _ssl_required = _parsed_host not in _local_hosts and not _parsed_host.startswith("192.168.")
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=_ssl_required)}
 else:
     DATABASES = {
         "default": {

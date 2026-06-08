@@ -1,0 +1,46 @@
+name: ZAP Security Baseline
+
+on:
+  schedule:
+    # 03:00 UTC = 05:00 SAST — weekly Sunday scan against deployed app
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "App URL to scan (defaults to APP_URL secret)"
+        required: false
+        default: ""
+
+jobs:
+  zap:
+    name: OWASP ZAP baseline scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run ZAP baseline scan
+        env:
+          TARGET: ${{ inputs.target_url || secrets.APP_URL }}
+        run: |
+          echo "Scanning: ${TARGET}"
+          docker run --rm \
+            -v "${{ github.workspace }}:/zap/wrk" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t "${TARGET}" \
+            -r zap_report.html \
+            -I
+          EXIT=$?
+          # Exit 2 = FAIL-level findings → block the job
+          # Exit 1 = WARN only → acceptable baseline, job passes
+          [ "$EXIT" -le 1 ] || exit "$EXIT"
+
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report-${{ github.run_id }}
+          path: zap_report.html
+          retention-days: 30

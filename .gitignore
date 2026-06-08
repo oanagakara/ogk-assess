@@ -57,6 +57,7 @@ docs/procurement_review*.html
 docs/support-sla*.docx
 docs/support-sla*.html
 docs/sysadmin_management*.html
+docs/assessment_report*.html
 docs/administrator_guide.html
 docs/vendor_questionnaire.pdf
 docs/technical_overview.html
@@ -74,6 +75,14 @@ staticfiles/
 
 # Local dev/demo scripts
 simulate_*.py
+dev_hero.py
 
 # Perf stack — separate git repo
 perf/
+
+# ZAP scan artifacts
+zap_report.html
+zap.yaml
+
+# Database dumps
+dr-artefacts/

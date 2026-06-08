@@ -4,7 +4,10 @@ import random
 import uuid
 from datetime import timedelta
 
+from opentelemetry import trace
+
 logger = logging.getLogger(__name__)
+_tracer = trace.get_tracer(__name__)
 
 from django.conf import settings
 from django.http import HttpResponseForbidden, JsonResponse
@@ -340,24 +343,32 @@ def start(request):
     if request.method == "POST" and form.is_valid():
         code = form.cleaned_data["code"].strip().upper()
 
-        attempt = Attempt.objects.filter(code=code).first()
-        if attempt is not None:
-            ok, msg = claim_seat(attempt)
-            if ok:
-                _bind_attempt_to_session(request, attempt.code)
-                logger.info("Learner claimed seat: code=%s ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
-                return redirect("assessment:attempt_details", code=attempt.code)
-            logger.warning("Seat claim failed: code=%s reason=%r ip=%s", code, msg, request.META.get("REMOTE_ADDR", "-"))
-            form.add_error("code", msg)
-            return render(request, "assessment/start.html", {"form": form})
+        with _tracer.start_as_current_span("learner.start") as span:
+            span.set_attribute("assessment.code", code)
+            span.set_attribute("http.client_ip", request.META.get("REMOTE_ADDR", "-"))
 
-        session = ExamSession.objects.filter(code=code).select_related("template").first()
-        if session is not None:
-            logger.info("Learner joining session: code=%s ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
-            return redirect("assessment:session_join", code=session.code)
+            attempt = Attempt.objects.filter(code=code).first()
+            if attempt is not None:
+                span.set_attribute("assessment.entry_type", "attempt")
+                ok, msg = claim_seat(attempt)
+                if ok:
+                    _bind_attempt_to_session(request, attempt.code)
+                    logger.info("Learner claimed seat: code=%s ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
+                    return redirect("assessment:attempt_details", code=attempt.code)
+                span.set_attribute("assessment.seat_claim_failure", msg)
+                logger.warning("Seat claim failed: code=%s reason=%r ip=%s", code, msg, request.META.get("REMOTE_ADDR", "-"))
+                form.add_error("code", msg)
+                return render(request, "assessment/start.html", {"form": form})
 
-        logger.warning("Invalid code entered: code=%r ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
-        form.add_error("code", "Invalid code. Please check and try again.")
+            session = ExamSession.objects.filter(code=code).select_related("template").first()
+            if session is not None:
+                span.set_attribute("assessment.entry_type", "session")
+                logger.info("Learner joining session: code=%s ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
+                return redirect("assessment:session_join", code=session.code)
+
+            span.set_attribute("assessment.entry_type", "invalid")
+            logger.warning("Invalid code entered: code=%r ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
+            form.add_error("code", "Invalid code. Please check and try again.")
 
     return render(request, "assessment/start.html", {"form": form})
 
@@ -464,8 +475,12 @@ def attempt_submit(request, code: str):
         return redirect("assessment:attempt_details", code=code)
 
     if request.method == "POST":
-        _finalize_attempt(attempt)
-        logger.info("Attempt submitted: code=%s", code)
+        with _tracer.start_as_current_span("learner.attempt_submit") as span:
+            span.set_attribute("assessment.attempt_code", code)
+            answered = Response.objects.filter(attempt=attempt).exclude(response_json="").count()
+            span.set_attribute("assessment.answers_submitted", answered)
+            _finalize_attempt(attempt)
+            logger.info("Attempt submitted: code=%s answered=%d", code, answered)
         return redirect("assessment:attempt_submitted", code=code)
 
     answered = Response.objects.filter(attempt=attempt).exclude(response_json="").count()
