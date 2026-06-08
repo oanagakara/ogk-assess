@@ -53,6 +53,7 @@ class SecurityHeadersMiddleware:
     )
     _PERMISSIONS = "camera=(), microphone=(), geolocation=()"
     _COEP = "require-corp"
+    _CORP = "same-origin"
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -64,5 +65,6 @@ class SecurityHeadersMiddleware:
         response.setdefault("Content-Security-Policy", csp)
         response.setdefault("Permissions-Policy", self._PERMISSIONS)
         response.setdefault("Cross-Origin-Embedder-Policy", self._COEP)
+        response.setdefault("Cross-Origin-Resource-Policy", self._CORP)
         response.setdefault("Cache-Control", "no-store")
         return response
