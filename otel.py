@@ -1,14 +1,17 @@
 """OpenTelemetry SDK setup for the Assessment platform.
 
-Call setup_otel() exactly once per process — wsgi.py does this.
+Called from AssessmentConfig.ready() — after django.setup() and
+dictConfig(LOGGING) have both run — so OTel log handlers attach
+correctly to all named loggers regardless of propagate setting.
+
 All exporters read OTEL_EXPORTER_OTLP_ENDPOINT (and optional
 OTEL_EXPORTER_OTLP_HEADERS) from the environment so no secrets
 live in code.  The function is a no-op when the env var is absent,
 making local dev safe with zero config.
 
-WARNING: incompatible with gunicorn --preload.  gRPC channels use
-threads that do not survive fork().  Render's default (no --preload)
-is fine.
+Uses HTTP/protobuf exporters (proto.http) — compatible with Grafana Cloud
+and any standard OTLP HTTP endpoint.  Also works with a local OTel Collector
+on port 4318 (set OTEL_EXPORTER_OTLP_ENDPOINT=http://host:4318).
 """
 from __future__ import annotations
 
@@ -30,9 +33,9 @@ def setup_otel() -> None:
 
     from opentelemetry import metrics, trace
     from opentelemetry._logs import set_logger_provider
-    from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
-    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+    from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.django import DjangoInstrumentor
     from opentelemetry.instrumentation.logging import LoggingInstrumentor
     from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
