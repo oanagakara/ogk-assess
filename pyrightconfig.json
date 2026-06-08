@@ -10,5 +10,6 @@
   "reportUnknownArgumentType": "none",
   "reportUnknownParameterType": "none",
   "reportArgumentType": "none",
-  "reportCallIssue": "none"
+  "reportCallIssue": "none",
+  "reportMissingImports": "none"
 }
