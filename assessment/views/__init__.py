@@ -39,6 +39,7 @@ from .marking import (
 
 from .assessor import (
     assessor_dashboard,
+    assessor_print_queue_json,
     assessor_metrics,
     assessor_metrics_simulate,
     assessor_guide,

@@ -2,142 +2,248 @@
 {% block title %}Assessor dashboard{% endblock %}
 
 {% block assessor_content %}
-<div class="max-w-5xl mx-auto">
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body p-6 md:p-8 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="card bg-base-200 shadow">
-                    <div class="card-body">
-                        <div class="text-sm opacity-70">Total attempts</div>
-                        <div class="text-3xl font-bold">{{ total_attempts }}</div>
-                    </div>
-                </div>
+<div class="max-w-5xl mx-auto space-y-6">
 
-                <div class="card bg-base-200 shadow">
-                    <div class="card-body">
-                        <div class="text-sm opacity-70">Submitted today</div>
-                        <div class="text-3xl font-bold">{{ submitted_today }}</div>
-                    </div>
-                </div>
-
-                <div class="card bg-base-200 shadow">
-                    <div class="card-body">
-                        <div class="text-sm opacity-70">Active now (last 30 min)</div>
-                        <div class="text-3xl font-bold">{{ active_now }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card bg-base-200 shadow">
-                <div class="card-body space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-semibold">Recent activity</h2>
-                        <div class="flex items-center gap-3">
-                            {% if filter_qs %}
-                                <a href="{% url 'assessment:assessor_dashboard' %}" class="btn btn-sm btn-ghost">Clear filters</a>
-                            {% endif %}
-                            <label class="text-sm opacity-60">Show</label>
-                            <select class="select select-sm select-bordered"
-                                    onchange="window.location.href='?{{ filter_qs }}{% if filter_qs %}&{% endif %}per_page=' + this.value">
-                                <option value="10"  {% if per_page == 10  %}selected{% endif %}>10</option>
-                                <option value="25"  {% if per_page == 25  %}selected{% endif %}>25</option>
-                                <option value="50"  {% if per_page == 50  %}selected{% endif %}>50</option>
-                                <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-                            </select>
-                            <label class="text-sm opacity-60">per page</label>
-                        </div>
-                    </div>
-
-                    <form method="get">
-                    <input type="hidden" name="per_page" value="{{ per_page }}">
-                    <button type="submit" hidden></button>
-                    <div class="overflow-x-auto">
-                        <table class="table table-zebra w-full">
-                            <thead>
-                                <tr>
-                                    <th>Code</th>
-                                    <th>Learner</th>
-                                    <th>Status</th>
-                                    <th>Last activity</th>
-                                    <th class="text-right">Responses</th>
-                                </tr>
-                                <tr>
-                                    <th class="font-normal py-1">
-                                        <input type="text" name="q_code" value="{{ q_code }}"
-                                               placeholder="Filter…"
-                                               class="input input-xs input-bordered w-full">
-                                    </th>
-                                    <th class="font-normal py-1">
-                                        <input type="text" name="q_learner" value="{{ q_learner }}"
-                                               placeholder="Name or ID…"
-                                               class="input input-xs input-bordered w-full">
-                                    </th>
-                                    <th class="font-normal py-1">
-                                        <select name="q_status" class="select select-xs select-bordered w-full" onchange="this.form.submit()">
-                                            <option value="">All</option>
-                                            <option value="in_progress" {% if q_status == "in_progress" %}selected{% endif %}>In progress</option>
-                                            <option value="submitted"   {% if q_status == "submitted"   %}selected{% endif %}>Submitted</option>
-                                            <option value="incomplete"  {% if q_status == "incomplete"  %}selected{% endif %}>Incomplete</option>
-                                        </select>
-                                    </th>
-                                    <th class="font-normal py-1">
-                                        <input type="date" name="q_date" value="{{ q_date }}"
-                                               class="input input-xs input-bordered w-full"
-                                               onchange="this.form.submit()">
-                                    </th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for attempt in recent_page %}
-                                    <tr>
-                                        <td class="font-mono whitespace-nowrap">
-                                            <a class="link link-hover" href="{% url 'assessment:assessor_results' %}?q_code={{ attempt.code }}">{{ attempt.code }}</a>
-                                        </td>
-                                        <td class="whitespace-nowrap">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</td>
-                                        <td>
-                                            {% if attempt.status == "submitted" %}
-                                                <span class="badge badge-success">submitted</span>
-                                            {% elif attempt.status == "in_progress" %}
-                                                <span class="badge badge-warning">in progress</span>
-                                            {% else %}
-                                                <span class="badge">{{ attempt.status }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="whitespace-nowrap opacity-80">{{ attempt.last_activity_at|default:attempt.started_at }}</td>
-                                        <td class="text-right font-mono">{{ attempt.response_count }}</td>
-                                    </tr>
-                                {% empty %}
-                                    <tr><td colspan="5" class="opacity-70">No results.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        {% if recent_page.paginator.num_pages > 1 %}
-                            <div class="flex items-center justify-between mt-4">
-                                <div class="text-sm opacity-70">
-                                    Page {{ recent_page.number }} of {{ recent_page.paginator.num_pages }}
-                                </div>
-                                <div class="join">
-                                    {% if recent_page.has_previous %}
-                                        <a href="?{{ filter_qs }}{% if filter_qs %}&{% endif %}per_page={{ per_page }}&page={{ recent_page.previous_page_number }}"
-                                           class="join-item btn btn-sm">Previous</a>
-                                    {% else %}
-                                        <button class="join-item btn btn-sm btn-disabled" disabled>Previous</button>
-                                    {% endif %}
-                                    {% if recent_page.has_next %}
-                                        <a href="?{{ filter_qs }}{% if filter_qs %}&{% endif %}per_page={{ per_page }}&page={{ recent_page.next_page_number }}"
-                                           class="join-item btn btn-sm">Next</a>
-                                    {% else %}
-                                        <button class="join-item btn btn-sm btn-disabled" disabled>Next</button>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="card bg-base-100 shadow">
+      <div class="card-body">
+        <div class="text-sm opacity-70">Total attempts</div>
+        <div class="text-3xl font-bold">{{ total_attempts }}</div>
+      </div>
     </div>
+    <div class="card bg-base-100 shadow">
+      <div class="card-body">
+        <div class="text-sm opacity-70">Submitted today</div>
+        <div class="text-3xl font-bold">{{ submitted_today }}</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow">
+      <div class="card-body">
+        <div class="text-sm opacity-70">Active now (last 30 min)</div>
+        <div class="text-3xl font-bold">{{ active_now }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body p-6 md:p-8">
+
+      <div role="tablist" class="tabs tabs-bordered mb-4">
+        <button role="tab" class="tab tab-active" id="tab-activity">Recent activity</button>
+        <button role="tab" class="tab" id="tab-printqueue">
+          Print queue
+          <span id="queue-badge" class="badge badge-sm badge-warning ml-2 hidden">0</span>
+        </button>
+      </div>
+
+      <!-- Recent activity tab -->
+      <div id="panel-activity">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              {% if filter_qs %}
+                <a href="{% url 'assessment:assessor_dashboard' %}" class="btn btn-sm btn-ghost">Clear filters</a>
+              {% endif %}
+              <label class="text-sm opacity-60">Show</label>
+              <select class="select select-sm select-bordered"
+                      onchange="window.location.href='?{{ filter_qs }}{% if filter_qs %}&{% endif %}per_page=' + this.value">
+                <option value="10"  {% if per_page == 10  %}selected{% endif %}>10</option>
+                <option value="25"  {% if per_page == 25  %}selected{% endif %}>25</option>
+                <option value="50"  {% if per_page == 50  %}selected{% endif %}>50</option>
+                <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+              </select>
+              <label class="text-sm opacity-60">per page</label>
+            </div>
+          </div>
+
+          <form method="get">
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <button type="submit" hidden></button>
+            <div class="overflow-x-auto">
+              <table class="table table-zebra w-full">
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Learner</th>
+                    <th>Status</th>
+                    <th>Last activity</th>
+                    <th class="text-right">Responses</th>
+                  </tr>
+                  <tr>
+                    <th class="font-normal py-1">
+                      <input type="text" name="q_code" value="{{ q_code }}" placeholder="Filter…"
+                             class="input input-xs input-bordered w-full">
+                    </th>
+                    <th class="font-normal py-1">
+                      <input type="text" name="q_learner" value="{{ q_learner }}" placeholder="Name or ID…"
+                             class="input input-xs input-bordered w-full">
+                    </th>
+                    <th class="font-normal py-1">
+                      <select name="q_status" class="select select-xs select-bordered w-full" onchange="this.form.submit()">
+                        <option value="">All</option>
+                        <option value="in_progress" {% if q_status == "in_progress" %}selected{% endif %}>In progress</option>
+                        <option value="submitted"   {% if q_status == "submitted"   %}selected{% endif %}>Submitted</option>
+                        <option value="incomplete"  {% if q_status == "incomplete"  %}selected{% endif %}>Incomplete</option>
+                      </select>
+                    </th>
+                    <th class="font-normal py-1">
+                      <input type="date" name="q_date" value="{{ q_date }}"
+                             class="input input-xs input-bordered w-full" onchange="this.form.submit()">
+                    </th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for attempt in recent_page %}
+                    <tr>
+                      <td class="font-mono whitespace-nowrap">
+                        <a class="link link-hover" href="{% url 'assessment:assessor_results' %}?q_code={{ attempt.code }}">{{ attempt.code }}</a>
+                      </td>
+                      <td class="whitespace-nowrap">{{ attempt.learner.first_names }} {{ attempt.learner.surname }}</td>
+                      <td>
+                        {% if attempt.status == "submitted" %}
+                          <span class="badge badge-success">submitted</span>
+                        {% elif attempt.status == "in_progress" %}
+                          <span class="badge badge-warning">in progress</span>
+                        {% else %}
+                          <span class="badge">{{ attempt.status }}</span>
+                        {% endif %}
+                      </td>
+                      <td class="whitespace-nowrap opacity-80">{{ attempt.last_activity_at|default:attempt.started_at }}</td>
+                      <td class="text-right font-mono">{{ attempt.response_count }}</td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="5" class="opacity-70">No results.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% if recent_page.paginator.num_pages > 1 %}
+              <div class="flex items-center justify-between mt-4">
+                <div class="text-sm opacity-70">
+                  Page {{ recent_page.number }} of {{ recent_page.paginator.num_pages }}
+                </div>
+                <div class="join">
+                  {% if recent_page.has_previous %}
+                    <a href="?{{ filter_qs }}{% if filter_qs %}&{% endif %}per_page={{ per_page }}&page={{ recent_page.previous_page_number }}"
+                       class="join-item btn btn-sm">Previous</a>
+                  {% else %}
+                    <button class="join-item btn btn-sm btn-disabled" disabled>Previous</button>
+                  {% endif %}
+                  {% if recent_page.has_next %}
+                    <a href="?{{ filter_qs }}{% if filter_qs %}&{% endif %}per_page={{ per_page }}&page={{ recent_page.next_page_number }}"
+                       class="join-item btn btn-sm">Next</a>
+                  {% else %}
+                    <button class="join-item btn btn-sm btn-disabled" disabled>Next</button>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+
+      <!-- Print queue tab -->
+      <div id="panel-printqueue" class="hidden">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm opacity-60">Learners who have accepted the POPIA agreement and are ready for a working sheet.</p>
+          <span id="queue-last-updated" class="text-xs opacity-40"></span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Learner</th>
+                <th>Waiting</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="queue-tbody">
+              <tr><td colspan="4" class="opacity-50">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
+
+<script nonce="{{ csp_nonce }}">
+  const QUEUE_URL = "{% url 'assessment:assessor_print_queue_json' %}";
+  const POLL_INTERVAL = 20000;
+  let pollTimer = null;
+  let activeTab = 'activity';
+
+  function switchTab(name) {
+    activeTab = name;
+    document.querySelectorAll('[role="tab"]').forEach(t => t.classList.remove('tab-active'));
+    document.getElementById('tab-' + name).classList.add('tab-active');
+    document.getElementById('panel-activity').classList.toggle('hidden', name !== 'activity');
+    document.getElementById('panel-printqueue').classList.toggle('hidden', name !== 'printqueue');
+    if (name === 'printqueue') fetchQueue();
+  }
+
+  function fetchQueue() {
+    fetch(QUEUE_URL)
+      .then(r => r.json())
+      .then(data => {
+        const tbody = document.getElementById('queue-tbody');
+        const badge = document.getElementById('queue-badge');
+        const count = data.queue.length;
+
+        badge.textContent = count;
+        badge.classList.toggle('hidden', count === 0);
+
+        if (count === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="opacity-50">No learners waiting for a worksheet.</td></tr>';
+        } else {
+          tbody.innerHTML = data.queue.map(row => `
+            <tr>
+              <td class="font-mono">${row.code}</td>
+              <td>${row.name}</td>
+              <td>${row.minutes_waiting < 1 ? 'just now' : row.minutes_waiting + ' min'}</td>
+              <td class="text-right">
+                <a href="${row.print_url}" target="_blank" class="btn btn-sm btn-outline">Print worksheet</a>
+              </td>
+            </tr>
+          `).join('');
+        }
+
+        const now = new Date();
+        document.getElementById('queue-last-updated').textContent =
+          'Updated ' + now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      })
+      .catch(() => {});
+  }
+
+  function startPolling() {
+    if (pollTimer) return;
+    pollTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchQueue();
+    }, POLL_INTERVAL);
+  }
+
+  function stopPolling() {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      if (activeTab === 'printqueue') fetchQueue();
+      startPolling();
+    } else {
+      stopPolling();
+    }
+  });
+
+  document.getElementById('tab-activity').addEventListener('click', () => switchTab('activity'));
+  document.getElementById('tab-printqueue').addEventListener('click', () => switchTab('printqueue'));
+
+  // Refresh badge count silently even while on the activity tab
+  fetchQueue();
+  startPolling();
+</script>
 {% endblock %}
