@@ -35,12 +35,12 @@ jobs:
               exit 1
               ;;
           esac
-          # Pre-create report file so ZAP container (non-root user) can write it
-          touch "${{ github.workspace }}/zap_report.html"
-          chmod 666 "${{ github.workspace }}/zap_report.html"
+          # Use a dedicated writable directory so ZAP can create zap.yaml and the report
+          mkdir -p "${{ github.workspace }}/zap-work"
+          chmod 777 "${{ github.workspace }}/zap-work"
           echo "Scanning: ${TARGET}"
           docker run --rm \
-            -v "${{ github.workspace }}:/zap/wrk" \
+            -v "${{ github.workspace }}/zap-work:/zap/wrk" \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t "${TARGET}" \
@@ -56,5 +56,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-report-${{ github.run_id }}
-          path: zap_report.html
+          path: zap-work/zap_report.html
           retention-days: 30
