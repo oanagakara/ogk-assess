@@ -66,5 +66,5 @@ class SecurityHeadersMiddleware:
         response.setdefault("Permissions-Policy", self._PERMISSIONS)
         response.setdefault("Cross-Origin-Embedder-Policy", self._COEP)
         response.setdefault("Cross-Origin-Resource-Policy", self._CORP)
-        response.setdefault("Cache-Control", "no-store")
+        response.setdefault("Cache-Control", "no-store, no-cache")
         return response
