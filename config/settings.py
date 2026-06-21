@@ -139,6 +139,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+WHITENOISE_ALLOW_ALL_ORIGINS = False  # static files are same-origin only; CORP: same-origin already set
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 LOGIN_REDIRECT_URL = "/assessor/"
