@@ -146,7 +146,7 @@ def _whitenoise_add_corp_header(headers, path, url):
     headers["Cross-Origin-Resource-Policy"] = "same-origin"
 
 
-WHITENOISE_ADD_HEADERS_FUNCTION = "config.settings._whitenoise_add_corp_header"
+WHITENOISE_ADD_HEADERS_FUNCTION = _whitenoise_add_corp_header
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 LOGIN_REDIRECT_URL = "/assessor/"
