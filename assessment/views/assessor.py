@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Count, Prefetch, Q
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -102,6 +102,33 @@ def assessor_dashboard(request):
             "q_date": q_date,
         },
     )
+
+
+@login_required
+@user_passes_test(is_assessor)
+def assessor_print_queue_json(request):
+    """Return IN_PROGRESS attempts that have accepted POPIA — ready for worksheet printing."""
+    now = timezone.now()
+    attempts = (
+        Attempt.objects.select_related("learner")
+        .filter(
+            status=Attempt.IN_PROGRESS,
+            popia_accepted_at__isnull=False,
+            worksheet_print_count__lt=3,
+        )
+        .order_by("popia_accepted_at")
+    )
+    rows = []
+    for a in attempts:
+        waited = int((now - a.popia_accepted_at).total_seconds() / 60)
+        rows.append({
+            "code": a.code,
+            "name": f"{a.learner.first_names} {a.learner.surname}".strip(),
+            "minutes_waiting": waited,
+            "print_count": a.worksheet_print_count,
+            "print_url": reverse("assessment:assessor_working_sheet_print", kwargs={"code": a.code}),
+        })
+    return JsonResponse({"queue": rows})
 
 
 @login_required

@@ -261,6 +261,8 @@ class Attempt(models.Model):
         blank=True,
         related_name="finalised_attempts",
     )
+    worksheet_print_count = models.PositiveSmallIntegerField(default=0)
+
     moderated_at = models.DateTimeField(null=True, blank=True)
     moderated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

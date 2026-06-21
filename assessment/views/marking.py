@@ -1246,6 +1246,11 @@ def assessor_working_sheet_print(request, code: str):
             {"label": c["label"], "max_points": c["max_points"]}
             for c in key.get("criteria", [])
         ]
+    Attempt.objects.filter(pk=attempt.pk).update(
+        worksheet_print_count=attempt.worksheet_print_count + 1
+    )
+    attempt.worksheet_print_count += 1
+
     return render(request, "assessment/working_sheet_print.html", {
         "attempt": attempt,
         "working_questions": working_questions,

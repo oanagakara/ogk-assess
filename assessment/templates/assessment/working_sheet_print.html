@@ -250,7 +250,7 @@
 <body>
 
   <div class="no-print">
-    <button onclick="window.print()" style="padding:5px 14px; font-size:9pt; cursor:pointer;">
+    <button id="print-btn" style="padding:5px 14px; font-size:9pt; cursor:pointer;">
       Print this sheet
     </button>
   </div>
@@ -422,5 +422,8 @@
   </div>
   {% endif %}
 
+<script nonce="{{ csp_nonce }}">
+  document.getElementById('print-btn').addEventListener('click', function() { window.print(); });
+</script>
 </body>
 </html>

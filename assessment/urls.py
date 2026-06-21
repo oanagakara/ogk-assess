@@ -20,6 +20,7 @@ urlpatterns = [
     path("attempt/<str:code>/review/<int:section_id>/done/", views.attempt_section_review_done, name="attempt_section_review_done"),
     path("attempt/<str:code>/submitted/", views.attempt_submitted, name="attempt_submitted"),
     path("assessor/", views.assessor_dashboard, name="assessor_dashboard"),
+    path("assessor/print-queue.json", views.assessor_print_queue_json, name="assessor_print_queue_json"),
     path("assessor/metrics/", views.assessor_metrics, name="assessor_metrics"),
     path("assessor/metrics/simulate/", views.assessor_metrics_simulate, name="assessor_metrics_simulate"),
     path("assessor/guide/", views.assessor_guide, name="assessor_guide"),
