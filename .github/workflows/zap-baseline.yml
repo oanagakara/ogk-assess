@@ -35,6 +35,9 @@ jobs:
               exit 1
               ;;
           esac
+          # Pre-create report file so ZAP container (non-root user) can write it
+          touch "${{ github.workspace }}/zap_report.html"
+          chmod 666 "${{ github.workspace }}/zap_report.html"
           echo "Scanning: ${TARGET}"
           docker run --rm \
             -v "${{ github.workspace }}:/zap/wrk" \
