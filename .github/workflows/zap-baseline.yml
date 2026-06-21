@@ -41,6 +41,8 @@ jobs:
           touch "${{ github.workspace }}/zap-work/zap_report.html"
           chmod 666 "${{ github.workspace }}/zap-work/zap.yaml" \
                     "${{ github.workspace }}/zap-work/zap_report.html"
+          # Copy per-rule overrides into the mount so ZAP can find them
+          cp "${{ github.workspace }}/.zap/rules.tsv" "${{ github.workspace }}/zap-work/rules.tsv"
           echo "Scanning: ${TARGET}"
           docker run --rm \
             -v "${{ github.workspace }}/zap-work:/zap/wrk" \
@@ -48,6 +50,7 @@ jobs:
             zap-baseline.py \
             -t "${TARGET}" \
             -r zap_report.html \
+            -c rules.tsv \
             -I
           EXIT=$?
           # Exit 2 = FAIL-level findings → block the job

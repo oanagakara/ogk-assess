@@ -7,24 +7,202 @@
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body p-6 md:p-8 space-y-4">
                 <h1 class="card-title text-2xl">Start assessment</h1>
-                <p class="text-sm opacity-70">Enter the assessment code you were given.</p>
+                <p class="text-sm opacity-70">Enter the 8-character code you were given.</p>
 
-                <form method="post" class="space-y-4">
+                <form id="start-form" method="post" class="space-y-4">
                     {% csrf_token %}
+                    <input type="hidden" id="code-assembled" name="code">
+
                     <div class="form-control">
-                        <label class="label" for="id_code">
+                        <label class="label">
                             <span class="label-text font-medium">Assessment code</span>
                         </label>
-                        {{ form.code }}
-                        {% if form.code.errors %}
-                            <div class="text-error text-sm mt-1">{{ form.code.errors|striptags }}</div>
-                        {% endif %}
+
+                        <div id="code-boxes" class="flex gap-2 justify-center">
+                            {% for i in "12345678" %}
+                            <input
+                                type="password"
+                                maxlength="1"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="characters"
+                                spellcheck="false"
+                                inputmode="text"
+                                data-idx="{{ forloop.counter0 }}"
+                                class="code-box input input-bordered w-10 h-12 text-center text-lg font-mono p-0"
+                            >
+                            {% endfor %}
+                        </div>
+
+                        <div id="code-feedback" class="flex items-center justify-center gap-2 mt-3 min-h-[1.75rem] text-sm font-medium"></div>
                     </div>
 
-                    <button class="btn btn-primary w-full" type="submit">Start</button>
+                    <button id="start-btn" class="btn btn-primary w-full" type="submit">Start</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<style nonce="{{ csp_nonce }}">
+@keyframes wiggle {
+    0%,100% { transform: translateX(0); }
+    15%      { transform: translateX(-7px); }
+    30%      { transform: translateX(7px); }
+    45%      { transform: translateX(-5px); }
+    60%      { transform: translateX(5px); }
+    75%      { transform: translateX(-3px); }
+    90%      { transform: translateX(3px); }
+}
+#code-boxes.wiggle { animation: wiggle 0.45s ease-in-out; }
+</style>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+    'use strict';
+    var CODE_LEN   = 8;
+    var boxes      = Array.from(document.querySelectorAll('.code-box'));
+    var assembled  = document.getElementById('code-assembled');
+    var feedback   = document.getElementById('code-feedback');
+    var container  = document.getElementById('code-boxes');
+    var form       = document.getElementById('start-form');
+    var btn        = document.getElementById('start-btn');
+    var evaluating = false;
+
+    function getCode() {
+        return boxes.map(function (b) { return b.value.toUpperCase(); }).join('');
+    }
+
+    function sanitise(s) {
+        return s.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, CODE_LEN);
+    }
+
+    function setBoxState(state) {
+        boxes.forEach(function (b) {
+            b.classList.remove('input-error', 'input-success');
+            if (state === 'error')   b.classList.add('input-error');
+            if (state === 'success') b.classList.add('input-success');
+        });
+        if (state === 'error') {
+            container.classList.remove('wiggle');
+            void container.offsetWidth; /* force reflow to restart animation */
+            container.classList.add('wiggle');
+        }
+    }
+
+    function showFeedback(state, msg) {
+        feedback.innerHTML = '';
+        if (!msg) return;
+        var span = document.createElement('span');
+        span.textContent = msg;
+        span.className = state === 'success' ? 'text-success' : 'text-error';
+        feedback.appendChild(span);
+    }
+
+    function resetState() {
+        setBoxState('default');
+        showFeedback('', '');
+    }
+
+    function lockBoxes(locked) {
+        boxes.forEach(function (b) { b.disabled = locked; });
+        btn.disabled = locked;
+    }
+
+    async function evaluate() {
+        if (evaluating) return;
+        var code = getCode();
+        if (code.length < CODE_LEN) return;
+
+        evaluating   = true;
+        assembled.value = code;
+        lockBoxes(true);
+        resetState();
+
+        var formData = new FormData(form);
+        try {
+            var resp = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                redirect: 'follow',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+
+            if (resp.status === 429) {
+                setBoxState('error');
+                showFeedback('error', '✗ Too many attempts — please wait 10 minutes');
+                lockBoxes(false);
+                evaluating = false;
+                return;
+            }
+
+            if (resp.redirected) {
+                /* Server accepted the code and issued a redirect — navigate there */
+                setBoxState('success');
+                showFeedback('success', '✓ Code accepted');
+                setTimeout(function () { window.location.href = resp.url; }, 400);
+                return;
+            }
+
+            /* 200 at the same URL = invalid code */
+            setBoxState('error');
+            showFeedback('error', '✗ Invalid code — please check and try again');
+            lockBoxes(false);
+            boxes[0].focus();
+            evaluating = false;
+
+        } catch (err) {
+            setBoxState('error');
+            showFeedback('error', '✗ Could not connect — check your network and try again');
+            lockBoxes(false);
+            evaluating = false;
+        }
+    }
+
+    boxes.forEach(function (box, idx) {
+        box.addEventListener('input', function () {
+            var val = sanitise(box.value).slice(0, 1);
+            box.value = val;
+            if (val && idx < CODE_LEN - 1) boxes[idx + 1].focus();
+            if (getCode().length === CODE_LEN) evaluate();
+        });
+
+        box.addEventListener('keydown', function (e) {
+            if (e.key === 'Backspace') {
+                e.preventDefault();
+                evaluating = false;
+                if (box.value === '' && idx > 0) {
+                    boxes[idx - 1].value = '';
+                    boxes[idx - 1].focus();
+                } else {
+                    box.value = '';
+                }
+                resetState();
+                return;
+            }
+            if (e.key === 'ArrowLeft'  && idx > 0)            { boxes[idx - 1].focus(); e.preventDefault(); }
+            if (e.key === 'ArrowRight' && idx < CODE_LEN - 1) { boxes[idx + 1].focus(); e.preventDefault(); }
+        });
+
+        box.addEventListener('paste', function (e) {
+            e.preventDefault();
+            var text = sanitise((e.clipboardData || window.clipboardData).getData('text'));
+            text.split('').forEach(function (ch, i) { if (boxes[i]) boxes[i].value = ch; });
+            var next = Math.min(text.length, CODE_LEN - 1);
+            boxes[next].focus();
+            if (text.length >= CODE_LEN) evaluate();
+        });
+
+        box.addEventListener('focus', function () { box.select(); });
+    });
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        evaluate();
+    });
+
+    (boxes.find(function (b) { return !b.value; }) || boxes[0]).focus();
+})();
+</script>
 {% endblock %}

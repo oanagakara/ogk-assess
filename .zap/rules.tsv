@@ -1,0 +1,16 @@
+# ZAP baseline per-rule overrides
+# Format: id<TAB>IGNORE|INFO|WARN|FAIL<TAB>(description)
+#
+# False positive: /start/ uses {{ form.code }} which goes through Django's
+# BoundField/Widget render pipeline — every attribute value is passed through
+# conditional_escape() before being written to the DOM. Not exploitable.
+10031	IGNORE	(User Controllable HTML Attribute — false positive, Django widget escapes all values)
+#
+# Expected behaviour: Cache-Control: no-store, no-cache is intentionally set on
+# every response by SecurityHeadersMiddleware. ZAP noting it is expected.
+10049	IGNORE	(Non-Storable Content — intentional, no-store is the required security posture)
+#
+# Technology-detection alerts — informational only, not vulnerability findings.
+10109	IGNORE	(Modern Web Application — technology detection, not a vulnerability)
+10111	IGNORE	(Authentication Request Identified — informational)
+10112	IGNORE	(Session Management Response Identified — informational)
