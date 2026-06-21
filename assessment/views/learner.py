@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 _tracer = trace.get_tracer(__name__)
 
 from django.conf import settings
-from django.http import HttpResponseForbidden, JsonResponse
+from django.core.cache import cache
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -30,6 +31,26 @@ from ._common import (
     _extract_inline_choices, _is_layout_only_question, _question_spec,
     _safe_json_loads,
 )
+
+
+# ── /start/ rate limiting ─────────────────────────────────────────────────────
+_START_RL_MAX = 20
+_START_RL_WINDOW = 600  # 10 minutes
+
+
+def _get_client_ip(request) -> str:
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "")
+
+
+def _start_is_rate_limited(request) -> bool:
+    ip = _get_client_ip(request)
+    key = f"start_rl:{ip}"
+    count = cache.get(key, 0) + 1
+    cache.set(key, count, _START_RL_WINDOW)
+    return count > _START_RL_MAX
 
 
 # ── Session ownership ─────────────────────────────────────────────────────────
@@ -338,6 +359,12 @@ def request_demo(request):
 
 
 def start(request):
+    if request.method == "POST" and _start_is_rate_limited(request):
+        return HttpResponse(
+            "Too many attempts. Please wait 10 minutes before trying again.",
+            status=429,
+        )
+
     form = StartForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():

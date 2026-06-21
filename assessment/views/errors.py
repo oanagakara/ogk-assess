@@ -7,9 +7,20 @@ import sys
 logger = logging.getLogger(__name__)
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.cache import cache
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.utils.html import escape
+
+_ERROR_REPORT_RL_MAX = 3
+_ERROR_REPORT_RL_WINDOW = 3600  # 1 hour
+
+
+def _error_report_get_ip(request) -> str:
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "")
 
 from ._common import is_staff
 
@@ -86,6 +97,14 @@ def error_report(request):
     from django.http import JsonResponse
     if request.method != "POST":
         return HttpResponse(status=405)
+
+    ip = _error_report_get_ip(request)
+    rl_key = f"err_report_rl:{ip}"
+    count = cache.get(rl_key, 0) + 1
+    cache.set(rl_key, count, _ERROR_REPORT_RL_WINDOW)
+    if count > _ERROR_REPORT_RL_MAX:
+        return HttpResponse(status=429)
+
     expected = os.environ.get("ERROR_REPORT_SECRET", "")
     provided = request.headers.get("X-Error-Token", "")
     if not expected or not hmac.compare_digest(expected, provided):
