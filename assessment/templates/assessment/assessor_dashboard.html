@@ -156,11 +156,12 @@
                 <th>Code</th>
                 <th>Learner</th>
                 <th>Waiting</th>
+                <th>Prints</th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="queue-tbody">
-              <tr><td colspan="4" class="opacity-50">Loading…</td></tr>
+              <tr><td colspan="5" class="opacity-50">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -197,15 +198,18 @@
         badge.classList.toggle('hidden', count === 0);
 
         if (count === 0) {
-          tbody.innerHTML = '<tr><td colspan="4" class="opacity-50">No learners waiting for a worksheet.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" class="opacity-50">No learners waiting for a worksheet.</td></tr>';
         } else {
           tbody.innerHTML = data.queue.map(row => `
             <tr>
               <td class="font-mono">${row.code}</td>
               <td>${row.name}</td>
               <td>${row.minutes_waiting < 1 ? 'just now' : row.minutes_waiting + ' min'}</td>
+              <td>${row.print_count === 0 ? '—' : row.print_count + ' / 3'}</td>
               <td class="text-right">
-                <a href="${row.print_url}" target="_blank" class="btn btn-sm btn-outline">Print worksheet</a>
+                <a href="${row.print_url}" target="_blank" class="btn btn-sm ${row.print_count > 0 ? 'btn-warning' : 'btn-outline'}">
+                  ${row.print_count > 0 ? 'Reprint' : 'Print worksheet'}
+                </a>
               </td>
             </tr>
           `).join('');

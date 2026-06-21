@@ -111,7 +111,11 @@ def assessor_print_queue_json(request):
     now = timezone.now()
     attempts = (
         Attempt.objects.select_related("learner")
-        .filter(status=Attempt.IN_PROGRESS, popia_accepted_at__isnull=False)
+        .filter(
+            status=Attempt.IN_PROGRESS,
+            popia_accepted_at__isnull=False,
+            worksheet_print_count__lt=3,
+        )
         .order_by("popia_accepted_at")
     )
     rows = []
@@ -121,6 +125,7 @@ def assessor_print_queue_json(request):
             "code": a.code,
             "name": f"{a.learner.first_names} {a.learner.surname}".strip(),
             "minutes_waiting": waited,
+            "print_count": a.worksheet_print_count,
             "print_url": reverse("assessment:assessor_working_sheet_print", kwargs={"code": a.code}),
         })
     return JsonResponse({"queue": rows})
