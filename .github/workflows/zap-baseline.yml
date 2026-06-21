@@ -35,11 +35,14 @@ jobs:
               exit 1
               ;;
           esac
-          # Use a dedicated writable directory so ZAP can create zap.yaml and the report
           mkdir -p "${{ github.workspace }}/zap-work"
-          chmod 777 "${{ github.workspace }}/zap-work"
+          # Pre-create files ZAP needs to write so it can overwrite rather than create
+          touch "${{ github.workspace }}/zap-work/zap.yaml"
+          touch "${{ github.workspace }}/zap-work/zap_report.html"
+          chmod 666 "${{ github.workspace }}/zap-work/zap.yaml" \
+                    "${{ github.workspace }}/zap-work/zap_report.html"
           echo "Scanning: ${TARGET}"
-          docker run --rm --user "$(id -u):$(id -g)" \
+          docker run --rm \
             -v "${{ github.workspace }}/zap-work:/zap/wrk" \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
