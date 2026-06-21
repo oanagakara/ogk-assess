@@ -39,7 +39,7 @@ jobs:
           mkdir -p "${{ github.workspace }}/zap-work"
           chmod 777 "${{ github.workspace }}/zap-work"
           echo "Scanning: ${TARGET}"
-          docker run --rm \
+          docker run --rm --user "$(id -u):$(id -g)" \
             -v "${{ github.workspace }}/zap-work:/zap/wrk" \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
