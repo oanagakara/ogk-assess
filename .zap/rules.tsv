@@ -1,13 +1,13 @@
 # ZAP baseline per-rule overrides
 # Format: id<TAB>IGNORE|INFO|WARN|FAIL<TAB>(description)
 #
-# False positive: /start/ uses {{ form.code }} which goes through Django's
-# BoundField/Widget render pipeline — every attribute value is passed through
-# conditional_escape() before being written to the DOM. Not exploitable.
-10031	IGNORE	(User Controllable HTML Attribute — false positive, Django widget escapes all values)
+# False positive: /start/ uses type=password inputs; Django's PasswordInput
+# widget never renders a value attribute, so no user-controlled attribute exists.
+10031	IGNORE	(User Controllable HTML Attribute — false positive, PasswordInput never renders value attr)
 #
-# Expected behaviour: Cache-Control: no-store, no-cache is intentionally set on
-# every response by SecurityHeadersMiddleware. ZAP noting it is expected.
+# Cache-Control: no-store, no-cache, must-revalidate is set intentionally on every
+# dynamic response by SecurityHeadersMiddleware. Non-storable is the correct posture.
+10015	IGNORE	(Re-examine Cache-control — intentional no-store, no-cache, must-revalidate directive)
 10049	IGNORE	(Non-Storable Content — intentional, no-store is the required security posture)
 #
 # Technology-detection alerts — informational only, not vulnerability findings.
