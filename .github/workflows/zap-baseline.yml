@@ -24,6 +24,17 @@ jobs:
         env:
           TARGET: ${{ inputs.target_url || secrets.APP_URL }}
         run: |
+          if [ -z "${TARGET}" ]; then
+            echo "ERROR: TARGET is not set. Provide the workflow input 'target_url' or set the 'APP_URL' secret."
+            exit 1
+          fi
+          case "${TARGET}" in
+            http://*|https://*) ;;
+            *)
+              echo "ERROR: TARGET must include protocol (http:// or https://). Got: ${TARGET}"
+              exit 1
+              ;;
+          esac
           echo "Scanning: ${TARGET}"
           docker run --rm \
             -v "${{ github.workspace }}:/zap/wrk" \
