@@ -10,6 +10,11 @@
 10015	IGNORE	(Re-examine Cache-control — intentional no-store, no-cache, must-revalidate directive)
 10049	IGNORE	(Non-Storable Content — intentional, no-store is the required security posture)
 #
+# CSP unsafe-inline in style-src is a pre-existing accepted finding (present since April 2026).
+# Inline styles are used throughout templates; removing unsafe-inline requires auditing and
+# hashing every inline style attribute — deferred. Risk accepted at Medium.
+10055	WARN	(CSP style-src unsafe-inline — pre-existing accepted finding, inline styles in templates)
+#
 # Technology-detection alerts — informational only, not vulnerability findings.
 10109	IGNORE	(Modern Web Application — technology detection, not a vulnerability)
 10111	IGNORE	(Authentication Request Identified — informational)
