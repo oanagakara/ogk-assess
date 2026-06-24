@@ -44,9 +44,9 @@ class SecurityHeadersMiddleware:
     _CSP_TEMPLATE = (
         "default-src 'self'; "
         "script-src 'self' 'nonce-{nonce}'; "
-        "style-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "img-src 'self' data:; "
-        "font-src 'self'; "
+        "font-src 'self' https://fonts.gstatic.com; "
         "form-action 'self'; "
         "base-uri 'self'; "
         "frame-ancestors 'none';"
