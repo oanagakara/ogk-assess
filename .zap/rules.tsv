@@ -10,6 +10,13 @@
 10015	IGNORE	(Re-examine Cache-control — intentional no-store, no-cache, must-revalidate directive)
 10049	IGNORE	(Non-Storable Content — intentional, no-store is the required security posture)
 #
+# Cloudflare AI Labeling intercepts GET /robots.txt and serves its own synthetic
+# response, stripping all Worker-set headers. This is a platform artifact — HSTS,
+# CORP, and X-Content-Type-Options are present and correct on all application pages.
+10035	IGNORE	(HSTS Not Set — Cloudflare AI Labeling rewrites robots.txt response after Worker; all application pages have HSTS)
+10021	IGNORE	(X-Content-Type-Options Missing — Cloudflare AI Labeling robots.txt artifact; present on all application pages)
+90004	IGNORE	(CORP Missing — Cloudflare AI Labeling robots.txt artifact; present on all application pages)
+#
 # CSP unsafe-inline in style-src is a pre-existing accepted finding (present since April 2026).
 # Inline styles are used throughout templates; removing unsafe-inline requires auditing and
 # hashing every inline style attribute — deferred. Risk accepted at Medium.
