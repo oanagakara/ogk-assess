@@ -26,8 +26,9 @@ from ._common import is_staff
 
 
 _SUPPORT_EMAIL = "support@oanagakara.co.za"
-_SILENT_404_PATHS = {"/favicon.ico", "/robots.txt", "/apple-touch-icon.png", "/sellers.json", "/ads.txt"}
-_SILENT_404_PREFIXES = ("/.well-known/",)
+_SILENT_404_PATHS = {"/favicon.ico", "/robots.txt", "/apple-touch-icon.png", "/sellers.json", "/ads.txt", "/sitemap.xml", "/settings.py", "/service-worker.js"}
+_SILENT_404_PREFIXES = ("/.well-known/", "/services/", "/sessions/", "/shop/", "/shared/", "/shibboleth/")
+_SILENT_404_SUFFIXES = (".env", ".php", ".asp", ".aspx", ".cgi", ".cfg", ".bak", ".sql", ".js.map")
 
 
 def _notify(error_type, error_msg, url="", method="", user=""):
@@ -223,7 +224,9 @@ def handler403(request, exception=None):
 
 
 def handler404(request, exception=None):
-    if request.path not in _SILENT_404_PATHS and not request.path.startswith(_SILENT_404_PREFIXES):
+    if (request.path not in _SILENT_404_PATHS
+            and not request.path.startswith(_SILENT_404_PREFIXES)
+            and not request.path.endswith(_SILENT_404_SUFFIXES)):
         _notify("NotFound", request.path, url=request.build_absolute_uri(), method=request.method)
     return render(request, "404.html", {
         "error_type": "Page Not Found",
