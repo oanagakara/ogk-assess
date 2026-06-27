@@ -27,16 +27,65 @@ from ._common import is_staff
 
 _SUPPORT_EMAIL = "support@oanagakara.co.za"
 _SILENT_404_PATHS = {
-    "/favicon.ico", "/robots.txt", "/apple-touch-icon.png", "/sellers.json",
-    "/ads.txt", "/sitemap.xml", "/settings.py", "/service-worker.js",
-    "/humans.txt", "/security.txt", "/llms.txt",
-    "/firebase.json", "/vite.config.js", "/nuxt.config.js", "/amplify.yml",
+    # Browser / SEO conventions
+    "/favicon.ico", "/favicon.png", "/robots.txt", "/humans.txt", "/security.txt",
+    "/llms.txt", "/sitemap.xml", "/ads.txt", "/sellers.json", "/apple-touch-icon.png",
+    "/service-worker.js",
+    # Framework fingerprinting — JS/config roots
+    "/app.js", "/main.js", "/bot-connect.js", "/next.config.js",
+    "/vite.config.js", "/nuxt.config.js",
+    "/firebase.json", "/web.config", "/composer.json",
+    "/docker-compose.yml", "/docker-compose.yaml",
+    "/Dockerfile", "/Jenkinsfile",
+    # Python / Django config probes
+    "/settings.py", "/local_settings.py", "/env",
+    # .NET / Java config probes
+    "/appsettings.json", "/local.settings.json",
+    "/config.json", "/config.yaml", "/config.yml",
+    "/application.properties", "/application.yaml", "/application.yml",
+    # Infra / CI probes
+    "/amplify.yml",
+    # Auth / admin route probes
+    "/debug", "/phpinfo", "/signin", "/signup", "/logout",
+    "/api/login", "/api/logout",
 }
 _SILENT_404_PREFIXES = (
-    "/.well-known/", "/services/", "/sessions/", "/shop/", "/shared/", "/shibboleth/",
-    "/.firebase/", "/curl/",
+    # Standards / conventions
+    "/.well-known/",
+    # Dot-file probes
+    "/.env", "/.git", "/.github/", "/.gitlab", "/.idea/", "/.vscode/",
+    "/.npm", "/.yarn", "/.pypirc", "/.firebase/",
+    # Cloud / framework config probes
+    "/appsettings.", "/config/", "/application-",
+    # WordPress probes (wlwmanifest.xml caught by suffix below)
+    "/wp", "/blog/", "/cms/", "/media/", "/news/", "/site/",
+    "/sito/", "/test/", "/web/", "/website/", "/wordpress/",
+    "/2018/", "/2019/", "/2020/", "/2021/", "/2022/", "/2023/",
+    # Log / storage probes
+    "/logs/", "/var/", "/storage/",
+    # Asset path probes (Django serves from /static/, not these)
+    "/assets/", "/js/", "/static/style/",
+    # API probe paths
+    "/api/",
+    # Hash / token probes
+    "/curl/",
+    # Misc CMS / legacy paths
+    "/services/", "/sessions/", "/shop/", "/shared/", "/shibboleth/",
 )
-_SILENT_404_SUFFIXES = (".env", ".php", ".asp", ".aspx", ".cgi", ".cfg", ".bak", ".sql", ".js.map", ".yml", ".yaml")
+_SILENT_404_SUFFIXES = (
+    # Secrets / config files
+    ".env", ".cfg", ".bak", ".sql",
+    # Web framework files
+    ".php", ".asp", ".aspx", ".cgi",
+    # Config formats
+    ".yml", ".yaml", ".properties", ".json",
+    # Log files
+    ".log",
+    # Source map
+    ".js.map",
+    # WordPress manifest
+    "wlwmanifest.xml",
+)
 
 
 def _notify(error_type, error_msg, url="", method="", user=""):
