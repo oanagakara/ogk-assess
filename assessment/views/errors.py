@@ -26,9 +26,17 @@ from ._common import is_staff
 
 
 _SUPPORT_EMAIL = "support@oanagakara.co.za"
-_SILENT_404_PATHS = {"/favicon.ico", "/robots.txt", "/apple-touch-icon.png", "/sellers.json", "/ads.txt", "/sitemap.xml", "/settings.py", "/service-worker.js"}
-_SILENT_404_PREFIXES = ("/.well-known/", "/services/", "/sessions/", "/shop/", "/shared/", "/shibboleth/")
-_SILENT_404_SUFFIXES = (".env", ".php", ".asp", ".aspx", ".cgi", ".cfg", ".bak", ".sql", ".js.map")
+_SILENT_404_PATHS = {
+    "/favicon.ico", "/robots.txt", "/apple-touch-icon.png", "/sellers.json",
+    "/ads.txt", "/sitemap.xml", "/settings.py", "/service-worker.js",
+    "/humans.txt", "/security.txt", "/llms.txt",
+    "/firebase.json", "/vite.config.js", "/nuxt.config.js", "/amplify.yml",
+}
+_SILENT_404_PREFIXES = (
+    "/.well-known/", "/services/", "/sessions/", "/shop/", "/shared/", "/shibboleth/",
+    "/.firebase/", "/curl/",
+)
+_SILENT_404_SUFFIXES = (".env", ".php", ".asp", ".aspx", ".cgi", ".cfg", ".bak", ".sql", ".js.map", ".yml", ".yaml")
 
 
 def _notify(error_type, error_msg, url="", method="", user=""):
