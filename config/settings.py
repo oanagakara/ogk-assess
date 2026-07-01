@@ -108,6 +108,13 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": _REDIS_URL,
+        # Free-tier Render Key Value instances sleep and take several seconds to
+        # wake on first connection — the pool absorbs this once, not per-request.
+        "OPTIONS": {
+            "socket_connect_timeout": 15,
+            "socket_timeout": 15,
+            "retry_on_timeout": True,
+        },
     } if _REDIS_URL else {
         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
         "LOCATION": "cache_table",
