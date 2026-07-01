@@ -203,8 +203,12 @@ def _next_section_first_n(template, section_pk: int):
 # ── Attempt lifecycle ─────────────────────────────────────────────────────────
 
 def _finalize_attempt(attempt, when=None):
+    is_first_finish = attempt.status != Attempt.SUBMITTED
     attempt.submit(when=when)
     auto_mark_attempt(attempt)
+    if is_first_finish:
+        from .errors import notify_attempt_activity
+        notify_attempt_activity("finished", attempt)
 
 
 def _expire_attempt_if_needed(attempt, now=None):
@@ -415,6 +419,8 @@ def attempt_question(request, code: str, n: int):
 
     if not attempt.started_at:
         attempt.start()
+        from .errors import notify_attempt_activity
+        notify_attempt_activity("started", attempt)
 
     expires_at = _attempt_expires_at(attempt)
 
@@ -575,8 +581,12 @@ def attempt_instructions(request, code: str):
         return redirect("assessment:attempt_details", code=code)
 
     if request.method == "POST":
+        is_first_start = attempt.started_at is None
         attempt.start()
         logger.info("Attempt started: code=%s", code)
+        if is_first_start:
+            from .errors import notify_attempt_activity
+            notify_attempt_activity("started", attempt)
         return redirect("assessment:attempt_question", code=code, n=1)
 
     return render(request, "assessment/instructions.html", {"attempt": attempt})

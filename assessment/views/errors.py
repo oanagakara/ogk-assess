@@ -96,6 +96,38 @@ def _notify(error_type, error_msg, url="", method="", user=""):
     _send_error_email(error_type, error_msg, url, method, user)
 
 
+def notify_attempt_activity(event, attempt):
+    """Backup email to support on learner start/finish — INFO tier, not an error."""
+    import threading
+    from django.conf import settings
+    sender = getattr(settings, "EMAIL_HOST_USER", "")
+    if not sender or not getattr(settings, "EMAIL_HOST_PASSWORD", ""):
+        return
+
+    def _send():
+        from django.core.mail import send_mail
+        from django.utils import timezone
+        learner_name = f"{attempt.learner.first_names} {attempt.learner.surname}".strip()
+        try:
+            send_mail(
+                subject=f"[Assessment Platform] Learner {event} — {attempt.code}",
+                message=(
+                    f"Learner:  {learner_name}\n"
+                    f"Attempt:  {attempt.code}\n"
+                    f"Event:    {event}\n"
+                    f"Time:     {timezone.now():%Y-%m-%d %H:%M:%S}\n"
+                ),
+                from_email=sender,
+                recipient_list=[_SUPPORT_EMAIL],
+                fail_silently=False,
+            )
+            logger.info("ACTIVITY EMAIL sent: %s %s", event, attempt.code)
+        except Exception as exc:
+            logger.warning("ACTIVITY EMAIL failed: %s", exc)
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
 def _send_error_email(error_type, error_msg, url, method, user):
     import threading
     from django.conf import settings

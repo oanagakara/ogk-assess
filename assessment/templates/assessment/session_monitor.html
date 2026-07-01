@@ -55,6 +55,7 @@
                 <span class="font-bold text-base opacity-80 shrink-0">W{{ slot.workstation_number }}</span>
               {% endif %}
             </div>
+            <div class="text-xs opacity-70 font-mono">{{ slot.attempt.code }}</div>
 
             <div class="text-xs opacity-80">
               {% if slot.status == "submitted" %}
@@ -107,6 +108,11 @@
   ]);
   const allSubmitted = submittedNow.size === SEAT_LIMIT;
 
+  // Current occupied codes (any learner who has claimed a seat, started or not)
+  const occupiedNow = new Set([
+    {% for slot in slots %}{% if slot and not slot.is_empty %}"{{ slot.attempt.code }}",{% endif %}{% endfor %}
+  ]);
+
   // ── Browser notifications ──────────────────────────────────────────────────
 
   function notify(title, body) {
@@ -119,6 +125,20 @@
     const storageKey = "monitor_submitted_" + SESSION_CODE;
     const prev = new Set(JSON.parse(localStorage.getItem(storageKey) || "[]"));
     const prevAllDone = localStorage.getItem("monitor_alldone_" + SESSION_CODE) === "1";
+
+    const startedKey = "monitor_occupied_" + SESSION_CODE;
+    const prevOccupied = new Set(JSON.parse(localStorage.getItem(startedKey) || "[]"));
+
+    // New starts since last refresh
+    for (const code of occupiedNow) {
+      if (!prevOccupied.has(code)) {
+        {% for slot in slots %}{% if slot and not slot.is_empty %}
+        if (code === "{{ slot.attempt.code }}") {
+          notify("Learner started — {{ session.code }}", "{{ slot.learner_name }} joined — code {{ slot.attempt.code }}.");
+        }
+        {% endif %}{% endfor %}
+      }
+    }
 
     // New submissions since last refresh
     for (const code of submittedNow) {
@@ -139,6 +159,7 @@
 
     // Persist state for next refresh
     localStorage.setItem(storageKey, JSON.stringify([...submittedNow]));
+    localStorage.setItem(startedKey, JSON.stringify([...occupiedNow]));
   }
 
   // Request permission once, then check
