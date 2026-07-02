@@ -307,7 +307,7 @@ def _auto_mark_ai_rubric(question, response, key) -> dict:
 
         client = anthropic.Anthropic(api_key=api_key)
         msg = client.messages.create(
-            model="claude-opus-4-7",
+            model="claude-haiku-4-5-20251001",
             max_tokens=512,
             timeout=20,
             messages=[{"role": "user", "content": prompt}],
