@@ -41,11 +41,14 @@ def setup_otel() -> None:
     from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
     from opentelemetry.instrumentation.redis import RedisInstrumentor
     try:
-        from opentelemetry.sdk.logs import LoggerProvider, LoggingHandler
+        from opentelemetry.sdk.logs import LoggerProvider
         from opentelemetry.sdk.logs.export import BatchLogRecordProcessor
     except ImportError:
-        from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler  # type: ignore[no-redef]
+        from opentelemetry.sdk._logs import LoggerProvider  # type: ignore[no-redef]
         from opentelemetry.sdk._logs.export import BatchLogRecordProcessor  # type: ignore[no-redef]
+    # LoggingHandler moved out of opentelemetry-sdk (deprecated there) and now
+    # lives in the instrumentation package.
+    from opentelemetry.instrumentation.logging.handler import LoggingHandler
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
     from opentelemetry.sdk.resources import Resource
