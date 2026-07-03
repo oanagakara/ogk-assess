@@ -97,13 +97,16 @@ def _is_layout_only_question(question):
 
 # ── Attempt expiry ────────────────────────────────────────────────────────────
 
-def _template_total_duration(template) -> timedelta:
+def _template_total_duration(template, multiplier: float = 1.0) -> timedelta:
     """
     Total assessment time for a template, respecting shared-clock section groups.
 
     Sections with the same subject domain (e.g. both literacy) share one clock,
     so only the first such section's duration is counted. Sections with distinct
     domains (literacy vs numeracy) each contribute their own clock.
+
+    ``multiplier`` applies a per-learner extended-time accommodation
+    (Attempt.extended_time_multiplier) uniformly to every section's duration.
     """
     from ..nqf import section_kind as _section_kind
     total = timedelta()
@@ -111,13 +114,14 @@ def _template_total_duration(template) -> timedelta:
     for section in template.section_set.order_by("order"):
         m = re.search(r'\((\d+)\s+MINUTES?\)', section.title, re.IGNORECASE)
         duration = timedelta(minutes=int(m.group(1))) if m else SECTION_DURATION
+        duration *= multiplier
         kind = _section_kind(section.title)
         if kind == "other":
             total += duration
         elif kind not in seen_kinds:
             total += duration
             seen_kinds.add(kind)
-    return total or SECTION_DURATION
+    return total or (SECTION_DURATION * multiplier)
 
 
 def _expire_overdue_attempts():
@@ -133,7 +137,7 @@ def _expire_overdue_attempts():
     )
     expired_pks = [
         a.pk for a in overdue
-        if a.started_at + _template_total_duration(a.template) <= now
+        if a.started_at + _template_total_duration(a.template, a.extended_time_multiplier) <= now
     ]
     if expired_pks:
         Attempt.objects.filter(pk__in=expired_pks).update(

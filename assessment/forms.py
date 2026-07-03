@@ -120,6 +120,14 @@ class MatchResponseForm(forms.Form):
     # Allow skipping. We'll still store whatever is posted (even empty).
     response_json = forms.CharField(widget=forms.HiddenInput(), required=False)
 
+EXTENDED_TIME_CHOICES = [
+    ("1.0", "No accommodation"),
+    ("1.25", "+25% time"),
+    ("1.5", "+50% time"),
+    ("2.0", "+100% time (double time)"),
+]
+
+
 class AttemptForm(forms.ModelForm):
 
     template = forms.ModelChoiceField(
@@ -128,9 +136,29 @@ class AttemptForm(forms.ModelForm):
         empty_label="Select Template"
     )
 
+    extended_time_multiplier = forms.TypedChoiceField(
+        choices=EXTENDED_TIME_CHOICES,
+        coerce=float,
+        initial="1.0",
+        required=True,
+        label="Extended-time accommodation",
+        widget=forms.Select(attrs={"class": "select select-bordered w-full"}),
+        help_text="Applies to the whole assessment clock and every section/review window.",
+    )
+
     class Meta:
         model = Attempt
-        fields = ["template"]
+        fields = ["template", "extended_time_multiplier", "accommodation_notes"]
+        widgets = {
+            "accommodation_notes": forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full",
+                "rows": 2,
+                "placeholder": "Optional — why this accommodation was set (assessor-only, not shown to the learner).",
+            }),
+        }
+        labels = {
+            "accommodation_notes": "Accommodation notes (optional)",
+        }
 
 
 class ExamSessionForm(forms.ModelForm):
