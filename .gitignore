@@ -62,11 +62,29 @@ docs/administrator_guide.html
 docs/vendor_questionnaire.pdf
 docs/technical_overview.html
 docs/literacy_level_grading.html
+docs/owasp_testing_plan.md
+docs/test_business_impact.md
+docs/test_business_impact.html
+docs/session_*.md
+docs/accessibility_roadmap.md
+docs/wc_cet_college_positioning.md
+docs/wc_cet_college_pricing_model.md
+docs/assessor_training_manual.md
+docs/changelog_external.html
+docs/disaster_recovery_plan.html
+
+# scripts/ — internal tooling, never shared with any git provider
+scripts/
 CLAUDE.md
 docs/*.pdf
 docs/Administrator*
 current_questions_export.json
 recap.md
+
+# reporting artefacts (powerbi)
+reporting/Assessment_Dashboard.pbix
+reporting/etl.py.bak
+reporting/powerbi/
 
 # Claude skills and memory
 .skills/
@@ -83,6 +101,9 @@ perf/
 # ZAP scan artifacts
 zap_report.html
 zap.yaml
+
+# Test report artifact
+test_report.html
 
 # Database dumps
 dr-artefacts/
