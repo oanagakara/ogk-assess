@@ -22,27 +22,36 @@
       </div>
 
     {% elif question.kind == "match" %}
-      {# Full drag-drop, state restored from saved response_json #}
+      {# State restored from saved response_json. Click/keyboard select-then-place is the
+         primary interaction; drag-and-drop remains available as an additional path. #}
       {{ form.response_json }}
-      <div class="card bg-base-200 shadow">
+      <div class="card bg-base-200 shadow" data-match-widget>
         <div class="card-body p-4">
           <h3 class="font-semibold text-sm mb-2">Words</h3>
           <div id="bank" class="flex flex-wrap gap-2">
             {% for w in spec.bank %}
               <div class="badge badge-lg cursor-move select-none"
-                   draggable="true" data-word="{{ w|escape }}">{{ w }}</div>
+                   draggable="true"
+                   tabindex="0"
+                   role="button"
+                   data-word="{{ w|escape }}"
+                   aria-pressed="false"
+                   aria-label="Word: {{ w }}. Not placed. Press Enter or Space to select, then choose a box to place it.">{{ w }}</div>
             {% endfor %}
           </div>
-          <p class="text-xs opacity-50 mt-2">Drag a word onto a box.</p>
+          <p class="text-xs opacity-50 mt-2">Select a word, then select a box to place it, or drag a word onto a box.</p>
         </div>
       </div>
-      <div class="gap-3" style="display:grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 1fr;">
+      <div class="gap-3" style="display:grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 1fr;" data-match-targets>
         {% for t in spec.targets %}
           <div class="card bg-base-200 shadow" style="min-width:0;">
             <div class="card-body p-3">
               <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
               <div class="mt-2 p-2 rounded-lg bg-base-100 border border-base-300" style="min-height:56px;"
-                   data-target="{{ t.id }}">
+                   tabindex="0"
+                   role="button"
+                   data-target="{{ t.id }}"
+                   aria-label="Box {{ forloop.counter }}: {{ t.text }}. Empty. Press Enter or Space to place the selected word here.">
                 <span class="opacity-50 text-sm">Drop here</span>
               </div>
             </div>
@@ -57,21 +66,68 @@
           let state = {};
           try { state = hidden.value ? JSON.parse(hidden.value) : {}; } catch(e) { state = {}; }
 
+          let selectedWord = null;
+
           function renderFromState() {
-            targets.forEach(t => { t.innerHTML = '<span class="opacity-50 text-sm">Drop here</span>'; });
+            targets.forEach(t => {
+              const labelText = t.dataset.text || "";
+              t.innerHTML = '<span class="opacity-50 text-sm">Drop here</span>';
+              t.setAttribute("aria-label", `Box: ${labelText}. Empty. Press Enter or Space to place the selected word here.`);
+            });
             const placed = new Set(Object.values(state || {}));
             targets.forEach(t => {
               const id = t.getAttribute("data-target");
               const word = state[id];
+              const labelText = t.dataset.text || "";
               if (word) {
-                t.innerHTML = `<div class="flex items-center justify-between gap-2 overflow-hidden"><div class="badge badge-primary badge-lg cursor-move select-none" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:calc(100% - 4rem);" draggable="true" data-word="${word}">${word}</div><button type="button" class="btn btn-ghost btn-xs shrink-0" data-clear="${id}">Clear</button></div>`;
+                t.innerHTML = `<div class="flex items-center justify-between gap-2 overflow-hidden"><div class="badge badge-primary badge-lg cursor-move select-none" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:calc(100% - 4rem);" draggable="true" data-word="${word}">${word}</div><button type="button" class="btn btn-ghost btn-xs shrink-0" data-clear="${id}" aria-label="Clear ${word} from ${labelText}">Clear</button></div>`;
+                t.setAttribute("aria-label", `Box: ${labelText}. Currently filled with "${word}". Press Enter or Space to clear it, or select a different word and place it here to swap.`);
               }
             });
             bank.querySelectorAll("[data-word]").forEach(el => {
-              el.style.opacity = placed.has(el.getAttribute("data-word")) ? "0.35" : "1";
+              const w = el.getAttribute("data-word");
+              const isPlaced = placed.has(w);
+              el.style.opacity = isPlaced ? "0.35" : "1";
+              const isSelected = selectedWord === w;
+              el.setAttribute("aria-pressed", isSelected ? "true" : "false");
+              el.classList.toggle("ring", isSelected);
+              el.classList.toggle("ring-primary", isSelected);
+              if (isPlaced) {
+                el.setAttribute("aria-label", `Word: ${w}. Already placed. Press Enter or Space to select, then choose a box to move it.`);
+              } else if (isSelected) {
+                el.setAttribute("aria-label", `Word: ${w}. Selected. Choose a box to place it, or press Enter or Space again to deselect.`);
+              } else {
+                el.setAttribute("aria-label", `Word: ${w}. Not placed. Press Enter or Space to select, then choose a box to place it.`);
+              }
             });
             hidden.value = JSON.stringify(state);
           }
+
+          function selectWord(word) {
+            selectedWord = (selectedWord === word) ? null : word;
+            renderFromState();
+          }
+
+          function placeSelectedWordIn(id) {
+            if (!selectedWord || !id) return;
+            for (const k of Object.keys(state)) { if (state[k] === selectedWord) delete state[k]; }
+            state[id] = selectedWord;
+            selectedWord = null;
+            renderFromState();
+          }
+
+          function clearTarget(id) {
+            if (!id) return;
+            delete state[id];
+            selectedWord = null;
+            renderFromState();
+          }
+
+          // Stash each target's label text for aria-label rebuilding.
+          targets.forEach(t => {
+            const labelDiv = t.parentElement.querySelector(".text-sm.opacity-80");
+            t.dataset.text = labelDiv ? labelDiv.textContent.trim() : "";
+          });
 
           document.addEventListener("dragstart", e => {
             const w = e.target?.getAttribute("data-word");
@@ -86,15 +142,53 @@
               if (!word || !id) return;
               for (const k of Object.keys(state)) { if (state[k] === word) delete state[k]; }
               state[id] = word;
+              selectedWord = null;
               renderFromState();
             });
+
+            t.addEventListener("click", e => {
+              if (e.target.closest("[data-clear]")) return;
+              const id = t.getAttribute("data-target");
+              if (selectedWord) {
+                placeSelectedWordIn(id);
+              } else if (state[id] !== undefined) {
+                clearTarget(id);
+              }
+            });
+
+            t.addEventListener("keydown", e => {
+              if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+              e.preventDefault();
+              const id = t.getAttribute("data-target");
+              if (selectedWord) {
+                placeSelectedWordIn(id);
+              } else if (state[id] !== undefined) {
+                clearTarget(id);
+              }
+            });
           });
+
           document.addEventListener("click", e => {
-            const id = e.target?.getAttribute("data-clear");
-            if (!id) return;
-            delete state[id];
-            renderFromState();
+            const clearId = e.target?.getAttribute("data-clear");
+            if (clearId) {
+              clearTarget(clearId);
+              return;
+            }
+            const wordEl = e.target?.closest("[data-word]");
+            if (wordEl && wordEl.closest("#bank")) {
+              selectWord(wordEl.getAttribute("data-word"));
+            }
           });
+
+          document.addEventListener("keydown", e => {
+            if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+            const wordEl = e.target?.closest("[data-word]");
+            if (wordEl && wordEl.closest("#bank")) {
+              e.preventDefault();
+              selectWord(wordEl.getAttribute("data-word"));
+            }
+          });
+
           renderFromState();
         })();
       </script>
