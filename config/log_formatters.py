@@ -3,7 +3,7 @@ import logging
 
 
 class JSONFormatter(logging.Formatter):
-    """Emits one JSON object per log record — parseable by the Logstash pipeline."""
+    """Emits one JSON object per log record — readable by any OTLP/Loki-based log pipeline."""
 
     def format(self, record: logging.LogRecord) -> str:
         obj: dict = {

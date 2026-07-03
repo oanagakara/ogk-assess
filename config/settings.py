@@ -227,7 +227,7 @@ LOGGING = {
             "format": "{levelname} {name}: {message}",
             "style": "{",
         },
-        # Structured JSON — consumed by the Logstash pipeline in perf/
+        # Structured JSON — readable by any OTLP/Loki-based log pipeline
         "json": {
             "()": "config.log_formatters.JSONFormatter",
         },
@@ -235,7 +235,9 @@ LOGGING = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            # JSON in production so Logstash can parse fields; readable in dev
+            # JSON in production; the OTel logging bridge (see otel.py) also
+            # forwards these records to Grafana Cloud (Loki) via OTLP.
+            # Readable "verbose" format in dev.
             "formatter": "verbose" if DEBUG else "json",
         },
     },
