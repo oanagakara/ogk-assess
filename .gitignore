@@ -72,6 +72,7 @@ docs/wc_cet_college_pricing_model.md
 docs/assessor_training_manual.md
 docs/changelog_external.html
 docs/disaster_recovery_plan.html
+docs/DOC_CONSISTENCY_CHECKLIST.md
 
 # scripts/ — internal tooling, never shared with any git provider
 scripts/
