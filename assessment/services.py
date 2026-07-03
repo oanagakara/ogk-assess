@@ -1,9 +1,13 @@
+import os
 from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 from .models import Attempt, ExamSession
 
-SEAT_LIMIT = 15
+# Test-scoped override for load testing — unset in normal operation, so this
+# never changes behavior for real clients. Only set LOAD_TEST_SEAT_LIMIT
+# deliberately, for the duration of a load test.
+SEAT_LIMIT = int(os.environ.get("LOAD_TEST_SEAT_LIMIT", "15"))
 SEAT_TIMEOUT_MINUTES = 30
 
 @transaction.atomic
