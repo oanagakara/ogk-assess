@@ -195,12 +195,11 @@
 
     {% elif spec.layout == "form_fill" %}
       {# Form fill — editable inputs with saved values #}
-      <label class="label"><span class="label-text font-medium">Your answer</span></label>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {% for f in spec.fields %}
           <div class="form-control">
-            <label class="label"><span class="label-text font-medium">{{ f.label }}</span></label>
-            <input class="input input-bordered w-full" type="text"
+            <label class="label" for="id_ff_{{ f.name }}"><span class="label-text font-medium">{{ f.label }}</span></label>
+            <input id="id_ff_{{ f.name }}" class="input input-bordered w-full" type="text"
                    name="ff_{{ f.name }}" value="{{ f.value|default:'' }}"
                    autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off"
                    {% if f.required %}required{% endif %}>
@@ -213,7 +212,7 @@
 
     {% else %}
       {# Text / short-answer — pre-populated editable textarea #}
-      <label class="label"><span class="label-text font-medium">Your answer</span></label>
+      <label class="label" for="id_answer"><span class="label-text font-medium">Your answer</span></label>
       {{ form.answer }}
     {% endif %}
   </div>

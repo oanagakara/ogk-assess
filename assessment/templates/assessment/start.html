@@ -14,11 +14,11 @@
                     <input type="hidden" id="code-assembled" name="code">
 
                     <div class="form-control">
-                        <label class="label">
+                        <label class="label" id="code-boxes-label">
                             <span class="label-text font-medium">Assessment code</span>
                         </label>
 
-                        <div id="code-boxes" class="flex gap-2 justify-center">
+                        <div id="code-boxes" class="flex gap-2 justify-center" role="group" aria-labelledby="code-boxes-label" aria-describedby="code-feedback">
                             {% for i in "12345678" %}
                             <input
                                 type="password"
@@ -30,11 +30,12 @@
                                 inputmode="text"
                                 data-idx="{{ forloop.counter0 }}"
                                 class="code-box input input-bordered w-10 h-12 text-center text-lg font-mono p-0"
+                                aria-label="Assessment code character {{ forloop.counter }} of 8"
                             >
                             {% endfor %}
                         </div>
 
-                        <div id="code-feedback" class="flex items-center justify-center gap-2 mt-3 min-h-[1.75rem] text-sm font-medium"></div>
+                        <div id="code-feedback" class="flex items-center justify-center gap-2 mt-3 min-h-[1.75rem] text-sm font-medium" role="status" aria-live="polite"></div>
                     </div>
 
                     <button id="start-btn" class="btn btn-primary w-full" type="submit">Start</button>
