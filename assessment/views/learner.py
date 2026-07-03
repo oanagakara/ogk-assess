@@ -70,16 +70,20 @@ def _owns_attempt(request, code: str) -> bool:
 
 # ── Section timing ────────────────────────────────────────────────────────────
 
-def _section_timedelta(section_pk: int) -> timedelta:
+def _section_timedelta(section_pk: int, multiplier: float = 1.0) -> timedelta:
     """Return the allotted duration for a section, parsed from its title.
 
     Section titles embed the slot in the form '(45 MINUTES)' or '(60 MINUTES)'.
     Falls back to SECTION_DURATION (60 min) when no match is found.
+
+    ``multiplier`` applies a per-learner extended-time accommodation
+    (Attempt.extended_time_multiplier) to the base slot.
     """
     import re as _re
     title = Section.objects.filter(pk=section_pk).values_list("title", flat=True).first() or ""
     m = _re.search(r'\((\d+)\s+MINUTES?\)', title, _re.IGNORECASE)
-    return timedelta(minutes=int(m.group(1))) if m else SECTION_DURATION
+    base = timedelta(minutes=int(m.group(1))) if m else SECTION_DURATION
+    return base * multiplier
 
 
 def _clock_start_for_section(attempt, section_pk: int):
@@ -118,14 +122,14 @@ def _clock_start_for_section(attempt, section_pk: int):
 def _attempt_expires_at(attempt):
     if not attempt.started_at:
         return None
-    return attempt.started_at + ASSESSMENT_DURATION
+    return attempt.started_at + (ASSESSMENT_DURATION * attempt.extended_time_multiplier)
 
 
 def _section_expires_at(attempt, section_pk):
     started = _clock_start_for_section(attempt, section_pk)
     if not started:
         return None
-    return started + _section_timedelta(section_pk)
+    return started + _section_timedelta(section_pk, attempt.extended_time_multiplier)
 
 
 def _first_n_of_next_section(qs_section_ids, current_section_id):
@@ -154,9 +158,10 @@ def _section_review_seconds(attempt, section_pk: int) -> int:
     if not (clock_start and review_started):
         return 0
     question_seconds = max(0, int((review_started - clock_start).total_seconds()))
-    slot_seconds = int(_section_timedelta(section_pk).total_seconds())
+    slot_seconds = int(_section_timedelta(section_pk, attempt.extended_time_multiplier).total_seconds())
     remaining = slot_seconds - question_seconds
-    return max(0, min(REVIEW_MAX_SECONDS, remaining))
+    review_cap = int(REVIEW_MAX_SECONDS * attempt.extended_time_multiplier)
+    return max(0, min(review_cap, remaining))
 
 
 def _section_review_expires_at(attempt, section_pk: int):
@@ -172,9 +177,10 @@ def _projected_section_review_seconds(attempt, section_pk: int) -> int:
     if not clock_start:
         return 0
     question_seconds = max(0, int((timezone.now() - clock_start).total_seconds()))
-    slot_seconds = int(_section_timedelta(section_pk).total_seconds())
+    slot_seconds = int(_section_timedelta(section_pk, attempt.extended_time_multiplier).total_seconds())
     remaining = slot_seconds - question_seconds
-    return max(0, min(REVIEW_MAX_SECONDS, remaining))
+    review_cap = int(REVIEW_MAX_SECONDS * attempt.extended_time_multiplier)
+    return max(0, min(review_cap, remaining))
 
 
 def _section_questions(template, section_pk: int):

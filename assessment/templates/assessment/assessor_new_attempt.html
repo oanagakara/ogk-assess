@@ -24,6 +24,12 @@
           Template: <strong>{{ attempt.template.name }}</strong>{% if attempt.template.version %} ({{ attempt.template.version }}){% endif %}
         </div>
 
+        {% if attempt.extended_time_multiplier != 1.0 %}
+          <div class="text-sm opacity-70">
+            Extended time: <strong>{{ attempt.extended_time_multiplier }}x</strong>
+          </div>
+        {% endif %}
+
         <div class="alert alert-success">
           <div class="w-full">
             <div class="font-semibold mb-1">New code generated</div>
@@ -67,6 +73,35 @@
             {% if form.template.errors %}
               <div class="text-error text-sm mt-1">
                 {{ form.template.errors|striptags }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-semibold">{{ form.extended_time_multiplier.label }}</span>
+            </label>
+            {{ form.extended_time_multiplier }}
+            {% if form.extended_time_multiplier.help_text %}
+              <label class="label">
+                <span class="label-text-alt opacity-70">{{ form.extended_time_multiplier.help_text }}</span>
+              </label>
+            {% endif %}
+            {% if form.extended_time_multiplier.errors %}
+              <div class="text-error text-sm mt-1">
+                {{ form.extended_time_multiplier.errors|striptags }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-semibold">{{ form.accommodation_notes.label }}</span>
+            </label>
+            {{ form.accommodation_notes }}
+            {% if form.accommodation_notes.errors %}
+              <div class="text-error text-sm mt-1">
+                {{ form.accommodation_notes.errors|striptags }}
               </div>
             {% endif %}
           </div>

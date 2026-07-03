@@ -254,6 +254,19 @@ class Attempt(models.Model):
     workstation_number = models.PositiveSmallIntegerField(null=True, blank=True)
     consent_signed_at = models.DateTimeField(null=True, blank=True)
     consent_signed_name = models.CharField(max_length=200, blank=True, default="")
+    extended_time_multiplier = models.FloatField(
+        default=1.0,
+        help_text=(
+            "Extended-time accommodation applied to every clock for this attempt "
+            "(assessment duration, section slots, review windows). "
+            "1.0 = no accommodation, 1.5 = +50% time, 2.0 = +100% time."
+        ),
+    )
+    accommodation_notes = models.TextField(
+        blank=True,
+        default="",
+        help_text="Optional assessor note on why an accommodation was set (not shown to the learner).",
+    )
     finalised_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
