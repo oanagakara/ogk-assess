@@ -10,6 +10,10 @@
              data-timeout-url="{{ section_timeout_url }}"
              class="hidden">
         </div>
+        {# Section timer — periodic announcements for screen reader users. Visually hidden;
+           the visible countdown badge is not itself a live region because re-announcing
+           every second would be disruptive. See _common.py / accessibility_roadmap.md Tier 2. #}
+        <div id="section-timer-live" aria-live="polite" role="status" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"></div>
     {% endif %}
 
     {% if layout == "passage_only" %}
@@ -27,7 +31,12 @@
                                 <div id="countdown"
                                      class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
-                                    00:45:00
+                                    <svg class="section-clock-icon hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:0.25rem;">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                                    </svg>
+                                    <span class="section-clock-text">00:45:00</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -72,7 +81,12 @@
                                 <div id="countdown"
                                      class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
-                                    00:45:00
+                                    <svg class="section-clock-icon hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:0.25rem;">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                                    </svg>
+                                    <span class="section-clock-text">00:45:00</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -108,7 +122,7 @@
                 <div class="card-body p-6 md:p-8 space-y-4">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h2 class="text-2xl font-semibold">Reading text</h2>
+                            <h1 class="text-2xl font-semibold">Reading text</h1>
                             <p class="text-sm opacity-70">{{ question.section.title }}</p>
                         </div>
                         <div class="flex items-center gap-2">
@@ -117,7 +131,12 @@
                                 <div id="countdown"
                                      class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
-                                    00:45:00
+                                    <svg class="section-clock-icon hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:0.25rem;">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                                    </svg>
+                                    <span class="section-clock-text">00:45:00</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -139,7 +158,7 @@
                 <div class="card-body space-y-1" style="padding:10px">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h1 class="card-title text-xl">Question {{ n }} of {{ total }}</h1>
+                            <h2 class="card-title text-xl">Question {{ n }} of {{ total }}</h2>
                             <p class="text-sm opacity-70">{{ question.section.title }}</p>
                         </div>
                         <div class="flex items-center gap-2">
@@ -148,7 +167,12 @@
                                 <div id="countdown"
                                      class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
-                                    00:45:00
+                                    <svg class="section-clock-icon hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:0.25rem;">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                                    </svg>
+                                    <span class="section-clock-text">00:45:00</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -168,7 +192,7 @@
                             {% if question.kind == "match" %}
                                 {{ form.response_json }}
 
-                                <div class="space-y-1">
+                                <div class="space-y-1" data-match-widget>
 
                                     <div class="card bg-base-200 shadow">
                                         <div class="card-body" style="padding:6px">
@@ -178,11 +202,15 @@
                                                     <div
                                                         class="badge badge-lg cursor-move select-none"
                                                         draggable="true"
+                                                        tabindex="0"
+                                                        role="button"
                                                         data-word="{{ w|escape }}"
+                                                        aria-pressed="false"
+                                                        aria-label="Word: {{ w }}. Not placed. Press Enter or Space to select, then choose a box to place it."
                                                     >{{ w }}</div>
                                                 {% endfor %}
                                             </div>
-                                            <p class="text-xs opacity-50 mt-1">Drag a word onto a box.</p>
+                                            <p class="text-xs opacity-50 mt-1">Select a word, then select a box to place it, or drag a word onto a box.</p>
                                         </div>
                                     </div>
 
@@ -193,7 +221,10 @@
                                                     <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
                                                     <div
                                                         class="mt-1 p-2 rounded-lg bg-base-100 border border-base-300" style="min-height:28px;"
+                                                        tabindex="0"
+                                                        role="button"
                                                         data-target="{{ t.id }}"
+                                                        aria-label="Box {{ forloop.counter }}: {{ t.text }}. Empty. Press Enter or Space to place the selected word here."
                                                     >
                                                         <span class="opacity-50 text-sm">Drop here</span>
                                                     </div>
@@ -205,9 +236,11 @@
                                 </div>
 
                                 <script nonce="{{ csp_nonce }}">
-                                    const bank = document.getElementById("bank");
+                                (function () {
+                                    const widget = document.currentScript.closest('form').querySelector('[data-match-widget]');
+                                    const bank = widget.querySelector("#bank");
                                     const hidden = document.getElementById("id_response_json");
-                                    const targets = document.querySelectorAll("[data-target]");
+                                    const targets = widget.querySelectorAll("[data-target]");
 
                                     let state = {};
                                     try {
@@ -216,11 +249,16 @@
                                         state = {};
                                     }
 
+                                    let selectedWord = null;
+
                                     function renderFromState() {
                                         const sy = window.scrollY;
 
                                         targets.forEach(t => {
+                                            const labelText = t.dataset.text || "";
                                             t.innerHTML = '<span class="opacity-50 text-sm" style="line-height:40px;">Drop here</span>';
+                                            t.setAttribute("aria-label", `Box: ${labelText}. Empty. Press Enter or Space to place the selected word here.`);
+                                            t.classList.remove("border-primary");
                                         });
 
                                         const placed = new Set(Object.values(state || {}));
@@ -228,22 +266,58 @@
                                         targets.forEach(t => {
                                             const id = t.getAttribute("data-target");
                                             const word = state[id];
+                                            const labelText = t.dataset.text || "";
                                             if (word) {
                                                 t.innerHTML = `
                                                     <div class="flex items-center justify-between gap-2 overflow-hidden">
                                                         <div class="badge badge-primary badge-lg cursor-move select-none" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:calc(100% - 4rem);" draggable="true" data-word="${word}">${word}</div>
-                                                        <button type="button" class="btn btn-ghost btn-xs shrink-0" data-clear="${id}">Clear</button>
+                                                        <button type="button" class="btn btn-ghost btn-xs shrink-0" data-clear="${id}" aria-label="Clear ${word} from ${labelText}">Clear</button>
                                                     </div>`;
+                                                t.setAttribute("aria-label", `Box: ${labelText}. Currently filled with "${word}". Press Enter or Space to clear it, or select a different word and place it here to swap.`);
                                             }
                                         });
 
                                         bank.querySelectorAll("[data-word]").forEach(el => {
                                             const w = el.getAttribute("data-word");
-                                            el.style.opacity = placed.has(w) ? "0.35" : "1";
+                                            const isPlaced = placed.has(w);
+                                            el.style.opacity = isPlaced ? "0.35" : "1";
+                                            const isSelected = selectedWord === w;
+                                            el.setAttribute("aria-pressed", isSelected ? "true" : "false");
+                                            el.classList.toggle("ring", isSelected);
+                                            el.classList.toggle("ring-primary", isSelected);
+                                            if (isPlaced) {
+                                                el.setAttribute("aria-label", `Word: ${w}. Already placed. Press Enter or Space to select, then choose a box to move it.`);
+                                            } else if (isSelected) {
+                                                el.setAttribute("aria-label", `Word: ${w}. Selected. Choose a box to place it, or press Enter or Space again to deselect.`);
+                                            } else {
+                                                el.setAttribute("aria-label", `Word: ${w}. Not placed. Press Enter or Space to select, then choose a box to place it.`);
+                                            }
                                         });
 
                                         hidden.value = JSON.stringify(state);
                                         window.scrollTo(0, sy);
+                                    }
+
+                                    function selectWord(word, el) {
+                                        selectedWord = (selectedWord === word) ? null : word;
+                                        renderFromState();
+                                    }
+
+                                    function placeSelectedWordIn(id) {
+                                        if (!selectedWord || !id) return;
+                                        for (const k of Object.keys(state)) {
+                                            if (state[k] === selectedWord) delete state[k];
+                                        }
+                                        state[id] = selectedWord;
+                                        selectedWord = null;
+                                        renderFromState();
+                                    }
+
+                                    function clearTarget(id) {
+                                        if (!id) return;
+                                        delete state[id];
+                                        selectedWord = null;
+                                        renderFromState();
                                     }
 
                                     function onDragStart(e) {
@@ -263,39 +337,82 @@
                                         }
 
                                         state[id] = word;
+                                        selectedWord = null;
                                         renderFromState();
                                     }
 
-                                    document.addEventListener("dragstart", onDragStart);
+                                    // Stash each target's label text for aria-label rebuilding.
+                                    targets.forEach(t => {
+                                        const labelDiv = t.parentElement.querySelector(".text-sm.opacity-80");
+                                        t.dataset.text = labelDiv ? labelDiv.textContent.trim() : "";
+                                    });
+
+                                    widget.addEventListener("dragstart", onDragStart);
 
                                     targets.forEach(t => {
                                         t.addEventListener("dragover", e => e.preventDefault());
                                         t.addEventListener("drop", onDropTarget);
+
+                                        // Click-to-place: click an empty box places the selected word;
+                                        // click a filled box clears it (unless a word is selected, in
+                                        // which case it swaps in the newly selected word).
+                                        t.addEventListener("click", e => {
+                                            if (e.target.closest("[data-clear]")) return;
+                                            const id = t.getAttribute("data-target");
+                                            if (selectedWord) {
+                                                placeSelectedWordIn(id);
+                                            } else if (state[id] !== undefined) {
+                                                clearTarget(id);
+                                            }
+                                        });
+
+                                        t.addEventListener("keydown", e => {
+                                            if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+                                            e.preventDefault();
+                                            const id = t.getAttribute("data-target");
+                                            if (selectedWord) {
+                                                placeSelectedWordIn(id);
+                                            } else if (state[id] !== undefined) {
+                                                clearTarget(id);
+                                            }
+                                        });
                                     });
 
-                                    document.addEventListener("click", e => {
-                                        const id = e.target?.getAttribute("data-clear");
-                                        if (!id) return;
-                                        delete state[id];
-                                        renderFromState();
+                                    widget.addEventListener("click", e => {
+                                        const clearId = e.target?.getAttribute("data-clear");
+                                        if (clearId) {
+                                            clearTarget(clearId);
+                                            return;
+                                        }
+                                        const wordEl = e.target?.closest("[data-word]");
+                                        if (wordEl && wordEl.closest("#bank")) {
+                                            selectWord(wordEl.getAttribute("data-word"), wordEl);
+                                        }
+                                    });
+
+                                    widget.addEventListener("keydown", e => {
+                                        if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+                                        const wordEl = e.target?.closest("[data-word]");
+                                        if (wordEl && wordEl.closest("#bank")) {
+                                            e.preventDefault();
+                                            selectWord(wordEl.getAttribute("data-word"), wordEl);
+                                        }
                                     });
 
                                     renderFromState();
+                                })();
                                 </script>
 
                             {% else %}
-                                <label class="label">
-                                    <span class="label-text font-medium">Your answer</span>
-                                </label>
-
                                 {% if spec.layout == "form_fill" %}
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {% for f in spec.fields %}
                                             <div class="form-control">
-                                                <label class="label">
+                                                <label class="label" for="id_ff_{{ f.name }}">
                                                     <span class="label-text font-medium">{{ f.label }}</span>
                                                 </label>
                                                 <input
+                                                    id="id_ff_{{ f.name }}"
                                                     class="input input-bordered w-full"
                                                     type="text"
                                                     name="ff_{{ f.name }}"
@@ -311,6 +428,9 @@
                                     </div>
 
                                 {% elif spec.kind_hint == "mcq_or_choice" and spec.choices %}
+                                    <label class="label">
+                                        <span class="label-text font-medium">Your answer</span>
+                                    </label>
                                     <div class="space-y-2">
                                         {% for choice in spec.choices %}
                                             <label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-200 px-3 py-2">
@@ -327,6 +447,9 @@
                                     </div>
 
                                 {% elif spec.layout == "writing" %}
+                                    <label class="label" for="id_answer">
+                                        <span class="label-text font-medium">Your answer</span>
+                                    </label>
                                     <div class="space-y-3">
                                         {% if spec.prompt %}
                                             <div class="font-medium">{{ spec.prompt }}</div>
@@ -337,6 +460,7 @@
                                             </div>
                                         {% endif %}
                                         <textarea
+                                            id="id_answer"
                                             name="answer"
                                             style="min-height:180px; resize:vertical;"
                                             class="textarea textarea-bordered w-full text-base"
@@ -349,9 +473,12 @@
                                     </div>
 
                                 {% else %}
+                                    <label class="label" for="id_answer">
+                                        <span class="label-text font-medium">Your answer</span>
+                                    </label>
                                     {{ form.answer }}
                                     {% if form.answer.errors %}
-                                        <div class="text-error text-sm mt-1">{{ form.answer.errors|striptags }}</div>
+                                        <div class="text-error text-sm mt-1" role="alert">{{ form.answer.errors|striptags }}</div>
                                     {% endif %}
                                 {% endif %}
                             {% endif %}
@@ -383,7 +510,12 @@
                                 <div id="countdown"
                                      class="badge badge-outline section-clock"
                                      data-expires-at="{{ section_expires_at|date:'c' }}">
-                                    00:45:00
+                                    <svg class="section-clock-icon hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:0.25rem;">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                                    </svg>
+                                    <span class="section-clock-text">00:45:00</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -403,7 +535,7 @@
                             {% if question.kind == "match" %}
                                 {{ form.response_json }}
 
-                                <div class="space-y-1">
+                                <div class="space-y-1" data-match-widget>
 
                                     <div class="card bg-base-200 shadow">
                                         <div class="card-body" style="padding:6px">
@@ -413,11 +545,15 @@
                                                     <div
                                                         class="badge badge-lg cursor-move select-none"
                                                         draggable="true"
+                                                        tabindex="0"
+                                                        role="button"
                                                         data-word="{{ w|escape }}"
+                                                        aria-pressed="false"
+                                                        aria-label="Word: {{ w }}. Not placed. Press Enter or Space to select, then choose a box to place it."
                                                     >{{ w }}</div>
                                                 {% endfor %}
                                             </div>
-                                            <p class="text-xs opacity-50 mt-1">Drag a word onto a box.</p>
+                                            <p class="text-xs opacity-50 mt-1">Select a word, then select a box to place it, or drag a word onto a box.</p>
                                         </div>
                                     </div>
 
@@ -428,7 +564,10 @@
                                                     <div class="text-sm opacity-80">{{ forloop.counter }}. {{ t.text }}</div>
                                                     <div
                                                         class="mt-1 p-2 rounded-lg bg-base-100 border border-base-300" style="min-height:28px;"
+                                                        tabindex="0"
+                                                        role="button"
                                                         data-target="{{ t.id }}"
+                                                        aria-label="Box {{ forloop.counter }}: {{ t.text }}. Empty. Press Enter or Space to place the selected word here."
                                                     >
                                                         <span class="opacity-50 text-sm">Drop here</span>
                                                     </div>
@@ -440,9 +579,11 @@
                                 </div>
 
                                 <script nonce="{{ csp_nonce }}">
-                                    const bank = document.getElementById("bank");
+                                (function () {
+                                    const widget = document.currentScript.closest('form').querySelector('[data-match-widget]');
+                                    const bank = widget.querySelector("#bank");
                                     const hidden = document.getElementById("id_response_json");
-                                    const targets = document.querySelectorAll("[data-target]");
+                                    const targets = widget.querySelectorAll("[data-target]");
 
                                     let state = {};
                                     try {
@@ -451,11 +592,16 @@
                                         state = {};
                                     }
 
+                                    let selectedWord = null;
+
                                     function renderFromState() {
                                         const sy = window.scrollY;
 
                                         targets.forEach(t => {
+                                            const labelText = t.dataset.text || "";
                                             t.innerHTML = '<span class="opacity-50 text-sm" style="line-height:40px;">Drop here</span>';
+                                            t.setAttribute("aria-label", `Box: ${labelText}. Empty. Press Enter or Space to place the selected word here.`);
+                                            t.classList.remove("border-primary");
                                         });
 
                                         const placed = new Set(Object.values(state || {}));
@@ -463,22 +609,58 @@
                                         targets.forEach(t => {
                                             const id = t.getAttribute("data-target");
                                             const word = state[id];
+                                            const labelText = t.dataset.text || "";
                                             if (word) {
                                                 t.innerHTML = `
                                                     <div class="flex items-center justify-between gap-2 overflow-hidden">
                                                         <div class="badge badge-primary badge-lg cursor-move select-none" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:calc(100% - 4rem);" draggable="true" data-word="${word}">${word}</div>
-                                                        <button type="button" class="btn btn-ghost btn-xs shrink-0" data-clear="${id}">Clear</button>
+                                                        <button type="button" class="btn btn-ghost btn-xs shrink-0" data-clear="${id}" aria-label="Clear ${word} from ${labelText}">Clear</button>
                                                     </div>`;
+                                                t.setAttribute("aria-label", `Box: ${labelText}. Currently filled with "${word}". Press Enter or Space to clear it, or select a different word and place it here to swap.`);
                                             }
                                         });
 
                                         bank.querySelectorAll("[data-word]").forEach(el => {
                                             const w = el.getAttribute("data-word");
-                                            el.style.opacity = placed.has(w) ? "0.35" : "1";
+                                            const isPlaced = placed.has(w);
+                                            el.style.opacity = isPlaced ? "0.35" : "1";
+                                            const isSelected = selectedWord === w;
+                                            el.setAttribute("aria-pressed", isSelected ? "true" : "false");
+                                            el.classList.toggle("ring", isSelected);
+                                            el.classList.toggle("ring-primary", isSelected);
+                                            if (isPlaced) {
+                                                el.setAttribute("aria-label", `Word: ${w}. Already placed. Press Enter or Space to select, then choose a box to move it.`);
+                                            } else if (isSelected) {
+                                                el.setAttribute("aria-label", `Word: ${w}. Selected. Choose a box to place it, or press Enter or Space again to deselect.`);
+                                            } else {
+                                                el.setAttribute("aria-label", `Word: ${w}. Not placed. Press Enter or Space to select, then choose a box to place it.`);
+                                            }
                                         });
 
                                         hidden.value = JSON.stringify(state);
                                         window.scrollTo(0, sy);
+                                    }
+
+                                    function selectWord(word, el) {
+                                        selectedWord = (selectedWord === word) ? null : word;
+                                        renderFromState();
+                                    }
+
+                                    function placeSelectedWordIn(id) {
+                                        if (!selectedWord || !id) return;
+                                        for (const k of Object.keys(state)) {
+                                            if (state[k] === selectedWord) delete state[k];
+                                        }
+                                        state[id] = selectedWord;
+                                        selectedWord = null;
+                                        renderFromState();
+                                    }
+
+                                    function clearTarget(id) {
+                                        if (!id) return;
+                                        delete state[id];
+                                        selectedWord = null;
+                                        renderFromState();
                                     }
 
                                     function onDragStart(e) {
@@ -498,31 +680,74 @@
                                         }
 
                                         state[id] = word;
+                                        selectedWord = null;
                                         renderFromState();
                                     }
 
-                                    document.addEventListener("dragstart", onDragStart);
+                                    // Stash each target's label text for aria-label rebuilding.
+                                    targets.forEach(t => {
+                                        const labelDiv = t.parentElement.querySelector(".text-sm.opacity-80");
+                                        t.dataset.text = labelDiv ? labelDiv.textContent.trim() : "";
+                                    });
+
+                                    widget.addEventListener("dragstart", onDragStart);
 
                                     targets.forEach(t => {
                                         t.addEventListener("dragover", e => e.preventDefault());
                                         t.addEventListener("drop", onDropTarget);
+
+                                        t.addEventListener("click", e => {
+                                            if (e.target.closest("[data-clear]")) return;
+                                            const id = t.getAttribute("data-target");
+                                            if (selectedWord) {
+                                                placeSelectedWordIn(id);
+                                            } else if (state[id] !== undefined) {
+                                                clearTarget(id);
+                                            }
+                                        });
+
+                                        t.addEventListener("keydown", e => {
+                                            if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+                                            e.preventDefault();
+                                            const id = t.getAttribute("data-target");
+                                            if (selectedWord) {
+                                                placeSelectedWordIn(id);
+                                            } else if (state[id] !== undefined) {
+                                                clearTarget(id);
+                                            }
+                                        });
                                     });
 
-                                    document.addEventListener("click", e => {
-                                        const id = e.target?.getAttribute("data-clear");
-                                        if (!id) return;
-                                        delete state[id];
-                                        renderFromState();
+                                    widget.addEventListener("click", e => {
+                                        const clearId = e.target?.getAttribute("data-clear");
+                                        if (clearId) {
+                                            clearTarget(clearId);
+                                            return;
+                                        }
+                                        const wordEl = e.target?.closest("[data-word]");
+                                        if (wordEl && wordEl.closest("#bank")) {
+                                            selectWord(wordEl.getAttribute("data-word"), wordEl);
+                                        }
+                                    });
+
+                                    widget.addEventListener("keydown", e => {
+                                        if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+                                        const wordEl = e.target?.closest("[data-word]");
+                                        if (wordEl && wordEl.closest("#bank")) {
+                                            e.preventDefault();
+                                            selectWord(wordEl.getAttribute("data-word"), wordEl);
+                                        }
                                     });
 
                                     renderFromState();
+                                })();
                                 </script>
 
                             {% elif question.kind == "long_division" %}
-                                {# ── Long division drag-and-drop ── #}
+                                {# Long division: click/keyboard select-then-place, with drag-and-drop as an additional path #}
                                 <input type="hidden" name="answer" id="ld-answer" value="{{ current_answer }}">
 
-                                <div class="space-y-6">
+                                <div class="space-y-6" data-ld-widget>
                                     {# Visual layout #}
                                     <div class="flex items-start gap-0 font-mono text-2xl select-none w-fit">
                                         {# Divisor #}
@@ -534,7 +759,10 @@
                                                 {% for i in spec.digit_range %}
                                                     <div
                                                         class="w-10 h-10 rounded border-2 border-dashed border-base-300 flex items-center justify-center text-xl font-bold bg-base-100 transition-colors"
+                                                        tabindex="0"
+                                                        role="button"
                                                         data-ld-slot="{{ i }}"
+                                                        aria-label="Answer slot {{ forloop.counter }}. Empty. Press Enter or Space to place the selected digit here."
                                                     >
                                                         <span class="slot-digit opacity-40 text-sm">?</span>
                                                     </div>
@@ -547,13 +775,17 @@
 
                                     {# Digit bank #}
                                     <div>
-                                        <p class="text-sm opacity-60 mb-2">Drag digits into the answer slots above.</p>
+                                        <p class="text-sm opacity-60 mb-2">Select a digit, then select an answer slot to place it, or drag a digit into a slot.</p>
                                         <div id="ld-bank" class="flex flex-wrap gap-2">
                                             {% for d in spec.digit_bank %}
                                                 <div
                                                     class="w-10 h-10 rounded bg-primary text-primary-content flex items-center justify-center text-lg font-bold cursor-move select-none shadow"
                                                     draggable="true"
+                                                    tabindex="0"
+                                                    role="button"
                                                     data-digit="{{ d }}"
+                                                    aria-pressed="false"
+                                                    aria-label="Digit {{ d }}. Press Enter or Space to select, then choose an answer slot to place it."
                                                 >{{ d }}</div>
                                             {% endfor %}
                                         </div>
@@ -562,12 +794,16 @@
 
                                 <script nonce="{{ csp_nonce }}">
                                 (function () {
+                                    const widget = document.currentScript.closest('form').querySelector('[data-ld-widget]');
                                     const answerInput = document.getElementById("ld-answer");
-                                    const slots = document.querySelectorAll("[data-ld-slot]");
+                                    const slots = widget.querySelectorAll("[data-ld-slot]");
+                                    const bank = widget.querySelector("#ld-bank");
                                     const numDigits = {{ spec.num_digits }};
 
                                     // slot index → digit string
                                     let state = {};
+                                    let selectedDigit = null;
+                                    let selectedDigitEl = null;
 
                                     // Restore saved answer
                                     const saved = answerInput.value || "";
@@ -584,7 +820,7 @@
                                     }
 
                                     function renderSlots() {
-                                        slots.forEach(slot => {
+                                        slots.forEach((slot, i) => {
                                             const idx = parseInt(slot.getAttribute("data-ld-slot"));
                                             const digit = state[idx];
                                             if (digit !== undefined) {
@@ -592,61 +828,127 @@
                                                     <span class="slot-digit font-bold text-primary">${digit}</span>`;
                                                 slot.classList.add("border-primary");
                                                 slot.classList.remove("border-dashed", "border-base-300");
+                                                slot.setAttribute("aria-label", `Answer slot ${i + 1}. Currently ${digit}. Press Enter or Space to clear it, or select a different digit and place it here to swap.`);
                                             } else {
                                                 slot.innerHTML = `<span class="slot-digit opacity-40 text-sm">?</span>`;
                                                 slot.classList.remove("border-primary");
                                                 slot.classList.add("border-dashed", "border-base-300");
+                                                slot.setAttribute("aria-label", `Answer slot ${i + 1}. Empty. Press Enter or Space to place the selected digit here.`);
                                             }
                                         });
                                         syncAnswer();
                                     }
 
+                                    function renderBank() {
+                                        bank.querySelectorAll("[data-digit]").forEach(el => {
+                                            const d = el.getAttribute("data-digit");
+                                            const isSelected = el === selectedDigitEl;
+                                            el.setAttribute("aria-pressed", isSelected ? "true" : "false");
+                                            el.classList.toggle("ring", isSelected);
+                                            el.classList.toggle("ring-offset-2", isSelected);
+                                            if (isSelected) {
+                                                el.setAttribute("aria-label", `Digit ${d}. Selected. Choose an answer slot to place it, or press Enter or Space again to deselect.`);
+                                            } else {
+                                                el.setAttribute("aria-label", `Digit ${d}. Press Enter or Space to select, then choose an answer slot to place it.`);
+                                            }
+                                        });
+                                    }
+
+                                    function selectDigit(digit, el) {
+                                        if (selectedDigitEl === el) {
+                                            selectedDigit = null;
+                                            selectedDigitEl = null;
+                                        } else {
+                                            selectedDigit = digit;
+                                            selectedDigitEl = el;
+                                        }
+                                        renderBank();
+                                    }
+
+                                    function placeSelectedDigitIn(idx) {
+                                        if (selectedDigit === null || selectedDigit === undefined) return;
+                                        state[idx] = selectedDigit;
+                                        selectedDigit = null;
+                                        selectedDigitEl = null;
+                                        renderSlots();
+                                        renderBank();
+                                    }
+
+                                    function clearSlot(idx) {
+                                        if (state[idx] === undefined) return;
+                                        delete state[idx];
+                                        renderSlots();
+                                    }
+
                                     // Drag from bank
-                                    document.addEventListener("dragstart", e => {
+                                    widget.addEventListener("dragstart", e => {
                                         const d = e.target?.getAttribute("data-digit");
                                         if (d !== null && d !== undefined) {
                                             e.dataTransfer.setData("text/plain", d);
                                         }
                                     });
 
-                                    // Drop onto slot
                                     slots.forEach(slot => {
+                                        const idx = parseInt(slot.getAttribute("data-ld-slot"));
+
                                         slot.addEventListener("dragover", e => e.preventDefault());
                                         slot.addEventListener("drop", e => {
                                             e.preventDefault();
                                             const digit = e.dataTransfer.getData("text/plain");
                                             if (digit === "") return;
-                                            const idx = parseInt(slot.getAttribute("data-ld-slot"));
                                             state[idx] = digit;
+                                            selectedDigit = null;
+                                            selectedDigitEl = null;
                                             renderSlots();
+                                            renderBank();
                                         });
-                                        // Click to clear
+
+                                        // Click to place selected digit, or clear if filled
                                         slot.addEventListener("click", () => {
-                                            const idx = parseInt(slot.getAttribute("data-ld-slot"));
-                                            if (state[idx] !== undefined) {
-                                                delete state[idx];
-                                                renderSlots();
+                                            if (selectedDigit !== null && selectedDigit !== undefined) {
+                                                placeSelectedDigitIn(idx);
+                                            } else if (state[idx] !== undefined) {
+                                                clearSlot(idx);
+                                            }
+                                        });
+
+                                        slot.addEventListener("keydown", e => {
+                                            if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+                                            e.preventDefault();
+                                            if (selectedDigit !== null && selectedDigit !== undefined) {
+                                                placeSelectedDigitIn(idx);
+                                            } else if (state[idx] !== undefined) {
+                                                clearSlot(idx);
                                             }
                                         });
                                     });
 
+                                    bank.querySelectorAll("[data-digit]").forEach(el => {
+                                        el.addEventListener("click", () => {
+                                            selectDigit(el.getAttribute("data-digit"), el);
+                                        });
+                                        el.addEventListener("keydown", e => {
+                                            if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+                                            e.preventDefault();
+                                            selectDigit(el.getAttribute("data-digit"), el);
+                                        });
+                                    });
+
                                     renderSlots();
+                                    renderBank();
                                 })();
                                 </script>
 
                             {% else %}
-                                <label class="label">
-                                    <span class="label-text font-medium">Your answer</span>
-                                </label>
-
                                 {% if spec.layout == "form_fill" %}
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {% for f in spec.fields %}
                                             <div class="form-control">
-                                                <label class="label">
+                                                <label class="label" for="id_ff_{{ f.name }}">
                                                     <span class="label-text font-medium">{{ f.label }}</span>
                                                 </label>
                                                 <input
+                                                    id="id_ff_{{ f.name }}"
                                                     class="input input-bordered w-full"
                                                     type="text"
                                                     name="ff_{{ f.name }}"
@@ -662,6 +964,9 @@
                                     </div>
 
                                 {% elif spec.kind_hint == "mcq_or_choice" and spec.choices %}
+                                    <label class="label">
+                                        <span class="label-text font-medium">Your answer</span>
+                                    </label>
                                     <div class="space-y-2">
                                         {% for choice in spec.choices %}
                                             <label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-200 px-3 py-2">
@@ -678,6 +983,9 @@
                                     </div>
 
                                 {% elif spec.layout == "writing" %}
+                                    <label class="label" for="id_answer">
+                                        <span class="label-text font-medium">Your answer</span>
+                                    </label>
                                     <div class="space-y-3">
                                         {% if spec.prompt %}
                                             <div class="font-medium">{{ spec.prompt }}</div>
@@ -688,6 +996,7 @@
                                             </div>
                                         {% endif %}
                                         <textarea
+                                            id="id_answer"
                                             name="answer"
                                             style="min-height:180px; resize:vertical;"
                                             class="textarea textarea-bordered w-full text-base"
@@ -700,9 +1009,12 @@
                                     </div>
 
                                 {% else %}
+                                    <label class="label" for="id_answer">
+                                        <span class="label-text font-medium">Your answer</span>
+                                    </label>
                                     {{ form.answer }}
                                     {% if form.answer.errors %}
-                                        <div class="text-error text-sm mt-1">{{ form.answer.errors|striptags }}</div>
+                                        <div class="text-error text-sm mt-1" role="alert">{{ form.answer.errors|striptags }}</div>
                                     {% endif %}
                                 {% endif %}
                             {% endif %}
@@ -728,20 +1040,53 @@
             const expiresAt = new Date(clocks[0].dataset.expiresAt).getTime();
             const timerData = document.getElementById("section-timer-data");
             const timeoutUrl = timerData ? timerData.dataset.timeoutUrl : null;
+            const liveRegion = document.getElementById("section-timer-live");
+
+            // Announcement points, in seconds remaining. Sparse at first so a screen reader
+            // user isn't interrupted every second; denser once time is actually running out
+            // (mirrors the badge-outline -> badge-warning -> badge-error visual escalation).
+            const announcePoints = [3600, 1800, 900, 600, 300, 120, 60, 30, 20, 10, 5, 4, 3, 2, 1, 0];
+            let lastAnnounced = null;
+
+            function announce(totalSeconds, minutes, seconds) {
+                if (!liveRegion) return;
+                if (!announcePoints.includes(totalSeconds)) return;
+                if (lastAnnounced === totalSeconds) return;
+                lastAnnounced = totalSeconds;
+
+                let prefix = "";
+                if (totalSeconds <= 10) {
+                    prefix = "Time critical: ";
+                } else if (totalSeconds <= 60) {
+                    prefix = "Time warning: ";
+                }
+                liveRegion.textContent = `${prefix}${minutes} minutes ${seconds} seconds remaining in this section.`;
+            }
 
             function tick() {
                 const diff = Math.max(0, expiresAt - Date.now());
                 const totalSeconds = Math.floor(diff / 1000);
                 const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
                 const seconds = String(totalSeconds % 60).padStart(2, "0");
-                clocks.forEach(el => { el.textContent = `${minutes}:${seconds}`; });
+                clocks.forEach(el => {
+                    const textEl = el.querySelector(".section-clock-text");
+                    if (textEl) textEl.textContent = `${minutes}:${seconds}`;
+                });
 
                 if (totalSeconds <= 60) {
-                    clocks.forEach(el => { el.classList.remove("badge-outline"); el.classList.add("badge-warning"); });
+                    clocks.forEach(el => {
+                        el.classList.remove("badge-outline");
+                        el.classList.add("badge-warning");
+                        const icon = el.querySelector(".section-clock-icon");
+                        if (icon) icon.classList.remove("hidden");
+                    });
                 }
                 if (totalSeconds <= 10) {
                     clocks.forEach(el => { el.classList.replace("badge-warning", "badge-error"); });
                 }
+
+                announce(totalSeconds, minutes, seconds);
+
                 if (diff <= 0 && timeoutUrl) {
                     window.location.href = timeoutUrl;
                 }
