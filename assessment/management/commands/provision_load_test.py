@@ -67,7 +67,10 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Provisioning {count} attempts against '{template.name}' …")
 
-        rng = random.Random(42)
+        # Unseeded: a fixed seed made every invocation generate identical
+        # id_numbers for the same index, colliding with any prior batch
+        # that hadn't been purged yet.
+        rng = random.Random()
         codes = []
 
         with transaction.atomic():
