@@ -22,8 +22,10 @@
       </div>
 
     {% elif question.kind == "match" %}
-      {# State restored from saved response_json. Click/keyboard select-then-place is the
-         primary interaction; drag-and-drop remains available as an additional path. #}
+      {% comment %}
+      State restored from saved response_json. Click/keyboard select-then-place is the
+      primary interaction; drag-and-drop remains available as an additional path.
+      {% endcomment %}
       {{ form.response_json }}
       <div class="card bg-base-200 shadow" data-match-widget>
         <div class="card-body p-4">
