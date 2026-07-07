@@ -19,8 +19,8 @@ User = get_user_model()
 
 
 @pytest.fixture
-def assessment_template():
-    return AssessmentTemplate.objects.create(name="Assessment Template", version="v1")
+def assessment_template(tenant):
+    return AssessmentTemplate.objects.create(tenant=tenant, name="Assessment Template", version="v1")
 
 
 @pytest.fixture
@@ -29,8 +29,9 @@ def section(assessment_template):
 
 
 @pytest.fixture
-def learner():
+def learner(tenant):
     return Learner.objects.create(
+        tenant=tenant,
         first_names="Nikki",
         surname="McMahon",
         id_number="7909150081084",

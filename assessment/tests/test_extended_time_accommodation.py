@@ -36,8 +36,8 @@ User = get_user_model()
 # ── Shared fixtures ───────────────────────────────────────────────────────────
 
 @pytest.fixture
-def template():
-    return AssessmentTemplate.objects.create(name="Accommodation Test Template", version="v1")
+def template(tenant):
+    return AssessmentTemplate.objects.create(tenant=tenant, name="Accommodation Test Template", version="v1")
 
 
 @pytest.fixture
@@ -55,9 +55,9 @@ def question(section):
 
 
 @pytest.fixture
-def learner():
+def learner(tenant):
     return Learner.objects.create(
-        first_names="Palesa", surname="Dube", id_number="9203015001082",
+        tenant=tenant, first_names="Palesa", surname="Dube", id_number="9203015001082",
     )
 
 

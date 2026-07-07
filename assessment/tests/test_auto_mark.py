@@ -456,15 +456,15 @@ class TestZeroScore:
 @pytest.mark.django_db
 class TestAutoMarkAttempt:
     @pytest.fixture
-    def setup(self):
+    def setup(self, tenant):
         from django.contrib.auth import get_user_model
         from assessment.models import (
             AssessmentTemplate, Attempt, Learner, Question, Response, Section
         )
-        template = AssessmentTemplate.objects.create(name="T", version="v1")
+        template = AssessmentTemplate.objects.create(tenant=tenant, name="T", version="v1")
         section = Section.objects.create(template=template, title="S1", order=1)
         learner = Learner.objects.create(
-            first_names="Test", surname="Learner", id_number="0001010000081"
+            tenant=tenant, first_names="Test", surname="Learner", id_number="0001010000081"
         )
         attempt = Attempt.objects.create(
             template=template, learner=learner, status=Attempt.SUBMITTED

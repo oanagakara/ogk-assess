@@ -4,7 +4,8 @@ import json
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from assessment.models import AssessmentTemplate, Section, Question
+from assessment.models import AssessmentTemplate, Section, Question, Tenant
+from assessment.tenant import get_active_tenant
 
 class Command(BaseCommand):
     help = "Seed the NQF placement assessment questions into the database."
@@ -12,13 +13,15 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--name", default="NQF Learner Placement Assessment", help="Template name")
         parser.add_argument("--template-version", default="v1", help="Template version")
+        parser.add_argument("--tenant", default=None, help="Tenant slug to seed the template under (defaults to the active tenant)")
 
     @transaction.atomic
     def handle(self, *args, **opts):
         name: str = opts["name"]
         version: str = opts["template_version"]
+        tenant = Tenant.objects.get(slug=opts["tenant"]) if opts["tenant"] else get_active_tenant()
 
-        template, _ = AssessmentTemplate.objects.get_or_create(name=name, version=version)
+        template, _ = AssessmentTemplate.objects.get_or_create(name=name, version=version, tenant=tenant)
 
         # Wipe existing questions/sections for this template to make re-seeding deterministic
         Question.objects.filter(section__template=template).delete()

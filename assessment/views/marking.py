@@ -1057,6 +1057,7 @@ def assessor_new_attempt(request):
 
         if form.is_valid():
             learner = Learner.objects.create(
+                tenant=form.cleaned_data["template"].tenant,
                 first_names="Temp",
                 surname="Learner",
                 id_number=_uuid.uuid4().hex[:13],

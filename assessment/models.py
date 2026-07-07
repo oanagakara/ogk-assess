@@ -49,6 +49,25 @@ class Tenant(models.Model):
         return f"tenants/{self.slug}/"
 
 
+class TenantMembership(models.Model):
+    """Which single tenant a non-admin user belongs to. is_staff/is_superuser
+    users bypass tenant checks entirely and need no row here."""
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="tenant_membership",
+    )
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="memberships",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"{self.user} @ {self.tenant.slug}"
+
+
 class AssessmentTemplate(models.Model):
     MODERATION_AUDIT = "audit"
     MODERATION_FULL  = "full"
@@ -57,6 +76,11 @@ class AssessmentTemplate(models.Model):
         (MODERATION_FULL,  "Full — moderator can unlock and re-mark"),
     ]
 
+    tenant = models.ForeignKey(
+        "Tenant",
+        on_delete=models.PROTECT,
+        related_name="templates",
+    )
     name = models.CharField(max_length=200)
     version = models.CharField(max_length=50, blank=True, default="")
     moderation_mode = models.CharField(
@@ -156,12 +180,26 @@ class Learner(models.Model):
             (INDIAN, "Indian"),
             (WHITE, "White"),
     ]
+    tenant = models.ForeignKey(
+        "Tenant",
+        on_delete=models.PROTECT,
+        related_name="learners",
+    )
     first_names = models.CharField(max_length=200)
-    surname = models.CharField(max_length=200) 
-    id_number = models.CharField(max_length=13, unique=True, blank=True, null=True, default=None)
+    surname = models.CharField(max_length=200)
+    id_number = models.CharField(max_length=13, blank=True, null=True, default=None)
     dob = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES, default="")
     demographic = models.CharField(max_length=20, choices=DEMOGRAPHIC_CHOICES, default="")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tenant", "id_number"],
+                condition=models.Q(id_number__isnull=False),
+                name="uniq_tenant_id_number",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.first_names} {self.surname} {self.id_number}"
@@ -190,6 +228,11 @@ SESSION_DURATION = 7200  # 2 hours in seconds
 
 
 class ExamSession(models.Model):
+    tenant = models.ForeignKey(
+        "Tenant",
+        on_delete=models.PROTECT,
+        related_name="sessions",
+    )
     code = models.CharField(max_length=8, unique=True, default=generate_session_code)
     template = models.ForeignKey("AssessmentTemplate", on_delete=models.CASCADE)
     created_by = models.ForeignKey(
@@ -204,6 +247,8 @@ class ExamSession(models.Model):
     expires_at = models.DateTimeField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
+        if not self.tenant_id and self.template_id:
+            self.tenant_id = self.template.tenant_id
         if not self.expires_at:
             from datetime import timedelta
             self.expires_at = (self.created_at or timezone.now()) + timedelta(seconds=SESSION_DURATION)
@@ -228,6 +273,11 @@ class Attempt(models.Model):
         (INCOMPLETE, "Incomplete"),
     ]
 
+    tenant = models.ForeignKey(
+        "Tenant",
+        on_delete=models.PROTECT,
+        related_name="attempts_all",
+    )
     template = models.ForeignKey("AssessmentTemplate", on_delete=models.CASCADE)
     learner = models.ForeignKey("Learner", on_delete=models.CASCADE)
     session = models.ForeignKey(
@@ -292,6 +342,11 @@ class Attempt(models.Model):
             models.Index(fields=["submitted_at"], name="attempt_submitted_idx"),
             models.Index(fields=["last_activity_at"], name="attempt_last_activity_idx"),
         ]
+
+    def save(self, *args, **kwargs):
+        if not self.tenant_id and self.template_id:
+            self.tenant_id = self.template.tenant_id
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.code} - {self.learner} - {self.status}"

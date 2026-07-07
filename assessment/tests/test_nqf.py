@@ -287,7 +287,7 @@ class TestComputeGroupData:
 @pytest.mark.django_db
 class TestComputeNQFPlacement:
     @pytest.fixture
-    def setup_attempt(self):
+    def setup_attempt(self, tenant):
         from assessment.models import (
             AssessmentTemplate,
             Attempt,
@@ -298,7 +298,7 @@ class TestComputeNQFPlacement:
             Section,
         )
 
-        template = AssessmentTemplate.objects.create(name="Test Template")
+        template = AssessmentTemplate.objects.create(tenant=tenant, name="Test Template")
 
         lit_section = Section.objects.create(
             template=template, title="Literacy Section", order=1
@@ -317,7 +317,7 @@ class TestComputeNQFPlacement:
         )
 
         learner = Learner.objects.create(
-            first_names="Test", surname="Learner", id_number="0001010000000"
+            tenant=tenant, first_names="Test", surname="Learner", id_number="0001010000000"
         )
         attempt = Attempt.objects.create(template=template, learner=learner)
 
@@ -364,12 +364,12 @@ class TestComputeNQFPlacement:
         assert isinstance(result.comment, str)
         assert len(result.comment) > 0
 
-    def test_unscored_responses_excluded_from_placement(self):
+    def test_unscored_responses_excluded_from_placement(self, tenant):
         from assessment.models import (
             AssessmentTemplate, Attempt, Learner,
             Question, Response, Section,
         )
-        template = AssessmentTemplate.objects.create(name="No Score Template")
+        template = AssessmentTemplate.objects.create(tenant=tenant, name="No Score Template")
         section = Section.objects.create(
             template=template, title="Numeracy Section", order=1
         )
@@ -378,7 +378,7 @@ class TestComputeNQFPlacement:
             prompt="Q", kind="text", max_marks=15,
         )
         learner = Learner.objects.create(
-            first_names="A", surname="B", id_number="0001010000001"
+            tenant=tenant, first_names="A", surname="B", id_number="0001010000001"
         )
         attempt = Attempt.objects.create(template=template, learner=learner)
         Response.objects.create(attempt=attempt, question=q, response_json='{"answer":""}')

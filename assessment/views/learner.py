@@ -655,7 +655,9 @@ def session_join(request, code: str):
     learner_form = LearnerForm(request.POST or None)
 
     if request.method == "POST" and learner_form.is_valid():
-        learner = learner_form.save()
+        learner = learner_form.save(commit=False)
+        learner.tenant = session.template.tenant
+        learner.save()
         ok, msg, attempt = claim_session_seat(session, learner)
         if not ok:
             learner.delete()

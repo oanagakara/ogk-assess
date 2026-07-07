@@ -82,6 +82,7 @@ class Command(BaseCommand):
                 id_num = id_num[:12] + str(i % 10)
 
                 learner = Learner.objects.create(
+                    tenant=template.tenant,
                     first_names=fn,
                     surname=f"{sn}-{_LOAD_TEST_MARKER}-{i}",
                     id_number=id_num,

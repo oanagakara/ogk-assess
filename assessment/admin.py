@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AssessmentTemplate, Section, Question, Learner, Attempt, Response, Tenant, Score, ScoreAuditLog, DemoRequest
+from .models import AssessmentTemplate, Section, Question, Learner, Attempt, Response, Tenant, Score, ScoreAuditLog, DemoRequest, TenantMembership
 
 admin.site.register([AssessmentTemplate, Section, Question, Learner, Attempt, Response])
 
@@ -53,3 +53,11 @@ class TenantAdmin(admin.ModelAdmin):
         ("Contact",    {"fields": ("support_email", "website_url", "footer_line")}),
         ("Meta",       {"fields": ("created_at",)}),
     )
+
+
+@admin.register(TenantMembership)
+class TenantMembershipAdmin(admin.ModelAdmin):
+    list_display   = ("user", "tenant", "created_at")
+    list_filter    = ("tenant",)
+    search_fields  = ("user__username", "tenant__slug")
+    readonly_fields = ("created_at",)

@@ -148,6 +148,7 @@ class Command(BaseCommand):
             today = timezone.now().date()
             dob = date(today.year - age, today.month, today.day)
             learner = Learner.objects.create(
+                tenant=template.tenant,
                 first_names=first,
                 surname=last,
                 id_number=fake_id,

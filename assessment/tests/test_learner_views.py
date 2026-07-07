@@ -16,8 +16,8 @@ from assessment.models import (
 # ── Shared fixtures ───────────────────────────────────────────────────────────
 
 @pytest.fixture
-def template():
-    return AssessmentTemplate.objects.create(name="Test Template", version="v1")
+def template(tenant):
+    return AssessmentTemplate.objects.create(tenant=tenant, name="Test Template", version="v1")
 
 
 @pytest.fixture
@@ -35,9 +35,9 @@ def question(section):
 
 
 @pytest.fixture
-def learner():
+def learner(tenant):
     return Learner.objects.create(
-        first_names="Thabo", surname="Nkosi", id_number="9001015001081",
+        tenant=tenant, first_names="Thabo", surname="Nkosi", id_number="9001015001081",
     )
 
 
@@ -377,7 +377,7 @@ def test_session_join_post_creates_attempt(client, template):
 def test_session_join_full_session_shows_error(client, template):
     session = ExamSession.objects.create(template=template, seat_limit=1)
     existing_learner = Learner.objects.create(
-        first_names="A", surname="B", id_number="9001010001081"
+        tenant=template.tenant, first_names="A", surname="B", id_number="9001010001081"
     )
     Attempt.objects.create(template=template, learner=existing_learner, session=session)
 
@@ -421,8 +421,8 @@ def test_session_consent_post_records_consent_and_redirects(client, template, le
 
 @pytest.mark.django_db
 def test_another_learners_attempt_returns_403(client, template):
-    learner_a = Learner.objects.create(first_names="A", surname="A", id_number="9001010001082")
-    learner_b = Learner.objects.create(first_names="B", surname="B", id_number="9001010001083")
+    learner_a = Learner.objects.create(tenant=template.tenant, first_names="A", surname="A", id_number="9001010001082")
+    learner_b = Learner.objects.create(tenant=template.tenant, first_names="B", surname="B", id_number="9001010001083")
     attempt_a = Attempt.objects.create(template=template, learner=learner_a)
     Attempt.objects.create(template=template, learner=learner_b)
 
