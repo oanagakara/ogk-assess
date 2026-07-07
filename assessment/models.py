@@ -129,7 +129,7 @@ class Question(models.Model):
 
     section = models.ForeignKey("Section", on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
-    code = models.CharField(unique=True,max_length=50)
+    code = models.CharField(max_length=50)
     prompt = models.TextField()
     kind = models.CharField(max_length=20, choices=KIND_CHOICES, default=TEXT)
     max_marks = models.PositiveSmallIntegerField(default=9)
@@ -140,6 +140,9 @@ class Question(models.Model):
 
     class Meta:
         ordering = ["section__order", "order", "code"]
+        constraints = [
+            models.UniqueConstraint(fields=["section", "code"], name="uniq_section_code"),
+        ]
     
     def __str__(self) -> str:
         return f"{self.code} [{self.kind}]"

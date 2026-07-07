@@ -251,7 +251,7 @@ def _load_passage(question, spec) -> str:
     if not source:
         return ""
     try:
-        return Question.objects.get(code=source).prompt
+        return Question.objects.get(code=source, section__template=question.section.template).prompt
     except Question.DoesNotExist:
         return ""
 
