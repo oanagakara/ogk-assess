@@ -4,9 +4,11 @@ from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -16,6 +18,20 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from ..models import AssessorInvite
 
 from ._common import effective_is_moderator, is_assessor, is_auditor, is_moderator
+
+
+class TenantLoginView(LoginView):
+    """Global login shared by every tenant on the multi-tenant service.
+    Redirects to the authenticated user's own tenant dashboard, since a
+    hardcoded LOGIN_REDIRECT_URL isn't tenant-scoped."""
+
+    def get_success_url(self):
+        if self.get_redirect_url():
+            return super().get_success_url()
+        membership = getattr(self.request.user, "tenant_membership", None)
+        if membership is not None:
+            return f"/{membership.tenant.slug}/assessor/"
+        return settings.LOGIN_REDIRECT_URL
 
 
 @login_required

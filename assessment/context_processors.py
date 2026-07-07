@@ -11,7 +11,16 @@ def csp_nonce(request):
 
 
 def tenant_branding(request):
-    tenant = get_active_tenant()
+    from django.conf import settings
+
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        if settings.MULTI_TENANT_MODE:
+            # Reserved/global routes (login, health, admin) on the free
+            # multi-tenant service show no tenant's identity — branding only
+            # appears once a request has actually resolved to a real tenant.
+            return {}
+        tenant = get_active_tenant()
     if tenant is None:
         return {}
     return {
@@ -63,9 +72,11 @@ def assessor_nav_counts(request):
     user_is_moderator = real_is_moderator and active_role != "assessor"
     user_is_auditor = real_is_auditor and active_role not in ("assessor", "moderator")
 
-    count_cache_key = f"nav_counts_{request.user.pk}"
+    tenant = getattr(request, "tenant", None)
+    count_cache_key = f"nav_counts_{request.user.pk}_{tenant.pk if tenant else 'global'}"
     cached_counts = cache.get(count_cache_key)
     if cached_counts is None:
+        base_qs = Attempt.objects.filter(tenant=tenant) if tenant else Attempt.objects.all()
         has_review_score = Score.objects.filter(
             response__attempt_id=OuterRef("pk"),
             rubric_json__needs_review=True,
@@ -77,12 +88,12 @@ def assessor_nav_counts(request):
             question__max_marks__gt=0,
         )
         cached_counts = {
-            "in_progress":        Attempt.objects.filter(status=Attempt.IN_PROGRESS).count(),
-            "submitted":          Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(Exists(has_unscored_markable)).count(),
-            "marked":             Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)).count(),
-            "incomplete":         Attempt.objects.filter(status=Attempt.INCOMPLETE, finalised_at__isnull=True).count(),
-            "needs_review":       Attempt.objects.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(Exists(has_review_score) | Exists(has_unscored_markable)).count(),
-            "pending_moderation": Attempt.objects.filter(finalised_at__isnull=False, moderated_at__isnull=True).count(),
+            "in_progress":        base_qs.filter(status=Attempt.IN_PROGRESS).count(),
+            "submitted":          base_qs.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(Exists(has_unscored_markable)).count(),
+            "marked":             base_qs.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(~Exists(has_unscored_markable)).count(),
+            "incomplete":         base_qs.filter(status=Attempt.INCOMPLETE, finalised_at__isnull=True).count(),
+            "needs_review":       base_qs.filter(status=Attempt.SUBMITTED, finalised_at__isnull=True).filter(Exists(has_review_score) | Exists(has_unscored_markable)).count(),
+            "pending_moderation": base_qs.filter(finalised_at__isnull=False, moderated_at__isnull=True).count(),
         }
         cached_counts["total"] = (
             cached_counts["in_progress"] + cached_counts["submitted"] +

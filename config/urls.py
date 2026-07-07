@@ -14,19 +14,20 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-import os
+from django.conf import settings
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import path, include
 from django.views.generic import RedirectView
 from assessment import views as assessment_views
+from assessment.views.auth import TenantLoginView
 
 handler400 = assessment_views.handler400
 handler403 = assessment_views.handler403
 handler404 = assessment_views.handler404
 handler500 = assessment_views.handler500
 
-_ADMIN_PATH = os.environ.get("ADMIN_URL_PREFIX", "_platform-admin") + "/"
+_ADMIN_PATH = settings.ADMIN_URL_PREFIX + "/"
 
 urlpatterns = [
     path("health/", lambda request: HttpResponse("ok"), name="health"),
@@ -34,6 +35,7 @@ urlpatterns = [
     path(_ADMIN_PATH, admin.site.urls),
     path("accounts", RedirectView.as_view(url="/accounts/login/", permanent=False)),
     path("accounts/logout", RedirectView.as_view(url="accounts/login/", permanent=False)),
+    path("accounts/login/", TenantLoginView.as_view(), name="login"),
     path("accounts/", include("django.contrib.auth.urls")),
     path("", include("assessment.urls")),
 ]

@@ -23,6 +23,14 @@ SECRET_KEY = _secret_key
 
 ACTIVE_TENANT_SLUG = os.environ.get("TENANT_SLUG", "default")
 
+# Path-based multi-tenant mode for the free-tier demo/prospect deployment.
+# iCan's paid deployment leaves this unset — every code path it gates is a
+# no-op there, falling back to the single-tenant ACTIVE_TENANT_SLUG behavior
+# above. TENANT_SLUG itself is unused once this is on (tenant is resolved
+# per-request from the URL path instead).
+MULTI_TENANT_MODE = os.environ.get("MULTI_TENANT_MODE", "False") == "True"
+DEFAULT_TENANT_SLUG = os.environ.get("DEFAULT_TENANT_SLUG", "demo")
+
 # H-3: Default False. Debug mode must be explicitly opted in for local dev.
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
@@ -31,6 +39,11 @@ _allowed_hosts_raw = os.environ.get("ALLOWED_HOSTS", "")
 if not _allowed_hosts_raw and not DEBUG:
     raise ImproperlyConfigured("ALLOWED_HOSTS must be set in production.")
 ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_raw.split(",") if h.strip()] or ["localhost", "127.0.0.1"]
+
+# Admin URL prefix — security-through-obscurity per deployment. Read here (not
+# just inline in config/urls.py) since PathTenantMiddleware also needs to know
+# this reserved prefix, to avoid the two drifting if the default ever changes.
+ADMIN_URL_PREFIX = os.environ.get("ADMIN_URL_PREFIX", "_platform-admin")
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -49,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'axes.middleware.AxesMiddleware',
     'assessment.security.SecurityHeadersMiddleware',
+    'assessment.tenant_middleware.PathTenantMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
