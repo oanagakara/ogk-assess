@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import Http404, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.urls import set_script_prefix
 
 _RESERVED_PREFIXES = {"health", "favicon.ico", "accounts", "static"}
@@ -37,7 +37,13 @@ class PathTenantMiddleware:
 
         tenant = Tenant.objects.filter(slug=slug, is_active=True).first()
         if tenant is None:
-            raise Http404(f"Unknown tenant: {slug}")
+            # Don't raise here — this runs before AuthenticationMiddleware, so
+            # request.user isn't set yet and any error-page rendering that
+            # needs it (context processors, handler500) would itself crash.
+            # Leave path_info untouched: no urlpattern has this literal first
+            # segment, so Django's normal resolver 404s after the full
+            # middleware chain has run, same as any other unmatched path.
+            return self.get_response(request)
 
         request.tenant = tenant
         request.path_info = "/" + "/".join(segments[2:])

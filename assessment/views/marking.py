@@ -24,8 +24,8 @@ from ..models import (
 from ._common import (
     MarkingTotals,
     _expire_overdue_attempts, _extract_inline_choices, _question_spec, _question_answer_key, _safe_json_loads,
-    _is_layout_only_question,
-    effective_is_moderator, is_assessor, is_auditor, is_moderator, is_staff,
+    _is_layout_only_question, _tenant_scope, nav_counts_cache_key,
+    effective_is_moderator, is_assessor, is_auditor, is_moderator, is_staff, require_same_tenant,
 )
 
 
@@ -403,7 +403,7 @@ def _handle_finalise(request, attempt, code) -> HttpResponse:
     attempt.finalised_at = timezone.now()
     attempt.finalised_by = request.user
     attempt.save(update_fields=["finalised_at", "finalised_by"])
-    cache.delete(f"nav_counts_{request.user.pk}")
+    cache.delete(nav_counts_cache_key(request))
     logger.info("Attempt finalised: code=%s assessor=%s", code, request.user.username)
     from_tab = request.POST.get("from_tab") or "submitted"
     return redirect(reverse("assessment:assessor_attempts") + f"?tab={from_tab}")
@@ -412,7 +412,7 @@ def _handle_finalise(request, attempt, code) -> HttpResponse:
 def _handle_save_and_redirect(request, attempt, code, current_question, markable_questions, question_ids) -> HttpResponse:
     from django.core.cache import cache
     _save_question_score(request, attempt, current_question)
-    cache.delete(f"nav_counts_{request.user.pk}")
+    cache.delete(nav_counts_cache_key(request))
     action = request.POST.get("action", "save")
     from_tab = request.POST.get("from_tab") or "submitted"
     if action == "done":
@@ -557,11 +557,12 @@ def _key_to_criteria_lines(key: dict) -> list[str]:
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_mark_attempt(request, code: str):
     _expire_overdue_attempts()
 
     attempt = get_object_or_404(
-        Attempt.objects.select_related("learner", "template"),
+        _tenant_scope(Attempt.objects.select_related("learner", "template"), request),
         code=code,
     )
 
@@ -684,26 +685,28 @@ def assessor_mark_attempt(request, code: str):
 
 @login_required
 @user_passes_test(is_moderator)
+@require_same_tenant
 def assessor_unlock_attempt(request, code: str):
     if request.method != "POST":
         return HttpResponseForbidden()
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     if attempt.template.moderation_mode != AssessmentTemplate.MODERATION_FULL:
         return HttpResponseForbidden("This template is audit-only and cannot be unlocked.")
     from django.core.cache import cache
     attempt.finalised_at = None
     attempt.finalised_by = None
     attempt.save(update_fields=["finalised_at", "finalised_by"])
-    cache.delete(f"nav_counts_{request.user.pk}")
+    cache.delete(nav_counts_cache_key(request))
     logger.warning("Attempt unlocked: code=%s moderator=%s", code, request.user.username)
     return redirect(reverse("assessment:assessor_mark_attempt", kwargs={"code": code}))
 
 
 @login_required
 @user_passes_test(is_moderator)
+@require_same_tenant
 def assessor_moderation(request):
     attempts = (
-        Attempt.objects
+        _tenant_scope(Attempt.objects, request)
         .filter(finalised_at__isnull=False, moderated_at__isnull=True)
         .select_related("learner", "template", "finalised_by")
         .order_by("-finalised_at")
@@ -715,24 +718,26 @@ def assessor_moderation(request):
 
 @login_required
 @user_passes_test(is_moderator)
+@require_same_tenant
 def assessor_approve_moderation(request, code: str):
     if request.method != "POST":
         return HttpResponseForbidden()
-    attempt = get_object_or_404(Attempt, code=code, finalised_at__isnull=False)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code, finalised_at__isnull=False)
     from django.core.cache import cache
     attempt.moderated_at = timezone.now()
     attempt.moderated_by = request.user
     attempt.save(update_fields=["moderated_at", "moderated_by"])
-    cache.delete(f"nav_counts_{request.user.pk}")
+    cache.delete(nav_counts_cache_key(request))
     logger.info("Attempt moderation approved: code=%s moderator=%s", code, request.user.username)
     return redirect("assessment:assessor_moderation")
 
 
 @login_required
 @user_passes_test(is_auditor)
+@require_same_tenant
 def assessor_archive(request):
     attempts = (
-        Attempt.objects
+        _tenant_scope(Attempt.objects, request)
         .filter(moderated_at__isnull=False)
         .select_related("learner", "template", "finalised_by", "moderated_by")
         .order_by("-moderated_at")
@@ -744,6 +749,7 @@ def assessor_archive(request):
 
 @login_required
 @user_passes_test(is_moderator)
+@require_same_tenant
 def assessor_activity_report(request):
     """Per-assessor activity breakdown: finalisations, moderations, manual marks."""
     from django.db.models import Count, Min, Max
@@ -767,7 +773,7 @@ def assessor_activity_report(request):
 
     # ── Finalisations ──
     fin_qs = _apply_date_filter(
-        Attempt.objects.filter(finalised_at__isnull=False), "finalised_at"
+        _tenant_scope(Attempt.objects, request).filter(finalised_at__isnull=False), "finalised_at"
     )
     fin_rows = list(
         fin_qs
@@ -778,7 +784,7 @@ def assessor_activity_report(request):
 
     # ── Moderations ──
     mod_qs = _apply_date_filter(
-        Attempt.objects.filter(moderated_at__isnull=False), "moderated_at"
+        _tenant_scope(Attempt.objects, request).filter(moderated_at__isnull=False), "moderated_at"
     )
     mod_by_user = {
         r["moderated_by__username"]: r["count"]
@@ -787,7 +793,10 @@ def assessor_activity_report(request):
 
     # ── Manual marks (first-time scores entered by a human) ──
     marks_qs = _apply_date_filter(
-        ScoreAuditLog.objects.filter(mode="manual", action="created"), "changed_at"
+        _tenant_scope(
+            ScoreAuditLog.objects.filter(mode="manual", action="created"),
+            request, path="score__response__attempt__tenant",
+        ), "changed_at"
     )
     marks_by_user = {
         r["changed_by__username"]: r["count"]
@@ -830,13 +839,16 @@ def assessor_activity_report(request):
     # ── Chart: single line — finalisations + moderations + assessed attempts since inception (unfiltered) ──
     from collections import defaultdict
     inception_by_day: dict[str, int] = defaultdict(int)
-    for r in (Attempt.objects.filter(finalised_at__isnull=False)
+    for r in (_tenant_scope(Attempt.objects, request).filter(finalised_at__isnull=False)
               .annotate(day=TruncDate("finalised_at")).values("day").annotate(count=Count("pk"))):
         inception_by_day[str(r["day"])] += r["count"]
-    for r in (Attempt.objects.filter(moderated_at__isnull=False)
+    for r in (_tenant_scope(Attempt.objects, request).filter(moderated_at__isnull=False)
               .annotate(day=TruncDate("moderated_at")).values("day").annotate(count=Count("pk"))):
         inception_by_day[str(r["day"])] += r["count"]
-    for r in (ScoreAuditLog.objects.filter(mode="manual", action="created")
+    for r in (_tenant_scope(
+                ScoreAuditLog.objects.filter(mode="manual", action="created"),
+                request, path="score__response__attempt__tenant",
+              )
               .annotate(day=TruncDate("changed_at")).values("day")
               .annotate(count=Count("score__response__attempt", distinct=True))):
         inception_by_day[str(r["day"])] += r["count"]
@@ -868,6 +880,7 @@ def assessor_activity_report(request):
 
 @login_required
 @user_passes_test(is_moderator)
+@require_same_tenant
 def assessor_activity_detail(request, username: str):
     from collections import defaultdict
     from django.contrib.auth import get_user_model
@@ -891,13 +904,16 @@ def assessor_activity_detail(request, username: str):
         return qs
 
     fin_qs  = _apply_date_filter(
-        Attempt.objects.filter(finalised_by=assessor, finalised_at__isnull=False), "finalised_at"
+        _tenant_scope(Attempt.objects, request).filter(finalised_by=assessor, finalised_at__isnull=False), "finalised_at"
     )
     mod_qs  = _apply_date_filter(
-        Attempt.objects.filter(moderated_by=assessor, moderated_at__isnull=False), "moderated_at"
+        _tenant_scope(Attempt.objects, request).filter(moderated_by=assessor, moderated_at__isnull=False), "moderated_at"
     )
     marks_qs = _apply_date_filter(
-        ScoreAuditLog.objects.filter(changed_by=assessor, mode="manual"), "changed_at"
+        _tenant_scope(
+            ScoreAuditLog.objects.filter(changed_by=assessor, mode="manual"),
+            request, path="score__response__attempt__tenant",
+        ), "changed_at"
     )
 
     total_fin     = fin_qs.count()
@@ -914,9 +930,11 @@ def assessor_activity_detail(request, username: str):
     attempt_ids = [a.pk for a in attempts]
     last_mark_by_attempt = {
         r["score__response__attempt_id"]: r["last_mark"]
-        for r in ScoreAuditLog.objects.filter(
-            changed_by=assessor, mode="manual",
-            score__response__attempt_id__in=attempt_ids,
+        for r in _tenant_scope(
+            ScoreAuditLog.objects.filter(
+                changed_by=assessor, mode="manual",
+                score__response__attempt_id__in=attempt_ids,
+            ), request, path="score__response__attempt__tenant",
         ).values("score__response__attempt_id").annotate(last_mark=Max("changed_at"))
     }
 
@@ -947,10 +965,10 @@ def assessor_activity_detail(request, username: str):
 
     # Timeline: activity per day since inception for this assessor (unfiltered)
     daily: dict[str, int] = defaultdict(int)
-    for r in (Attempt.objects.filter(finalised_by=assessor, finalised_at__isnull=False)
+    for r in (_tenant_scope(Attempt.objects, request).filter(finalised_by=assessor, finalised_at__isnull=False)
               .annotate(day=TruncDate("finalised_at")).values("day").annotate(count=Count("pk"))):
         daily[str(r["day"])] += r["count"]
-    for r in (Attempt.objects.filter(moderated_by=assessor, moderated_at__isnull=False)
+    for r in (_tenant_scope(Attempt.objects, request).filter(moderated_by=assessor, moderated_at__isnull=False)
               .annotate(day=TruncDate("moderated_at")).values("day").annotate(count=Count("pk"))):
         daily[str(r["day"])] += r["count"]
 
@@ -975,27 +993,29 @@ def assessor_activity_detail(request, username: str):
 
 @login_required
 @user_passes_test(is_auditor)
+@require_same_tenant
 def assessor_auditor_reopen(request, code: str):
     if request.method != "POST":
         return HttpResponseForbidden()
-    attempt = get_object_or_404(Attempt, code=code, moderated_at__isnull=False)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code, moderated_at__isnull=False)
     if attempt.template.moderation_mode != AssessmentTemplate.MODERATION_FULL:
         return HttpResponseForbidden("Audit-only templates cannot be re-opened.")
     from django.core.cache import cache
     attempt.moderated_at = None
     attempt.moderated_by = None
     attempt.save(update_fields=["moderated_at", "moderated_by"])
-    cache.delete(f"nav_counts_{request.user.pk}")
+    cache.delete(nav_counts_cache_key(request))
     logger.warning("Attempt re-opened from archive: code=%s auditor=%s", code, request.user.username)
     return redirect("assessment:assessor_archive")
 
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_auto_marked_attempt(request, code: str):
     """Read-only view of all scored questions not requiring assessor input."""
     attempt = get_object_or_404(
-        Attempt.objects.select_related("learner", "template"),
+        _tenant_scope(Attempt.objects.select_related("learner", "template"), request),
         code=code,
     )
 
@@ -1041,9 +1061,11 @@ def assessor_auto_marked_attempt(request, code: str):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_new_attempt(request):
     import uuid as _uuid
-    latest_template = AssessmentTemplate.objects.order_by("-created_at").first()
+    tenant = getattr(request, "tenant", None)
+    latest_template = _tenant_scope(AssessmentTemplate.objects.order_by("-created_at"), request).first()
 
     if latest_template is None:
         return render(
@@ -1053,7 +1075,7 @@ def assessor_new_attempt(request):
         )
 
     if request.method == "POST":
-        form = AttemptForm(request.POST)
+        form = AttemptForm(request.POST, tenant=tenant)
 
         if form.is_valid():
             learner = Learner.objects.create(
@@ -1081,7 +1103,7 @@ def assessor_new_attempt(request):
                 },
             )
     else:
-        form = AttemptForm(initial={"template": latest_template})
+        form = AttemptForm(initial={"template": latest_template}, tenant=tenant)
 
     return render(
         request,
@@ -1095,6 +1117,7 @@ def assessor_new_attempt(request):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_review_queue(request):
     return redirect(reverse("assessment:assessor_attempts") + "?tab=submitted")
 
@@ -1103,11 +1126,12 @@ def assessor_review_queue(request):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_working_sheet_upload(request, code: str):
     """Upload or replace the working sheet scan for an attempt."""
     import base64
 
-    attempt = get_object_or_404(Attempt.objects.select_related("learner"), code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects.select_related("learner"), request), code=code)
 
     if request.method != "POST":
         return redirect("assessment:assessor_mark_attempt", code=code)
@@ -1144,11 +1168,12 @@ def assessor_working_sheet_upload(request, code: str):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_working_sheet_image(request, code: str):
     """Serve the stored working sheet image/PDF."""
     import base64
 
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     sheet = get_object_or_404(WorkingSheet, attempt=attempt)
     data = base64.b64decode(sheet.data)
     response = HttpResponse(data, content_type=sheet.content_type)
@@ -1159,11 +1184,12 @@ def assessor_working_sheet_image(request, code: str):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_writing_submission_upload(request, code: str):
     """Upload or replace the handwritten essay scan for an attempt."""
     import base64
 
-    attempt = get_object_or_404(Attempt.objects.select_related("learner"), code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects.select_related("learner"), request), code=code)
 
     if request.method != "POST":
         return redirect("assessment:assessor_mark_attempt", code=code)
@@ -1200,11 +1226,12 @@ def assessor_writing_submission_upload(request, code: str):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_writing_submission_image(request, code: str):
     """Serve the stored handwritten essay image/PDF."""
     import base64
 
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     submission = get_object_or_404(WritingSubmission, attempt=attempt)
     data = base64.b64decode(submission.data)
     response = HttpResponse(data, content_type=submission.content_type)
@@ -1215,10 +1242,11 @@ def assessor_writing_submission_image(request, code: str):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_working_sheet_print(request, code: str):
     """Printable working sheet for a specific attempt."""
     attempt = get_object_or_404(
-        Attempt.objects.select_related("learner", "template", "session"),
+        _tenant_scope(Attempt.objects.select_related("learner", "template", "session"), request),
         code=code,
     )
     _WORKING_SHEET_CODES = {
@@ -1265,10 +1293,11 @@ def assessor_working_sheet_print(request, code: str):
 
 @login_required
 @user_passes_test(is_staff)
+@require_same_tenant
 def assessor_scoring_breakdown(request, code: str):
     """Staff-only: how each question was scored — criteria, response, auto-marker decision."""
     attempt = get_object_or_404(
-        Attempt.objects.select_related("learner", "template"),
+        _tenant_scope(Attempt.objects.select_related("learner", "template"), request),
         code=code,
     )
 
@@ -1324,10 +1353,11 @@ def assessor_scoring_breakdown(request, code: str):
 
 @login_required
 @user_passes_test(is_auditor)
+@require_same_tenant
 def assessor_score_audit_log(request, code: str):
     """Per-attempt score audit log — every score creation and change."""
     attempt = get_object_or_404(
-        Attempt.objects.select_related("learner", "template"),
+        _tenant_scope(Attempt.objects.select_related("learner", "template"), request),
         code=code,
     )
     entries = (

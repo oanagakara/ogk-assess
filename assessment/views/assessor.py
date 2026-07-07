@@ -20,11 +20,15 @@ from ..models import (
 )
 from ..nqf import NQF_DISPLAY_GROUPS, build_question_metadata, compute_nqf_placement
 
-from ._common import _expire_overdue_attempts, is_assessor, is_auditor, is_moderator, is_staff
+from ._common import (
+    _expire_overdue_attempts, _tenant_scope, is_assessor, is_auditor, is_moderator, is_staff,
+    require_same_tenant,
+)
 
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_dashboard(request):
     _expire_overdue_attempts()
 
@@ -32,12 +36,12 @@ def assessor_dashboard(request):
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     active_cutoff = now - timedelta(minutes=30)
 
-    total_attempts = Attempt.objects.count()
-    submitted_today = Attempt.objects.filter(
+    total_attempts = _tenant_scope(Attempt.objects, request).count()
+    submitted_today = _tenant_scope(Attempt.objects, request).filter(
         status=Attempt.SUBMITTED,
         submitted_at__gte=today_start,
     ).count()
-    active_now = Attempt.objects.filter(
+    active_now = _tenant_scope(Attempt.objects, request).filter(
         status=Attempt.IN_PROGRESS,
         last_activity_at__gte=active_cutoff,
     ).count()
@@ -48,7 +52,7 @@ def assessor_dashboard(request):
     q_date    = (request.GET.get("q_date") or "").strip()
 
     recent_qs = (
-        Attempt.objects.select_related("learner", "template")
+        _tenant_scope(Attempt.objects, request).select_related("learner", "template")
         .annotate(response_count=Count("response"))
         .order_by("-last_activity_at", "-started_at")
     )
@@ -106,11 +110,12 @@ def assessor_dashboard(request):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_print_queue_json(request):
     """Return IN_PROGRESS attempts that have accepted POPIA — ready for worksheet printing."""
     now = timezone.now()
     attempts = (
-        Attempt.objects.select_related("learner")
+        _tenant_scope(Attempt.objects, request).select_related("learner")
         .filter(
             status=Attempt.IN_PROGRESS,
             popia_accepted_at__isnull=False,
@@ -133,6 +138,7 @@ def assessor_print_queue_json(request):
 
 @login_required
 @user_passes_test(is_staff)
+@require_same_tenant
 def assessor_metrics_simulate(request):
     if request.method != "POST":
         return redirect("assessment:assessor_metrics")
@@ -144,6 +150,7 @@ def assessor_metrics_simulate(request):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_metrics(request):
     from django.db.models import Sum
     from django.db.models.functions import TruncDate
@@ -151,23 +158,23 @@ def assessor_metrics(request):
     now = timezone.now()
     today = now.date()
 
-    status_qs = Attempt.objects.values("status").annotate(count=Count("id"))
+    status_qs = _tenant_scope(Attempt.objects, request).values("status").annotate(count=Count("id"))
     status_map = {row["status"]: row["count"] for row in status_qs}
     in_progress  = status_map.get(Attempt.IN_PROGRESS, 0)
     submitted    = status_map.get(Attempt.SUBMITTED, 0)
     incomplete   = status_map.get(Attempt.INCOMPLETE, 0)
-    finalised    = Attempt.objects.filter(finalised_at__isnull=False).count()
+    finalised    = _tenant_scope(Attempt.objects, request).filter(finalised_at__isnull=False).count()
     total        = in_progress + submitted + incomplete
 
     abandoned_cutoff = now - timedelta(hours=3)
-    abandoned = Attempt.objects.filter(
+    abandoned = _tenant_scope(Attempt.objects, request).filter(
         status=Attempt.IN_PROGRESS,
         last_activity_at__lt=abandoned_cutoff,
     ).count()
 
     thirty_ago = now - timedelta(days=30)
     daily_qs = (
-        Attempt.objects
+        _tenant_scope(Attempt.objects, request)
         .filter(submitted_at__gte=thirty_ago)
         .annotate(day=TruncDate("submitted_at"))
         .values("day")
@@ -177,14 +184,13 @@ def assessor_metrics(request):
     daily_labels = [str(row["day"]) for row in daily_qs]
     daily_counts = [row["count"] for row in daily_qs]
 
-    score_qs = (
-        Score.objects
-        .filter(response__attempt__status=Attempt.SUBMITTED, max_points__gt=0)
-        .values("response__attempt_id")
-        .annotate(
-            awarded=Sum("points"),
-            available=Sum("max_points"),
-        )
+    score_qs = _tenant_scope(
+        Score.objects, request, path="response__attempt__tenant"
+    ).filter(
+        response__attempt__status=Attempt.SUBMITTED, max_points__gt=0
+    ).values("response__attempt_id").annotate(
+        awarded=Sum("points"),
+        available=Sum("max_points"),
     )
     bands = [0] * 5
     scored_count = 0
@@ -198,16 +204,18 @@ def assessor_metrics(request):
             bands[idx] += 1
     avg_score = round(total_pct_sum / scored_count, 1) if scored_count else None
 
-    unique_learners = Attempt.objects.values("learner_id").distinct().count()
+    unique_learners = _tenant_scope(Attempt.objects, request).values("learner_id").distinct().count()
 
     nqf_attempts = (
-        Attempt.objects
+        _tenant_scope(Attempt.objects, request)
         .filter(status=Attempt.SUBMITTED)
         .prefetch_related(
             Prefetch("response_set", queryset=Response.objects.select_related("score"))
         )
     )
-    questions = Question.objects.select_related("section").filter(
+    questions = _tenant_scope(
+        Question.objects.select_related("section"), request, path="section__template__tenant"
+    ).filter(
         section__template__attempt__status=Attempt.SUBMITTED
     ).distinct()
     q_meta = build_question_metadata(questions)
@@ -235,7 +243,7 @@ def assessor_metrics(request):
     demo_colors = ["#efbbff", "#d896ff", "#be29ec", "#800080"]
     age_demo_counts = {d: [0] * 2 for d in demographics}
 
-    learner_qs = Learner.objects.filter(
+    learner_qs = _tenant_scope(Learner.objects, request).filter(
         attempt__isnull=False, dob__isnull=False
     ).values("dob", "demographic").distinct()
 
@@ -280,12 +288,14 @@ def assessor_metrics(request):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_guide(request):
     return render(request, "assessment/assessor_guide.html")
 
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_attempts(request):
     _expire_overdue_attempts()
 
@@ -298,7 +308,7 @@ def assessor_attempts(request):
     )
 
     base_qs = (
-        Attempt.objects.select_related("learner", "template")
+        _tenant_scope(Attempt.objects, request).select_related("learner", "template")
         .annotate(response_count=Count("response", distinct=True))
         .order_by("-last_activity_at", "-started_at")
     )
@@ -336,13 +346,14 @@ def assessor_attempts(request):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_results(request):
     q_code    = (request.GET.get("q_code")    or "").strip()
     q_learner = (request.GET.get("q_learner") or "").strip()
     q_date    = (request.GET.get("q_date")    or "").strip()
 
     attempts = (
-        Attempt.objects
+        _tenant_scope(Attempt.objects, request)
         .filter(
             status__in=[Attempt.SUBMITTED, Attempt.INCOMPLETE],
             response__score__isnull=False,
@@ -400,9 +411,10 @@ def assessor_results(request):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_results_export(request):
     attempts = (
-        Attempt.objects
+        _tenant_scope(Attempt.objects, request)
         .filter(
             status__in=[Attempt.SUBMITTED, Attempt.INCOMPLETE],
             response__score__isnull=False,
@@ -467,9 +479,10 @@ def assessor_results_export(request):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_sessions(request):
     sessions = (
-        ExamSession.objects
+        _tenant_scope(ExamSession.objects, request)
         .select_related("template", "created_by")
         .annotate(attempt_count=Count("attempts"))
         .order_by("-created_at")
@@ -483,15 +496,17 @@ def assessor_sessions(request):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def assessor_new_session(request):
-    latest_template = AssessmentTemplate.objects.order_by("-created_at").first()
+    tenant = getattr(request, "tenant", None)
+    latest_template = _tenant_scope(AssessmentTemplate.objects.order_by("-created_at"), request).first()
 
     if latest_template is None:
         return render(request, "assessment/assessor_new_session.html",
                       {"error": "No assessment template exists yet."})
 
     if request.method == "POST":
-        form = ExamSessionForm(request.POST)
+        form = ExamSessionForm(request.POST, tenant=tenant)
         if form.is_valid():
             session = form.save(commit=False)
             session.created_by = request.user
@@ -499,19 +514,20 @@ def assessor_new_session(request):
             return render(request, "assessment/assessor_new_session.html",
                           {"session": session, "form": form})
     else:
-        form = ExamSessionForm(initial={"template": latest_template})
+        form = ExamSessionForm(initial={"template": latest_template}, tenant=tenant)
 
     return render(request, "assessment/assessor_new_session.html", {"form": form})
 
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def session_monitor(request, code: str):
     from django.db.models import Count
     from django.urls import reverse
 
     session = get_object_or_404(
-        ExamSession.objects.select_related("template"),
+        _tenant_scope(ExamSession.objects, request).select_related("template"),
         code=code,
     )
 
@@ -570,6 +586,7 @@ def session_monitor(request, code: str):
 
 @login_required
 @user_passes_test(is_staff)
+@require_same_tenant
 def assessor_questions(request):
     templates = AssessmentTemplate.objects.order_by("name", "-created_at")
 
@@ -602,6 +619,7 @@ def assessor_questions(request):
 
 @login_required
 @user_passes_test(is_staff)
+@require_same_tenant
 def assessor_toggle_question(request, pk: int):
     if request.method != "POST":
         return redirect("assessment:assessor_questions")

@@ -3,10 +3,12 @@ import json
 import logging
 import re
 from datetime import timedelta
+from functools import wraps
 from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
 
+from django.http import HttpResponseForbidden
 from django.utils import timezone
 
 from ..models import Attempt
@@ -55,6 +57,40 @@ def effective_is_moderator(request) -> bool:
     if not is_moderator(request.user):
         return False
     return request.session.get("active_role", "moderator") != "assessor"
+
+
+# ── Tenant access enforcement ─────────────────────────────────────────────────
+
+def require_same_tenant(view_func):
+    """Deny access unless the user belongs to request.tenant, or is the
+    administrator (is_staff/is_superuser — full cross-tenant access).
+    A no-op when request.tenant isn't set (iCan / MULTI_TENANT_MODE off).
+    Stack this innermost, after @login_required and any @user_passes_test."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        tenant = getattr(request, "tenant", None)
+        if tenant is None:
+            return view_func(request, *args, **kwargs)
+        if request.user.is_staff or request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+        membership = getattr(request.user, "tenant_membership", None)
+        if membership is None or membership.tenant_id != tenant.id:
+            return HttpResponseForbidden("You do not have access to this tenant.")
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def _tenant_scope(qs, request, path="tenant"):
+    """Filter qs by request.tenant when set; unscoped (unchanged) otherwise."""
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        return qs
+    return qs.filter(**{path: tenant})
+
+
+def nav_counts_cache_key(request) -> str:
+    tenant = getattr(request, "tenant", None)
+    return f"nav_counts_{request.user.pk}_{tenant.pk if tenant else 'global'}"
 
 
 # ── JSON helpers ──────────────────────────────────────────────────────────────

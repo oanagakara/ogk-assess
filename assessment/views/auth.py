@@ -17,7 +17,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from ..models import AssessorInvite
 
-from ._common import effective_is_moderator, is_assessor, is_auditor, is_moderator
+from ._common import effective_is_moderator, is_assessor, is_auditor, is_moderator, require_same_tenant
 
 
 class TenantLoginView(LoginView):
@@ -36,6 +36,7 @@ class TenantLoginView(LoginView):
 
 @login_required
 @user_passes_test(is_assessor)
+@require_same_tenant
 def set_active_role(request):
     if request.method != "POST":
         return redirect("assessment:assessor_dashboard")
@@ -100,6 +101,10 @@ def register(request, token):
             user = User.objects.create_user(username=username, email=email, password=password1)
             group, _ = Group.objects.get_or_create(name=invite.role)
             user.groups.add(group)
+            tenant = getattr(request, "tenant", None)
+            if tenant is not None:
+                from ..models import TenantMembership
+                TenantMembership.objects.get_or_create(user=user, defaults={"tenant": tenant})
             invite.used_at = timezone.now()
             invite.used_by = user
             invite.save(update_fields=["used_at", "used_by"])
@@ -120,6 +125,7 @@ def register(request, token):
 
 @login_required
 @user_passes_test(is_moderator)
+@require_same_tenant
 def generate_invite(request):
     invite = None
     can_invite_moderator = effective_is_moderator(request)

@@ -160,6 +160,13 @@ class AttemptForm(forms.ModelForm):
             "accommodation_notes": "Accommodation notes (optional)",
         }
 
+    def __init__(self, *args, tenant=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if tenant is not None:
+            self.fields["template"].queryset = AssessmentTemplate.objects.filter(
+                tenant=tenant
+            ).order_by("-created_at")
+
 
 class ExamSessionForm(forms.ModelForm):
 
@@ -172,3 +179,10 @@ class ExamSessionForm(forms.ModelForm):
     class Meta:
         model = ExamSession
         fields = ["template"]
+
+    def __init__(self, *args, tenant=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if tenant is not None:
+            self.fields["template"].queryset = AssessmentTemplate.objects.filter(
+                tenant=tenant
+            ).order_by("-created_at")

@@ -18,6 +18,7 @@ def claim_seat(attempt: Attempt) -> tuple[bool, str]:
     active = (
         Attempt.objects.select_for_update()
         .filter(
+            tenant=attempt.tenant,
             status=Attempt.IN_PROGRESS,
             last_activity_at__isnull=False,
             last_activity_at__gte=cutoff,

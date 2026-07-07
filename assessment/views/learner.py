@@ -29,7 +29,7 @@ from ..services import claim_seat, claim_session_seat
 from ._common import (
     ASSESSMENT_DURATION, SECTION_DURATION, REVIEW_MAX_SECONDS,
     _extract_inline_choices, _is_layout_only_question, _question_spec,
-    _safe_json_loads,
+    _safe_json_loads, _tenant_scope,
 )
 
 
@@ -405,7 +405,7 @@ def start(request):
             span.set_attribute("assessment.code", code)
             span.set_attribute("http.client_ip", request.META.get("REMOTE_ADDR", "-"))
 
-            attempt = Attempt.objects.filter(code=code).first()
+            attempt = _tenant_scope(Attempt.objects, request).filter(code=code).first()
             if attempt is not None:
                 span.set_attribute("assessment.entry_type", "attempt")
                 ok, msg = claim_seat(attempt)
@@ -418,7 +418,7 @@ def start(request):
                 form.add_error("code", msg)
                 return render(request, "assessment/start.html", {"form": form})
 
-            session = ExamSession.objects.filter(code=code).select_related("template").first()
+            session = _tenant_scope(ExamSession.objects, request).filter(code=code).select_related("template").first()
             if session is not None:
                 span.set_attribute("assessment.entry_type", "session")
                 logger.info("Learner joining session: code=%s ip=%s", code, request.META.get("REMOTE_ADDR", "-"))
@@ -434,7 +434,7 @@ def start(request):
 # ── Attempt flow ──────────────────────────────────────────────────────────────
 
 def attempt_question(request, code: str, n: int):
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
 
@@ -521,7 +521,7 @@ def attempt_question(request, code: str, n: int):
 
 
 def attempt_submit(request, code: str):
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
 
@@ -552,7 +552,7 @@ def attempt_submit(request, code: str):
 
 
 def attempt_details(request, code: str):
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
 
@@ -588,7 +588,7 @@ def attempt_details(request, code: str):
 def attempt_consent(request, code: str):
     if request.method != "POST":
         return redirect("assessment:attempt_details", code=code)
-    attempt = get_object_or_404(Attempt.objects.select_related("learner"), code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects.select_related("learner"), request), code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
     if attempt.consent_signed_at:
@@ -600,7 +600,7 @@ def attempt_consent(request, code: str):
 
 
 def attempt_instructions(request, code: str):
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
 
@@ -620,7 +620,7 @@ def attempt_instructions(request, code: str):
 
 
 def attempt_submitted(request, code: str):
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     return render(request, "assessment/submitted.html", {"attempt": attempt})
 
 
@@ -629,7 +629,7 @@ def attempt_submitted(request, code: str):
 def session_join(request, code: str):
     """Step 1 of session entry: learner particulars. On success renders the consent modal."""
     session = get_object_or_404(
-        ExamSession.objects.select_related("template"),
+        _tenant_scope(ExamSession.objects, request).select_related("template"),
         code=code,
     )
 
@@ -690,7 +690,7 @@ def session_consent(request, code: str):
         return redirect("assessment:session_join", code=code)
 
     attempt = get_object_or_404(
-        Attempt.objects.select_related("learner"), code=attempt_code
+        _tenant_scope(Attempt.objects.select_related("learner"), request), code=attempt_code
     )
 
     if attempt.consent_signed_at:
@@ -705,7 +705,7 @@ def session_consent(request, code: str):
 
 def attempt_section_review_info(request, code: str, section_id: int):
     """Offer the learner a choice to review (or skip) the section they just finished."""
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
 
@@ -757,7 +757,7 @@ def attempt_section_review_info(request, code: str, section_id: int):
 
 def attempt_section_review_question(request, code: str, section_id: int, n: int):
     """Review phase for a single section, with one global timer (≤10 min) for the whole phase."""
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
 
@@ -831,7 +831,7 @@ def attempt_section_review_question(request, code: str, section_id: int, n: int)
 
 def attempt_section_review_done(request, code: str, section_id: int):
     """Section review finished or timed out — advance to the next section, or finalise."""
-    attempt = get_object_or_404(Attempt, code=code)
+    attempt = get_object_or_404(_tenant_scope(Attempt.objects, request), code=code)
     if not _owns_attempt(request, code):
         return HttpResponseForbidden()
     if attempt.status == Attempt.SUBMITTED:

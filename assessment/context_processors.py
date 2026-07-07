@@ -3,6 +3,7 @@ from django.db.models import Exists, OuterRef
 
 from .models import Attempt, Response, Score
 from .tenant import get_active_tenant
+from .views._common import nav_counts_cache_key
 
 
 def csp_nonce(request):
@@ -73,7 +74,7 @@ def assessor_nav_counts(request):
     user_is_auditor = real_is_auditor and active_role not in ("assessor", "moderator")
 
     tenant = getattr(request, "tenant", None)
-    count_cache_key = f"nav_counts_{request.user.pk}_{tenant.pk if tenant else 'global'}"
+    count_cache_key = nav_counts_cache_key(request)
     cached_counts = cache.get(count_cache_key)
     if cached_counts is None:
         base_qs = Attempt.objects.filter(tenant=tenant) if tenant else Attempt.objects.all()
