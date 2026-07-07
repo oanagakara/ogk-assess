@@ -14,6 +14,32 @@ services:
           name: ican-assessment-db
           property: connectionString
 
+  # Free-tier multi-tenant service — hosts "demo" and future prospect tenants,
+  # isolated from iCan's paid deployment/database above. Add a new tenant by
+  # creating a Tenant row (see bootstrap_demo_tenant / the invite flow) — no
+  # changes to this file are needed per tenant.
+  - type: web
+    name: ogk-assessment-freetier
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application --workers 3 --threads 2 --worker-class gthread --timeout 60 --forwarded-allow-ips '*'"
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: MULTI_TENANT_MODE
+        value: "True"
+      - key: DEFAULT_TENANT_SLUG
+        value: "demo"
+      - key: ALLOWED_HOSTS
+        value: "ogk-solutions.co.za,ogk-assessment-freetier.onrender.com"
+      # Points at the existing, currently-unused free Neon "assessment-engine"
+      # project — set manually in the Render dashboard, not stored here.
+      - key: DATABASE_URL
+        sync: false
+
 databases:
   - name: ican-assessment-db
     plan: starter
