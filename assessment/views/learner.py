@@ -365,6 +365,27 @@ def request_demo(request):
             )
         except Exception:
             pass
+
+    video_url = getattr(settings, "DEMO_VIDEO_URL", "")
+    video_line = f"\nIn the meantime, here's a short recorded walkthrough: {video_url}\n" if video_url else ""
+    try:
+        send_mail(
+            subject="Thanks for your interest in ogk-solutions",
+            message=(
+                f"Hi {name},\n\n"
+                f"Thanks for requesting a demo of ogk-solutions"
+                f"{' for ' + org if org else ''}. We'll be in touch within 2 business "
+                f"days to schedule a live walkthrough.\n"
+                f"{video_line}\n"
+                f"OANAGAKARA (Pty) Ltd t/a ogk-solutions\n"
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[email],
+            fail_silently=True,
+        )
+    except Exception:
+        pass
+
     return JsonResponse({"ok": True})
 
 

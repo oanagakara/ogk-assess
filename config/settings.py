@@ -202,6 +202,7 @@ EMAIL_USE_TLS = False
 EMAIL_HOST_USER = os.environ.get("NOTIFY_EMAIL_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("NOTIFY_EMAIL_PASSWORD", "")
 NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", "")
+DEMO_VIDEO_URL = os.environ.get("DEMO_VIDEO_URL", "")
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour
 
 # ── Cookie security (explicit — do not rely on Django defaults) ────────────────
