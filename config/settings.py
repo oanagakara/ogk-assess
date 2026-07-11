@@ -97,7 +97,14 @@ if DATABASE_URL:
     _local_hosts = {"localhost", "127.0.0.1", "::1"}
     _parsed_host = DATABASE_URL.split("@")[-1].split(":")[0].split("/")[0]
     _ssl_required = _parsed_host not in _local_hosts and not _parsed_host.startswith("192.168.")
-    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=_ssl_required)}
+    # conn_health_checks: a persistent connection can go stale server-side
+    # (Neon idle recycling, a network blip) before our conn_max_age window is
+    # up. Without this, Django reuses the dead connection and the request
+    # fails with a raw "SSL connection has been closed unexpectedly" instead
+    # of transparently reconnecting.
+    DATABASES = {"default": dj_database_url.parse(
+        DATABASE_URL, conn_max_age=600, conn_health_checks=True, ssl_require=_ssl_required,
+    )}
 else:
     DATABASES = {
         "default": {
