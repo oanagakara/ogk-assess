@@ -58,6 +58,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Compresses dynamic responses (whitenoise above only covers static files).
+    # BREACH-attack note: compression of responses that reflect a secret (e.g. a
+    # CSRF token) alongside attacker-influenced input can leak that secret via
+    # response-size side channels. CSRF tokens here are cookie-delivered, not
+    # mirrored into response bodies next to user input, so this is not currently
+    # exploitable on this codebase — re-check if that ever changes.
+    'django.middleware.gzip.GZipMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'axes.middleware.AxesMiddleware',
