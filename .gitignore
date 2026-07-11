@@ -55,7 +55,7 @@ docs/product_specification.html
 docs/service_agreement*.html
 docs/costing_model.html
 docs/data_processing_agreement.html
-docs/procurement_review*.html
+docs/procurement_*
 docs/support-sla*.docx
 docs/support-sla*.html
 docs/sysadmin_management*.html
@@ -79,6 +79,7 @@ docs/assessor_training_manual.md
 docs/changelog_external.html
 docs/disaster_recovery_plan.html
 docs/DOC_CONSISTENCY_CHECKLIST.md
+docs/eval/
 
 # scripts/ — internal tooling, never shared with any git provider
 scripts/
