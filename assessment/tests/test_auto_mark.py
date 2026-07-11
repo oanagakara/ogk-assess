@@ -10,6 +10,8 @@ import pytest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import anthropic
+
 from assessment.auto_mark import (
     _normalize,
     _number_in_text,
@@ -20,11 +22,29 @@ from assessment.auto_mark import (
     _auto_mark_keyword_answer,
     _auto_mark_keyword_per_mark,
     _auto_mark_tiered_keyword,
+    _create_message_with_retry,
     auto_mark_response,
     _is_blank_response,
     _zero_score,
     auto_mark_attempt,
 )
+from assessment.metrics import ai_marking_failures_total
+
+
+def _fake_transient_error():
+    """A retryable anthropic error, built without any real HTTP call."""
+    import httpx
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    response = httpx.Response(status_code=503, request=request)
+    return anthropic.InternalServerError("transient failure", response=response, body=None)
+
+
+def _fake_auth_error():
+    """A non-retryable anthropic error — retrying it would never succeed."""
+    import httpx
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    response = httpx.Response(status_code=401, request=request)
+    return anthropic.AuthenticationError("bad key", response=response, body=None)
 
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
@@ -552,3 +572,75 @@ class TestAutoMarkAttempt:
             )
         count = auto_mark_attempt(setup.attempt)
         assert count == 3
+
+
+class TestCreateMessageWithRetry:
+    """_create_message_with_retry: transient-error retry with backoff."""
+
+    def test_succeeds_first_try_no_retry(self):
+        client = SimpleNamespace(messages=SimpleNamespace(create=lambda **kw: "ok"))
+        with patch("assessment.auto_mark.time.sleep") as sleep:
+            result = _create_message_with_retry(client, model="x")
+        assert result == "ok"
+        sleep.assert_not_called()
+
+    def test_retries_then_succeeds(self):
+        calls = {"n": 0}
+
+        def create(**kw):
+            calls["n"] += 1
+            if calls["n"] < 3:
+                raise _fake_transient_error()
+            return "ok"
+
+        client = SimpleNamespace(messages=SimpleNamespace(create=create))
+        with patch("assessment.auto_mark.time.sleep") as sleep:
+            result = _create_message_with_retry(client, model="x")
+        assert result == "ok"
+        assert calls["n"] == 3
+        assert sleep.call_count == 2  # slept between attempts 1→2 and 2→3
+
+    def test_exhausts_retries_and_raises_last_error(self):
+        client = SimpleNamespace(
+            messages=SimpleNamespace(create=lambda **kw: (_ for _ in ()).throw(_fake_transient_error()))
+        )
+        with patch("assessment.auto_mark.time.sleep"):
+            with pytest.raises(anthropic.InternalServerError):
+                _create_message_with_retry(client, model="x")
+
+    def test_non_retryable_error_raised_immediately_no_retry(self):
+        calls = {"n": 0}
+
+        def create(**kw):
+            calls["n"] += 1
+            raise _fake_auth_error()
+
+        client = SimpleNamespace(messages=SimpleNamespace(create=create))
+        with patch("assessment.auto_mark.time.sleep") as sleep:
+            with pytest.raises(anthropic.AuthenticationError):
+                _create_message_with_retry(client, model="x")
+        assert calls["n"] == 1  # no retry attempted
+        sleep.assert_not_called()
+
+
+class TestAiRubricFailureTelemetry:
+    """_auto_mark_ai_rubric's except path: metric + log on final failure."""
+
+    def test_failure_increments_metric_and_falls_back_to_manual_review(self):
+        question = SimpleNamespace(pk=1, prompt="Explain X", max_marks=4)
+        response = SimpleNamespace(response_json=json.dumps({"answer": "some text"}))
+        key = {"criteria": [{"key": "c1", "label": "Clarity", "max_points": 4}]}
+
+        before = ai_marking_failures_total.labels(error_type="AuthenticationError")._value.get()
+
+        with patch("assessment.auto_mark.anthropic.Anthropic") as mock_anthropic:
+            mock_anthropic.return_value.messages.create.side_effect = _fake_auth_error()
+            from assessment.auto_mark import _auto_mark_ai_rubric
+            with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}):
+                result = _auto_mark_ai_rubric(question, response, key)
+
+        after = ai_marking_failures_total.labels(error_type="AuthenticationError")._value.get()
+        assert after == before + 1
+        assert result["points"] == 0.0
+        assert result["rubric_json"]["needs_review"] is True
+        assert "AI marking unavailable" in result["rubric_json"]["notes"]

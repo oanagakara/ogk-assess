@@ -29,8 +29,26 @@ Match question (kind == "match"):
 """
 
 import json
+import logging
 import os
 import re
+import time
+
+import anthropic
+
+from assessment.metrics import ai_marking_failures_total
+
+logger = logging.getLogger(__name__)
+
+# Errors worth retrying — transient/server-side. Auth and bad-request errors
+# won't succeed on retry, so they're allowed to fail immediately instead of
+# wasting the exam-session timeout budget on doomed attempts.
+_RETRYABLE_ANTHROPIC_ERRORS = (
+    anthropic.APIConnectionError,
+    anthropic.APITimeoutError,
+    anthropic.RateLimitError,
+    anthropic.InternalServerError,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -264,13 +282,34 @@ def _auto_mark_tiered_keyword(question, response, key) -> dict:
     }
 
 
+def _create_message_with_retry(client, **kwargs):
+    """
+    Up to 3 attempts with backoff (0s, 1s, 3s), retrying only transient/
+    server-side Anthropic errors. Auth/bad-request errors are re-raised
+    immediately by the except clause not matching them — no point burning
+    the exam-session timeout budget retrying something that can't succeed.
+    """
+    delays = (0, 1, 3)
+    last_exc: Exception = RuntimeError("retry loop never attempted a call")
+    for attempt, delay in enumerate(delays, start=1):
+        if delay:
+            time.sleep(delay)
+        try:
+            return client.messages.create(**kwargs)
+        except _RETRYABLE_ANTHROPIC_ERRORS as exc:
+            last_exc = exc
+            logger.warning(
+                "Anthropic API call failed, attempt %d/%d: %s",
+                attempt, len(delays), exc,
+            )
+    raise last_exc
+
+
 def _auto_mark_ai_rubric(question, response, key) -> dict:
     """
     AI-suggested marking for written responses. Always sets needs_review=True.
     Calls Claude with the rubric and learner text; pre-fills per-criterion scores.
     """
-    import anthropic
-
     data = json.loads(response.response_json or "{}")
     response_text = str(data.get("answer", "")).strip()
     criteria = key.get("criteria", [])
@@ -306,7 +345,8 @@ def _auto_mark_ai_rubric(question, response, key) -> dict:
             raise ValueError("ANTHROPIC_API_KEY not set")
 
         client = anthropic.Anthropic(api_key=api_key)
-        msg = client.messages.create(
+        msg = _create_message_with_retry(
+            client,
             model="claude-haiku-4-5-20251001",
             max_tokens=512,
             timeout=20,
@@ -350,6 +390,8 @@ def _auto_mark_ai_rubric(question, response, key) -> dict:
         }
 
     except Exception as exc:
+        ai_marking_failures_total.labels(error_type=type(exc).__name__).inc()
+        logger.warning("AI marking unavailable for question %s: %s", question.pk, exc)
         return {
             "points": 0.0,
             "max_points": max_marks,

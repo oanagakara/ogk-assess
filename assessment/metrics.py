@@ -22,6 +22,12 @@ attempt_submissions_total = Counter(
     "Learner attempts submitted",
 )
 
+ai_marking_failures_total = Counter(
+    "assessment_ai_marking_failures_total",
+    "AI rubric marking calls that fell back to manual review",
+    ["error_type"],
+)
+
 request_duration_seconds = Histogram(
     "assessment_request_duration_seconds",
     "HTTP request duration in seconds",
