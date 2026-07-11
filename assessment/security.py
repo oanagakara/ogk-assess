@@ -15,6 +15,8 @@ def _get_client_ip(request):
 
 @receiver(user_login_failed)
 def on_login_failure(sender, credentials, request, **kwargs):
+    from .metrics import login_failures_total
+    login_failures_total.inc()
     if request:
         ip = _get_client_ip(request)
         key = f"login_fail:{ip}"

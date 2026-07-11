@@ -94,6 +94,7 @@ reporting/etl.py.bak
 reporting/powerbi/
 
 # Claude skills and memory
+.claude/
 .skills/
 memory/
 staticfiles/

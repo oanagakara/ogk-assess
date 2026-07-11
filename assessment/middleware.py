@@ -1,5 +1,9 @@
+import time
+
 from django.http import Http404
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
+
+from .metrics import request_duration_seconds
 
 
 class ErrorHandlerMiddleware:
@@ -13,7 +17,13 @@ class ErrorHandlerMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        return self.get_response(request)
+        t0 = time.monotonic()
+        response = self.get_response(request)
+        request_duration_seconds.labels(
+            method=request.method,
+            status=str(response.status_code),
+        ).observe(time.monotonic() - t0)
+        return response
 
     def process_exception(self, request, exception):
         if isinstance(exception, (Http404, PermissionDenied, SuspiciousOperation)):

@@ -89,6 +89,8 @@ _SILENT_404_SUFFIXES = (
 
 
 def _notify(error_type, error_msg, url="", method="", user=""):
+    from assessment.metrics import platform_errors_total
+    platform_errors_total.labels(error_type=error_type).inc()
     logger.warning(
         "PLATFORM ERROR | %s | %s | %s %s | user:%s",
         error_type, error_msg, method, url, user,

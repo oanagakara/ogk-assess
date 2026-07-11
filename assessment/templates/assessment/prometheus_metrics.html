@@ -1,0 +1,223 @@
+{% extends "assessment/base.html" %}
+{% block title %}Prometheus Metrics{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="p-6 space-y-6" style="max-width:72rem;margin:0 auto;">
+
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Prometheus Metrics</h1>
+    <span class="text-xs opacity-40 font-mono">{{ ts }}</span>
+  </div>
+
+  <!-- Domain counters — scan these first -->
+  <div class="grid gap-3" style="grid-template-columns:repeat(5,minmax(0,1fr));">
+
+    <div class="card shadow border-2 {% if domain.login_failures > 10 %}border-error bg-error/10{% elif domain.login_failures > 0 %}border-warning bg-warning/10{% else %}border-base-300 bg-base-100{% endif %}">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="text-3xl font-bold font-mono {% if domain.login_failures > 10 %}text-error{% elif domain.login_failures > 0 %}text-warning{% endif %}">
+          {{ domain.login_failures }}
+        </div>
+        <div class="text-sm opacity-70">Login failures</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+    <div class="card shadow border-2 {% if domain.errors > 0 %}border-error bg-error/10{% else %}border-base-300 bg-base-100{% endif %}">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="text-3xl font-bold font-mono {% if domain.errors > 0 %}text-error{% endif %}">
+          {{ domain.errors }}
+        </div>
+        <div class="text-sm opacity-70">Platform errors</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+    <div class="card shadow border-2 border-base-300 bg-base-100">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="flex items-baseline gap-3">
+          <div class="text-3xl font-bold font-mono">{{ domain.requests }}</div>
+          {% if domain.avg_ms is not None %}
+            <div class="text-sm opacity-60 font-mono">avg {{ domain.avg_ms }} ms</div>
+          {% endif %}
+        </div>
+        <div class="text-sm opacity-70">Requests served</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+    <div class="card shadow border-2 border-base-300 bg-base-100">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="text-3xl font-bold font-mono">{{ domain.submissions }}</div>
+        <div class="text-sm opacity-70">Attempts submitted</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+    <div class="card shadow border-2 border-base-300 bg-base-100">
+      <div class="card-body" style="padding:14px 16px;">
+        <div class="text-3xl font-bold font-mono">{{ domain.score_writes }}</div>
+        <div class="text-sm opacity-70">Score writes</div>
+        <div class="text-xs opacity-40">since process start</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="divider mb-0"></div>
+
+  <!-- Process stats -->
+  <div class="grid gap-2" style="grid-template-columns:repeat(6,minmax(0,1fr));">
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.rss|default:"—" }}</div>
+        <div class="text-xs opacity-60">Resident memory</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.vms|default:"—" }}</div>
+        <div class="text-xs opacity-60">Virtual memory</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.cpu|default:"—" }}</div>
+        <div class="text-xs opacity-60">CPU time</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.uptime|default:"—" }}</div>
+        <div class="text-xs opacity-60">Uptime</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="flex items-baseline gap-2">
+          <div class="text-lg font-bold font-mono">{{ cards.fds|default:"—" }}</div>
+          {% if cards.max_fds %}<div class="text-xs opacity-40 font-mono">/ {{ cards.max_fds }}</div>{% endif %}
+        </div>
+        <div class="text-xs opacity-60 mb-1">Open file descriptors</div>
+        {% if cards.fds and cards.max_fds %}
+          <progress class="progress progress-primary w-full" style="height:4px;"
+            value="{{ cards.fds }}" max="{{ cards.max_fds }}"></progress>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:8px 12px;">
+        <div class="text-lg font-bold font-mono">{{ cards.gc_gen0|default:"—" }}</div>
+        <div class="text-xs opacity-60">GC collected (gen 0)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="grid gap-4" style="grid-template-columns:repeat(2,minmax(0,1fr));">
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18px;">
+        <h2 class="font-semibold mb-4">GC objects collected by generation</h2>
+        <canvas id="gcChart" height="160"></canvas>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow border border-base-300">
+      <div class="card-body" style="padding:18px;">
+        <h2 class="font-semibold mb-4">Memory — resident vs mapped</h2>
+        <canvas id="memChart" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full metrics table -->
+  <div class="card bg-base-100 shadow border border-base-300">
+    <div class="card-body p-0">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra w-full text-sm">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Type</th>
+              <th class="opacity-60">Description</th>
+              <th>Labels</th>
+              <th class="text-right">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for group in groups %}
+              {% for sample in group.samples %}
+                <tr>
+                  {% if forloop.first %}
+                    <td class="font-mono font-semibold align-top" rowspan="{{ group.samples|length }}">{{ group.name }}</td>
+                    <td class="align-top" rowspan="{{ group.samples|length }}">
+                      <span class="badge badge-ghost badge-sm font-mono">{{ group.type }}</span>
+                    </td>
+                    <td class="text-xs opacity-50 align-top" rowspan="{{ group.samples|length }}" style="max-width:18rem;">{{ group.help }}</td>
+                  {% endif %}
+                  <td class="font-mono text-xs opacity-70">{{ sample.labels|default:"—" }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ sample.value }}</td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script>
+{% autoescape off %}
+const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+  || window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+const labelColor = isDark ? '#9ca3af' : '#374151';
+
+new Chart(document.getElementById('gcChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Gen 0', 'Gen 1', 'Gen 2'],
+    datasets: [{
+      label: 'Objects collected',
+      data: {{ gc_data }},
+      backgroundColor: ['#efbbff', '#be29ec', '#800080'],
+      borderRadius: 4,
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: labelColor } },
+      y: { grid: { color: gridColor }, ticks: { color: labelColor, stepSize: 1 }, beginAtZero: true,
+           title: { display: true, text: 'Objects', color: labelColor } },
+    }
+  }
+});
+
+new Chart(document.getElementById('memChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Memory'],
+    datasets: [
+      { label: 'Resident (RSS)', data: [{{ rss_mb }}], backgroundColor: '#be29ec', borderRadius: 0, borderWidth: 0 },
+      { label: 'Mapped, not resident', data: [{{ mapped_mb }}], backgroundColor: '#efbbff', borderRadius: 4, borderSkipped: 'bottom', borderWidth: 0 },
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { color: labelColor, boxWidth: 12, padding: 14 } },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw} MB` } }
+    },
+    scales: {
+      x: { stacked: true, grid: { color: gridColor }, ticks: { color: labelColor }, title: { display: true, text: 'MB', color: labelColor } },
+      y: { stacked: true, grid: { display: false }, ticks: { display: false } },
+    }
+  }
+});
+{% endautoescape %}
+</script>
+{% endblock %}
