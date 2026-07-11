@@ -1,4 +1,4 @@
-Django==6.0.5
+Django==6.0.7
 anthropic==0.96.0
 asgiref==3.11.1
 sqlparse==0.5.4
