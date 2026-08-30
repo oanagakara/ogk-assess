@@ -22,7 +22,6 @@ media/
 .env
 .env.*
 !.env.example
-!.env.example
 
 # OS
 .DS_Store
@@ -116,3 +115,5 @@ test_report.html
 
 # Database dumps
 dr-artefacts/
+docs/procurement_*
+docs/eval/
